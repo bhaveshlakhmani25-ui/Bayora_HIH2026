@@ -17,8 +17,11 @@ dev = ["pytest>=8"]
 bayora = "bayora.cli:main"
 
 [tool.setuptools]
-packages = ["bayora", "bayora.isolation"]
+packages = ["bayora", "bayora.isolation", "bayora.dashboard"]
 
 [tool.setuptools.package-data]
 bayora = ["default.yaml"]
 "bayora.isolation" = ["connect.bpf.c"]
+"bayora.dashboard" = ["index.html"]
+[tool.pytest.ini_options]
+pythonpath = ["tests"]

@@ -57,7 +57,11 @@ def main(cfg, out="results"):
     witnesses = [RemoteWitness(u, op.origin) for u in urls]
     w1 = witnesses[0]
     auth = CanaryAuthority(RUN)
-    log = lambda kind, **kw: op.log.append({"run": RUN, "kind": kind, "ts": time.time(), **kw})
+    logf = open(f"{out}/log.jsonl", "wb")      # streamed as events happen, so the dashboard can follow a live run
+
+    def log(kind, **kw):
+        op.log.append({"run": RUN, "kind": kind, "ts": time.time(), **kw})
+        logf.write(op.log.entries[-1] + b"\n"); logf.flush()
     cosigs, cps = [], []
 
     def checkpoint(prev_size):
@@ -216,6 +220,6 @@ def main(cfg, out="results"):
     json.dump(R, open(f"{out}/results.json", "w"), indent=2, default=str)
     json.dump(receipt, open(f"{out}/receipt.json", "w"), indent=2)
     json.dump(keys, open(f"{out}/keys.json", "w"), indent=2)
-    with open(f"{out}/log.jsonl", "wb") as f: f.write(b"".join(e + b"\n" for e in op.log.entries[:final["size"]]))
+    logf.close()
     cleanup(Z)
     print(json.dumps(R, indent=1, default=str)[:6000])

@@ -17,6 +17,9 @@ def main(argv=None):
     v.add_argument("--trust", help="pinned keys: {operator, witnesses: {name: pubkey}, quorum}")
     v.add_argument("--checkpoints", help="directory of published checkpoints to check against the log")
     v.add_argument("--quorum", type=int)
+    ds = sub.add_parser("dashboard", help="web UI for one results directory")
+    ds.add_argument("--results", default="results_final"); ds.add_argument("--port", type=int, default=8765)
+    ds.add_argument("--trust", help="pinned keys for the Verify button (default: keys from the receipt)")
     w = sub.add_parser("witness", help="run an independent witness service")
     w.add_argument("action", choices=["serve"]); w.add_argument("--name", required=True); w.add_argument("--port", type=int, default=0)
     w.add_argument("--state", required=True, help="directory for this witness's key and last-seen checkpoints")
@@ -28,6 +31,10 @@ def main(argv=None):
         ok, msg = verify(a.receipt, a.log, a.trust, a.checkpoints, a.quorum)
         print(msg)
         return 0 if ok else 1
+    if a.cmd == "dashboard":
+        from .dashboard.server import serve
+        serve(a.results, a.port, a.trust)
+        return 0
     if a.cmd == "witness":
         from .witness import serve
         serve(a.name, a.port, a.state, a.operator_pubkey)
