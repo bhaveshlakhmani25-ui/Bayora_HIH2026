@@ -65,6 +65,16 @@ def main(cfg, out="results"):
     # 1. blind-test commitments (before the run)
     c_red, n_red = commit(payloads.encode()); c_blue, n_blue = commit(rules.encode())
     log("commitment", tenant="red", digest=c_red); log("commitment", tenant="blue", digest=c_blue)
+    # preflight cache-timing audit on the real model (Phase 4): logged before any evaluation traffic
+    model_sha = None
+    if cfg["cache_audit"]:
+        from .cachetest import run as cachetest
+        ca = cachetest(cfg, out=out)
+        model_sha = ca["model_sha256"]
+        R["cache_audit"] = {k: v for k, v in ca.items() if k not in ("shared", "salted")}
+        for c in ("shared", "salted"): R["cache_audit"][c] = {k: v for k, v in ca[c].items() if k != "rows"}
+        log("cache_audit", engine=ca["engine"], model_sha256=model_sha, passed=ca["pass"],
+            **{f"{c}_{k}": ca[c][k] for c in ("shared", "salted") for k in ("correct", "trials", "cross_tenant_cache_hits")})
     cp0 = checkpoint(0)
 
     # ---------------- zones ----------------
@@ -185,7 +195,7 @@ def main(cfg, out="results"):
     R["ledger"] = {"events": final["size"], "root": final["root"].hex(), "checkpoints": cosigs,
                    "witness_alarms": {w1.name: w1.alarms, w2.name: w2.alarms}}
     receipt = {"run_id": RUN, "origin": op.origin, "log_size": final["size"], "log_root": final["root"].hex(),
-               "commitments": {"red": c_red, "blue": c_blue}, "operator_pubkey_raw": op.pub.public_bytes_raw().hex(),
+               "commitments": {"red": c_red, "blue": c_blue}, "model_sha256": model_sha, "operator_pubkey_raw": op.pub.public_bytes_raw().hex(),
                "operator_sig": final["sig"].hex(), "cosigned_by": cosigs[-1]["cosigned_by"],
                "drill_recall_v2": f'{results["v2"]["detected"]}/{results["v2"]["total"]}', "false_positives": results["v2"]["false_positives"]}
     os.makedirs(out, exist_ok=True)

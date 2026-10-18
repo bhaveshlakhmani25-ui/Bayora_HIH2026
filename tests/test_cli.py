@@ -44,3 +44,10 @@ def test_verify_accepts_good_log_and_rejects_edits(tmp_path):
     rc, log = write_run(tmp_path)                                  # fresh log, forged signature
     r = json.loads(open(rc).read()); r["operator_sig"] = "00" * 64; open(rc, "w").write(json.dumps(r))
     assert main(["verify", rc, str(log)]) == 1
+
+
+def test_binomial_tail():
+    from bayora.cachetest import p_at_least
+    assert abs(p_at_least(0, 20, 1 / 8) - 1) < 1e-12
+    assert p_at_least(20, 20, 1 / 8) == (1 / 8) ** 20
+    assert 0.05 < p_at_least(4, 20, 1 / 8) < 0.5 and p_at_least(8, 20, 1 / 8) < 0.01

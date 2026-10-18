@@ -17,7 +17,8 @@ dev = ["pytest>=8"]
 bayora = "bayora.cli:main"
 
 [tool.setuptools]
-packages = ["bayora"]
+packages = ["bayora", "bayora.isolation"]
 
 [tool.setuptools.package-data]
 bayora = ["default.yaml"]
+"bayora.isolation" = ["connect.bpf.c"]

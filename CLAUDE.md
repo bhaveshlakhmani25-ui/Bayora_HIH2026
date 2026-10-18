@@ -24,6 +24,7 @@ Bayora runs a blind, leak-audited red-vs-blue evaluation:
 | `bayora/verify.py` (`bayora verify`) | Checks a receipt against `log.jsonl`: Merkle root and operator signature. |
 | `bayora/default.yaml`, `bayora/config.py` | Run config: image, zone networks, channels, encodings, sizes. |
 | `bayora/isolation/` | `connect.bpf.c` and `enforcer.py` run as root where dockerd lives (Colima VM via `colima ssh`, or sudo on Linux). Each zone is placed in its own cgroup via `--cgroup-parent`. |
+| `bayora/cachetest.py` (`bayora cachetest`) | Tenant B times prompts to infer tenant A's secret from K=8 candidates, shared versus salted. The probe is the `cacheprobe` role in `containers/agent.py`. |
 | `Dockerfile` | Zone image `bayora/py:poc` (`python:3.12-slim`). |
 | `tests/` | 8 tests. Run with `pip install -e ".[dev]" && python -m pytest -q tests`. CI: `.github/workflows/ci.yml`. |
 
@@ -41,7 +42,7 @@ Measured results (2-vCPU sandbox), which the deck cites:
 
 - Claim only what was measured. Label the environment for every number.
 - Isolation: Docker internal networks plus a per-zone eBPF default-deny egress policy (`bayora/isolation/`), measured on Colima (vz, Ubuntu 24.04, kernel 6.8, Apple M5) with dockerd `userns-remap`. It is not full rootless dockerd. `enforcer: docker` turns eBPF off for comparison.
-- The model is a mock. The vLLM `cache_salt` timing test has not been run yet.
+- Evaluation traffic in `bayora run` still goes to the mock model. The cache-timing test (`bayora cachetest`, or `cache_audit: true` as a run preflight) uses a real model: llama.cpp server on CPU with Qwen2.5-0.5B Q4_K_M. Salting is emulated as a per-tenant salt prefix plus a per-tenant slot, because llama.cpp has no vLLM `cache_salt`. Never call it vLLM.
 - The "network" channel is captured at the broker (application layer), not with packet capture.
 
 ## Build plan for the next round (in order)

@@ -20,6 +20,12 @@ encodings: [plain, lowercase, base64, hex, split, partial]
 # available where dockerd runs (Colima VM or Linux host), else docker networks only.
 enforcer: auto                # auto | ebpf | docker
 
+# Real model for the cache-timing audit (bayora cachetest). The GGUF is downloaded separately into models/.
+model_path: models/qwen2.5-0.5b-instruct-q4_k_m.gguf
+llm_threads: 4
+cache_trials: 20             # trials per condition; each trial probes all 8 candidates
+cache_audit: false           # bayora run: preflight cache-timing audit on the real model, logged in the ledger
+
 drills_per_cell: 5            # drills per (channel, encoding) pair
 noise_lines: 10000            # benign lines scanned for false positives
 load_requests: 500            # requests per load run (3 runs)

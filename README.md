@@ -75,6 +75,11 @@ Measured on a 2-vCPU cloud sandbox, Docker 29.8, 3 runs. See `results_final/resu
 ## Not in this PoC (honest scope)
 
 - **Isolation layer.** Zones use Docker internal networks plus an eBPF default-deny egress policy per zone (cgroup v2 connect4/6 and UDP sendmsg4/6, `bayora/isolation/`). Blocked attempts are logged into the ledger. Measured on Colima (Ubuntu 24.04 VM, kernel 6.8, Apple M5) with `userns-remap`. Full rootless dockerd has not been tested.
-- **Model.** It's a mock model, not an LLM. The vLLM `cache_salt` timing test is Phase 4.
+- **Model.** Evaluation traffic goes to a mock model. The cache-timing audit uses a real model: llama.cpp server, CPU, Qwen2.5-0.5B Q4_K_M.
+  Download it into `models/`:
+  `curl -L -o models/qwen2.5-0.5b-instruct-q4_k_m.gguf https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf`
+  Then run `bayora cachetest`.
+  - Measured on Colima vz, Apple M5, 20 trials, K=8 candidates. With a shared cache, B recovers the secret 20/20 times (p≈9e-19). With a per-tenant salt and slot, 2/20, which is chance (p=0.73), with 0 cross-tenant cache hits.
+  - Salting is emulated, because llama.cpp has no vLLM `cache_salt`. vLLM itself has not been tested.
 - **Network channel.** It's captured at the broker (application layer), not with packet capture.
 - **Detection limit.** Fragment leaks and paraphrases are not detected by token scanning. They are reported as residual risk.

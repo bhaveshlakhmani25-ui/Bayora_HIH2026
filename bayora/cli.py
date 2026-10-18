@@ -10,6 +10,8 @@ def main(argv=None):
     r.add_argument("-o", "--out", default="results", help="output directory (default: results)")
     d = sub.add_parser("drill", help="leak drills in-process, no Docker: scanner recall and false positives")
     d.add_argument("-c", "--config")
+    ct = sub.add_parser("cachetest", help="prefix-cache timing attack on a real llama.cpp model: shared vs salted")
+    ct.add_argument("-c", "--config"); ct.add_argument("-o", "--out", default="results"); ct.add_argument("-n", "--trials", type=int)
     v = sub.add_parser("verify", help="check a receipt against its log file")
     v.add_argument("receipt"); v.add_argument("log")
     a = p.parse_args(argv)
@@ -26,6 +28,13 @@ def main(argv=None):
     if a.cmd == "run":
         from .run import main as run
         run(cfg, a.out)
+    elif a.cmd == "cachetest":
+        from .cachetest import run as cachetest
+        r = cachetest(cfg, a.trials, a.out)
+        for c in ("shared", "salted"):
+            print(f"{c}: {r[c]['correct']}/{r[c]['trials']} correct (chance {r[c]['chance']:.3f}, p={r[c]['p_value_vs_chance']:.2g})")
+        print("PASS: salted probe at chance" if r["pass"] else "FAIL: salted probe beats chance")
+        print(r["environment"])
     else:
         from .drill import offline
         print(json.dumps(offline(cfg), indent=1))
