@@ -13,4 +13,5 @@ def load(path=None):
     if set(cfg["zones"]) != {"red", "blue", "model"}: raise ValueError("zones must be exactly red, blue, model")
     if bad := set(cfg["channels"]) - set(TENANT): raise ValueError(f"unknown channels: {sorted(bad)}; known: {sorted(TENANT)}")
     if bad := set(cfg["encodings"]) - set(ENC): raise ValueError(f"unknown encodings: {sorted(bad)}; known: {sorted(ENC)}")
+    if cfg["enforcer"] not in ("auto", "ebpf", "docker"): raise ValueError("enforcer must be auto, ebpf or docker")
     return cfg

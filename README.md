@@ -20,6 +20,26 @@ A runnable proof of concept for Bayora's detection and audit layers, with real D
 
 ## Run
 
+On macOS, dockerd and the eBPF enforcer run in a Colima Linux VM:
+
+```bash
+brew install colima docker
+colima start --vm-type vz --cpu 4 --memory 6
+colima ssh -- sudo apt-get install -y python3-bpfcc linux-headers-$(colima ssh -- uname -r)
+docker build -t bayora/py:poc .
+```
+
+For userns-remap, set this under `docker:` in `~/.colima/default/colima.yaml` and restart Colima (the containerd snapshotter cannot be combined with it):
+
+```yaml
+docker:
+  userns-remap: default
+  features:
+    containerd-snapshotter: false
+```
+
+On Linux, install `python3-bpfcc` and the kernel headers, and make sure `sudo -n` works for the enforcer.
+
 ```bash
 python3 -m venv .venv && . .venv/bin/activate
 pip install -e ".[dev]"
@@ -54,7 +74,7 @@ Measured on a 2-vCPU cloud sandbox, Docker 29.8, 3 runs. See `results_final/resu
 
 ## Not in this PoC (honest scope)
 
-- **Isolation layer.** It uses rootful Docker with hardening plus Docker internal networks (iptables). Rootless Docker and an eBPF policy are the target, not what was tested.
+- **Isolation layer.** Zones use Docker internal networks plus an eBPF default-deny egress policy per zone (cgroup v2 connect4/6 and UDP sendmsg4/6, `bayora/isolation/`). Blocked attempts are logged into the ledger. Measured on Colima (Ubuntu 24.04 VM, kernel 6.8, Apple M5) with `userns-remap`. Full rootless dockerd has not been tested.
 - **Model.** It's a mock model, not an LLM. The vLLM `cache_salt` timing test is Phase 4.
 - **Network channel.** It's captured at the broker (application layer), not with packet capture.
 - **Detection limit.** Fragment leaks and paraphrases are not detected by token scanning. They are reported as residual risk.

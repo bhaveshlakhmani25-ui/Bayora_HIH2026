@@ -11,7 +11,7 @@ def test_config_defaults_and_overrides(tmp_path):
     p = tmp_path / "c.yaml"; p.write_text("zones: {red: my_red}\nchannels: [filesystem]\n")
     cfg = config.load(p)
     assert cfg["zones"]["red"] == "my_red" and cfg["zones"]["blue"] == "bz_blue" and cfg["channels"] == ["filesystem"]
-    for bad in ("chanels: [x]\n", "channels: [carrier_pigeon]\n", "zones: {green: g}\n"):
+    for bad in ("chanels: [x]\n", "channels: [carrier_pigeon]\n", "zones: {green: g}\n", "enforcer: selinux\n"):
         p.write_text(bad)
         with pytest.raises(ValueError): config.load(p)
 

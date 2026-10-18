@@ -23,6 +23,8 @@ Bayora runs a blind, leak-audited red-vs-blue evaluation:
 | `bayora/drill.py` (`bayora drill`) | Leak-drill matrix and scoring, shared by `run`; `drill` runs it in-process without Docker. |
 | `bayora/verify.py` (`bayora verify`) | Checks a receipt against `log.jsonl`: Merkle root and operator signature. |
 | `bayora/default.yaml`, `bayora/config.py` | Run config: image, zone networks, channels, encodings, sizes. |
+| `bayora/isolation/` | `connect.bpf.c` and `enforcer.py` run as root where dockerd lives (Colima VM via `colima ssh`, or sudo on Linux). Each zone is placed in its own cgroup via `--cgroup-parent`. |
+| `Dockerfile` | Zone image `bayora/py:poc` (`python:3.12-slim`). |
 | `tests/` | 8 tests. Run with `pip install -e ".[dev]" && python -m pytest -q tests`. CI: `.github/workflows/ci.yml`. |
 
 Measured results (2-vCPU sandbox), which the deck cites:
@@ -38,7 +40,7 @@ Measured results (2-vCPU sandbox), which the deck cites:
 ## Honest-claims rules (keep these)
 
 - Claim only what was measured. Label the environment for every number.
-- The PoC isolation uses Docker internal networks (iptables), not eBPF yet, and runs rootful Docker with hardening, not rootless.
+- Isolation: Docker internal networks plus a per-zone eBPF default-deny egress policy (`bayora/isolation/`), measured on Colima (vz, Ubuntu 24.04, kernel 6.8, Apple M5) with dockerd `userns-remap`. It is not full rootless dockerd. `enforcer: docker` turns eBPF off for comparison.
 - The model is a mock. The vLLM `cache_salt` timing test has not been run yet.
 - The "network" channel is captured at the broker (application layer), not with packet capture.
 

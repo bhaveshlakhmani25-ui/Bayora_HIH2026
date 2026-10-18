@@ -49,7 +49,8 @@ elif ROLE == "red":
     if mode == "probe":
         res = {}
         for name, host, port in [("red->blue", os.environ["BLUE_IP"], 8080), ("red->model_direct", os.environ["MODEL_IP"], 9000),
-                                 ("red->internet", "1.1.1.1", 443), ("red->broker", os.environ["BROKER_HOST"], 7000)]:
+                                 ("red->internet", "1.1.1.1", 443), ("red->broker", os.environ["BROKER_HOST"], 7000),
+                                 ("red->broker_other_port", os.environ["BROKER_HOST"], 9000)]:
             t = time.time()
             try:
                 socket.create_connection((host, port), timeout=3).close(); res[name] = "CONNECTED"

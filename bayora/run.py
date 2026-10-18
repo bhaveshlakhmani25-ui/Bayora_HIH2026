@@ -7,10 +7,12 @@ from .ledger import LogOperator, Witness, verify_inclusion, leaf_hash, MerkleLog
 from .canary import CanaryAuthority, scan
 from .commit import commit, verify_reveal
 from .drill import make_drills, score
+from . import isolation
 
 # shortcut: container code is read from the source checkout, so `bayora run` needs an editable install; package it when images are built properly
 CODE = Path(__file__).resolve().parents[1] / "containers"
-WORK = "/tmp/bayora"
+# under $HOME so Colima/Docker Desktop VMs see the same path (they share the home dir, not /tmp)
+WORK = os.environ.get("BAYORA_WORK", str(Path.home() / ".bayora" / "work"))
 
 
 def sh(*a, check=True):
@@ -33,7 +35,9 @@ def main(cfg, out="results"):
     RUN = "run-" + time.strftime("%Y%m%dT%H%M%S")
     HARDEN = ["--cap-drop", "ALL", "--security-opt", "no-new-privileges", "--read-only", "--user", "65534:65534",
               "--pids-limit", "128", "--memory", "256m", "--tmpfs", "/tmp", "-v", f"{CODE}:/app:ro"]
-    R = {"run_id": RUN, "host": {"platform": platform.platform(), "cpus": os.cpu_count()}, "config": cfg}
+    R = {"run_id": RUN, "host": {"platform": platform.platform(), "cpus": os.cpu_count(), "docker": isolation.docker_mode()}, "config": cfg}
+    CG = {z: isolation.cgroup_parent(z) for z in ("red", "blue", "model", "broker")}
+    zone = lambda z: ["--cgroup-parent", CG[z][0]]
 
     # ---------------- setup ----------------
     cleanup(Z); shutil.rmtree(WORK, ignore_errors=True)
@@ -65,13 +69,18 @@ def main(cfg, out="results"):
 
     # ---------------- zones ----------------
     for n in Z.values(): sh("docker", "network", "create", "--internal", n)
-    sh("docker", "run", "-d", "--name", "bz-model", "--network", Z["model"], *HARDEN, IMG, "python3", "/app/agent.py", "model")
-    sh("docker", "run", "-d", "--name", "bz-blue", "--network", Z["blue"], *HARDEN, "-v", f"{WORK}/blue:/data", IMG, "python3", "/app/agent.py", "blue", "serve")
-    sh("docker", "create", "--name", "bz-broker", "--network", Z["red"], *HARDEN, "-e", "MODEL_HOST=bz-model", "-v", f"{WORK}/broker:/data", IMG, "python3", "/app/agent.py", "broker")
+    sh("docker", "run", "-d", "--name", "bz-model", "--network", Z["model"], *HARDEN, *zone("model"), IMG, "python3", "/app/agent.py", "model")
+    sh("docker", "run", "-d", "--name", "bz-blue", "--network", Z["blue"], *HARDEN, *zone("blue"), "-v", f"{WORK}/blue:/data", IMG, "python3", "/app/agent.py", "blue", "serve")
+    sh("docker", "create", "--name", "bz-broker", "--network", Z["red"], *HARDEN, *zone("broker"), "-e", "MODEL_HOST=bz-model", "-v", f"{WORK}/broker:/data", IMG, "python3", "/app/agent.py", "broker")
     sh("docker", "network", "connect", Z["model"], "bz-broker"); sh("docker", "start", "bz-broker")
     time.sleep(2)
+    # default-deny egress per zone: red may reach only the broker, the broker only the model
+    net_ip = lambda c, n: sh("docker", "inspect", "-f", f'{{{{(index .NetworkSettings.Networks "{n}").IPAddress}}}}', c)
+    allow = {"red": [[net_ip("bz-broker", Z["red"]), 7000]], "broker": [[ip("bz-model"), 9000]], "blue": [], "model": []}
+    enf = isolation.Enforcer(cfg["enforcer"], {z: {"cgroup": CG[z][1], "allow": allow[z]} for z in CG}, f"{WORK}/blocked.jsonl")
+    R["isolation"] = {"enforcer": enf.mode, "allow": allow}
     env = ["-e", f"BLUE_IP={ip('bz-blue')}", "-e", f"MODEL_IP={ip('bz-model')}", "-e", "BROKER_HOST=bz-broker"]
-    red = lambda *args, extra=(): sh("docker", "run", "--rm", "--network", Z["red"], *HARDEN, *env, *extra, "-v", f"{WORK}/red:/data", IMG, "python3", "/app/agent.py", "red", *args)
+    red = lambda *args, extra=(): sh("docker", "run", "--rm", "--network", Z["red"], *HARDEN, *zone("red"), *env, *extra, "-v", f"{WORK}/red:/data", IMG, "python3", "/app/agent.py", "red", *args)
 
     # 2. isolation probes from inside the red zone
     probe = json.loads(red("probe"))
@@ -112,7 +121,7 @@ def main(cfg, out="results"):
     red_drills = [d for d in drills if d["channel"] in ("network_broker", "model_output")]
     b64 = lambda xs: base64.b64encode(json.dumps(xs).encode()).decode()
     blue_log = sh("docker", "logs", "bz-blue") + "\n"
-    blue_log_drill = subprocess.run(["docker", "run", "--rm", "--network", Z["blue"], *HARDEN, "-e", f"DRILLS={b64(blue_drills)}", "-e", f"NOISE={cfg['noise_lines']}",
+    blue_log_drill = subprocess.run(["docker", "run", "--rm", "--network", Z["blue"], *HARDEN, *zone("blue"), "-e", f"DRILLS={b64(blue_drills)}", "-e", f"NOISE={cfg['noise_lines']}",
                                      "-v", f"{WORK}/blue:/data", IMG, "python3", "/app/agent.py", "blue", "drill"], capture_output=True, text=True).stdout
     red("drill", extra=("-e", f"DRILLS={b64(red_drills)}"))
     time.sleep(1)
@@ -133,6 +142,9 @@ def main(cfg, out="results"):
                     if tok in drill_toks:
                         log("leak_alert", observed_channel=ch, src_tenant=a["tenant"], slot=a["slot"], canary=tok[:10] + "...")
     R["leak_drills"] = results
+    blocked = enf.stop()
+    for b in blocked: log("blocked_connect", **b)
+    R["isolation"]["blocked_connects"] = len(blocked)
     R["noise_lines_scanned"] = cfg["noise_lines"]
     # forged canaries: random BYR-strings in the noise never attribute (no key) -> part of FP count above
     cp2 = checkpoint(cp1["size"])
