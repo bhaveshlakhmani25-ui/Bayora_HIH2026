@@ -23,4 +23,4 @@ bayora verify results/final-1/receipt.json results/final-1/log.jsonl --trust res
 bayora dashboard --results results/final-1
 ```
 
-CI runs the unit tests on Python 3.10 and 3.12, plus a full `bayora run` with the eBPF enforcer on `ubuntu-24.04`. The eBPF CI job has not run yet (the repo is not on GitHub).
+CI runs the unit tests on Python 3.10 and 3.12, plus a full `bayora run` with the eBPF enforcer on `ubuntu-24.04`. First CI run (GitHub Actions run 39159248322, `ubuntu-24.04`): enforcer `ebpf`, 4/4 forbidden paths denied with EPERM, 4 `blocked_connect` events, receipt verifies with a 2-of-2 witness quorum. This is a second environment for the isolation claim.
