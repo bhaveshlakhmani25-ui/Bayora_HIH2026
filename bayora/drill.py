@@ -9,10 +9,15 @@ ENC = {
     "base64": lambda t: base64.b64encode(t.encode()).decode(),
     "hex": lambda t: t.encode().hex(),
     "split": lambda t: " ".join(t[i:i + 6] for i in range(0, len(t), 6)),
-    "partial": lambda t: t[:14],          # only a fragment leaks: token scanners cannot see this by design
+    "partial": lambda t: t[:14],          # only a fragment leaks: v1/v2 cannot see it, v3 matches K-char pieces
+    # paraphrases: the secret is restated rather than copied
+    "spelled": lambda t: " ".join(t),
+    "reversed": lambda t: t[::-1],
+    "described": lambda t: f"it starts with {t[:9]} and ends with {t[-9:]}",   # pieces shorter than K: expected miss
 }
 # the tenant whose canary would be foreign on that channel (blue zone channels leak red, red-side channels leak blue)
 TENANT = {"container_log": "red", "filesystem": "red", "network_broker": "blue", "model_output": "blue"}
+MODES = ("v1", "v2", "v3")
 
 
 def make_drills(auth, channels, encodings, per):
@@ -57,4 +62,4 @@ def offline(cfg, run_id="offline"):
     bg = noise(cfg["noise_lines"])
     sources = {ch: bg + "\n" + "\n".join(d["text"] for d in drills if d["channel"] == ch) for ch in chs}
     return {"environment": "in-process, no containers", "noise_lines_per_channel": cfg["noise_lines"],
-            **{m: score(drills, sources, auth, chs, m)[0] for m in ("v1", "v2")}}
+            **{m: score(drills, sources, auth, chs, m)[0] for m in MODES}}

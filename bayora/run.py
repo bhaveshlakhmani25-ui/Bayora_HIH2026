@@ -6,7 +6,7 @@ from pathlib import Path
 from .ledger import LogOperator, Witness, verify_inclusion, leaf_hash, MerkleLog, checkpoint_body
 from .canary import CanaryAuthority, scan
 from .commit import commit, verify_reveal
-from .drill import make_drills, score
+from .drill import make_drills, score, MODES
 from . import isolation
 
 # shortcut: container code is read from the source checkout, so `bayora run` needs an editable install; package it when images are built properly
@@ -144,9 +144,9 @@ def main(cfg, out="results"):
     }
     results = {}
     drill_toks = {d["token"] for d in drills}
-    for mode in ("v1", "v2"):
+    for mode in MODES:
         results[mode], found = score(drills, sources, auth, CH, mode)
-        if mode == "v2":
+        if mode == MODES[-1]:
             for ch in CH:
                 for tok, a in found[ch].items():
                     if tok in drill_toks:
@@ -197,7 +197,8 @@ def main(cfg, out="results"):
     receipt = {"run_id": RUN, "origin": op.origin, "log_size": final["size"], "log_root": final["root"].hex(),
                "commitments": {"red": c_red, "blue": c_blue}, "model_sha256": model_sha, "operator_pubkey_raw": op.pub.public_bytes_raw().hex(),
                "operator_sig": final["sig"].hex(), "cosigned_by": cosigs[-1]["cosigned_by"],
-               "drill_recall_v2": f'{results["v2"]["detected"]}/{results["v2"]["total"]}', "false_positives": results["v2"]["false_positives"]}
+               "drill_recall": {m: f'{r["detected"]}/{r["total"]}' for m, r in results.items()},
+               "false_positives": {m: r["false_positives"] for m, r in results.items()}}
     os.makedirs(out, exist_ok=True)
     json.dump(R, open(f"{out}/results.json", "w"), indent=2, default=str)
     json.dump(receipt, open(f"{out}/receipt.json", "w"), indent=2)

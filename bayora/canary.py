@@ -5,6 +5,10 @@ and every hit maps back to (run, tenant, slot)."""
 import hmac, hashlib, base64, re, os, binascii
 
 TOKEN_RE = re.compile(r"BYR[A-Z2-7]{24}")
+# v3: any run of K base32 chars taken from a registered token. K=10 keeps chance collisions with
+# random base32 near 32^-10 per window; fragments shorter than K stay invisible (residual risk).
+K = 10
+RUN_RE = re.compile(r"[A-Z2-7]{%d,}" % K)
 
 
 class CanaryAuthority:
@@ -12,11 +16,13 @@ class CanaryAuthority:
         self.run_id = run_id
         self.key = key or os.urandom(32)
         self.registry = {}
+        self.kgrams = {}      # k-gram -> token, for v3 fragment matching
 
     def mint(self, tenant, slot):
         mac = hmac.new(self.key, f"{self.run_id}|{tenant}|{slot}".encode(), hashlib.sha256).digest()
         tok = "BYR" + base64.b32encode(mac).decode()[:24]
         self.registry[tok] = {"run": self.run_id, "tenant": tenant, "slot": slot}
+        for i in range(len(tok) - K + 1): self.kgrams.setdefault(tok[i:i + K], tok)
         return tok
 
     def attribute(self, tok):
@@ -44,11 +50,18 @@ def _hex(s):
 
 
 def scan(text, authority, mode="v2"):
-    """Return attributed hits. v1 = exact token match only; v2 = normalised + decoded views."""
+    """Return attributed hits. v1 = exact token match only; v2 = normalised + decoded views;
+    v3 = v2 plus fragments (any K-char piece of a registered token, also reversed)."""
     views = [text] if mode == "v1" else _decoded_views(text)
     hits = {}
     for v in views:
         for tok in TOKEN_RE.findall(v):
             a = authority.attribute(tok)
             if a: hits[tok] = a
+    if mode == "v3":
+        for v in views + [v[::-1] for v in views]:
+            for run in RUN_RE.findall(v):
+                for i in range(len(run) - K + 1):
+                    tok = authority.kgrams.get(run[i:i + K])
+                    if tok and tok not in hits: hits[tok] = {**authority.registry[tok], "match": "fragment"}
     return hits

@@ -17,10 +17,12 @@ def test_config_defaults_and_overrides(tmp_path):
 
 
 def test_offline_drill_matches_poc_shape():
-    r = offline({**config.load(), "noise_lines": 500})
+    poc6 = ["plain", "lowercase", "base64", "hex", "split", "partial"]
+    r = offline({**config.load(), "noise_lines": 500, "encodings": poc6})
     assert (r["v1"]["detected"], r["v2"]["detected"], r["v2"]["total"]) == (20, 100, 120)
     assert r["v1"]["false_positives"] == r["v2"]["false_positives"] == 0
     assert all(r["v2"]["by_channel_encoding"][f"{ch}|partial"][0] == 0 for ch in config.load()["channels"])
+    assert (r["v3"]["detected"], r["v3"]["false_positives"]) == (120, 0)
 
 
 def write_run(tmp_path, n=7):

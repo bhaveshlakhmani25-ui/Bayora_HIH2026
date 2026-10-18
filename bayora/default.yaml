@@ -13,8 +13,9 @@ zones:
 # Monitored channels. Anything not listed here is unmonitored and is residual risk.
 channels: [container_log, filesystem, network_broker, model_output]
 
-# Encodings the leak drills use. partial (a fragment) is a known gap for token scanners.
-encodings: [plain, lowercase, base64, hex, split, partial]
+# Encodings the leak drills use. The first six are the PoC set; spelled, reversed and described are paraphrases.
+# partial (14-char fragment) is caught only by scanner v3; described (two 9-char pieces) is below v3's K=10.
+encodings: [plain, lowercase, base64, hex, split, partial, spelled, reversed, described]
 
 # Egress enforcer on top of the --internal networks. auto = ebpf when bcc and root are
 # available where dockerd runs (Colima VM or Linux host), else docker networks only.
