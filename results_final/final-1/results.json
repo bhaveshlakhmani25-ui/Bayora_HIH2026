@@ -1,0 +1,639 @@
+{
+  "run_id": "run-20261019T004212",
+  "host": {
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "cpus": 10,
+    "docker": {
+      "security_options": [
+        "name=apparmor",
+        "name=seccomp,profile=builtin",
+        "name=userns",
+        "name=cgroupns"
+      ],
+      "rootless": false,
+      "userns_remap": true,
+      "context": "colima"
+    }
+  },
+  "config": {
+    "image": "bayora/py:poc",
+    "zones": {
+      "red": "bz_red",
+      "blue": "bz_blue",
+      "model": "bz_model"
+    },
+    "channels": [
+      "container_log",
+      "filesystem",
+      "network_broker",
+      "model_output"
+    ],
+    "encodings": [
+      "plain",
+      "lowercase",
+      "base64",
+      "hex",
+      "split",
+      "partial",
+      "spelled",
+      "reversed",
+      "described"
+    ],
+    "enforcer": "ebpf",
+    "model_path": "models/qwen2.5-0.5b-instruct-q4_k_m.gguf",
+    "llm_threads": 4,
+    "cache_trials": 20,
+    "cache_audit": true,
+    "witnesses": [],
+    "drills_per_cell": 5,
+    "noise_lines": 10000,
+    "load_requests": 500
+  },
+  "cache_audit": {
+    "environment": "llama.cpp server (CPU, 4 threads) in colima, probe in the model network (strongest-case attacker, no broker jitter)",
+    "engine": "llama.cpp",
+    "image": "ghcr.io/ggml-org/llama.cpp:server",
+    "model": "qwen2.5-0.5b-instruct-q4_k_m.gguf",
+    "model_sha256": "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db",
+    "candidates": 8,
+    "pass": true,
+    "shared": {
+      "trials": 20,
+      "correct": 20,
+      "accuracy": 1.0,
+      "chance": 0.125,
+      "p_value_vs_chance": 8.673617379884035e-19,
+      "cross_tenant_cache_hits": 20
+    },
+    "salted": {
+      "trials": 20,
+      "correct": 4,
+      "accuracy": 0.2,
+      "chance": 0.125,
+      "p_value_vs_chance": 0.2346681573483455,
+      "cross_tenant_cache_hits": 0
+    }
+  },
+  "isolation": {
+    "enforcer": "ebpf",
+    "allow": {
+      "red": [
+        [
+          "172.18.0.2",
+          7000
+        ]
+      ],
+      "broker": [
+        [
+          "172.20.0.2",
+          9000
+        ]
+      ],
+      "blue": [],
+      "model": []
+    },
+    "blocked_connects": 4
+  },
+  "isolation_probes": {
+    "red->blue": "BLOCKED (PermissionError)",
+    "red->model_direct": "BLOCKED (PermissionError)",
+    "red->internet": "BLOCKED (PermissionError)",
+    "red->broker": "CONNECTED",
+    "red->broker_other_port": "BLOCKED (PermissionError)",
+    "red_reads_blue_volume": "NOT MOUNTED",
+    "red_writes_code": "READ-ONLY"
+  },
+  "function": {
+    "requests_per_run": 500,
+    "runs": 3,
+    "completed": true,
+    "containers_p50_ms": 0.24833499992382713,
+    "baseline_p50_ms": 0.09804201545193791,
+    "containers_total_s": 0.12672893600006319,
+    "baseline_total_s": 0.049802125024143606,
+    "throughput_overhead_pct": 154.46491678543072
+  },
+  "leak_drills": {
+    "v1": {
+      "by_channel_encoding": {
+        "container_log|plain": [
+          5,
+          5
+        ],
+        "container_log|lowercase": [
+          0,
+          5
+        ],
+        "container_log|base64": [
+          0,
+          5
+        ],
+        "container_log|hex": [
+          0,
+          5
+        ],
+        "container_log|split": [
+          0,
+          5
+        ],
+        "container_log|partial": [
+          0,
+          5
+        ],
+        "container_log|spelled": [
+          0,
+          5
+        ],
+        "container_log|reversed": [
+          0,
+          5
+        ],
+        "container_log|described": [
+          0,
+          5
+        ],
+        "filesystem|plain": [
+          5,
+          5
+        ],
+        "filesystem|lowercase": [
+          0,
+          5
+        ],
+        "filesystem|base64": [
+          0,
+          5
+        ],
+        "filesystem|hex": [
+          0,
+          5
+        ],
+        "filesystem|split": [
+          0,
+          5
+        ],
+        "filesystem|partial": [
+          0,
+          5
+        ],
+        "filesystem|spelled": [
+          0,
+          5
+        ],
+        "filesystem|reversed": [
+          0,
+          5
+        ],
+        "filesystem|described": [
+          0,
+          5
+        ],
+        "network_broker|plain": [
+          5,
+          5
+        ],
+        "network_broker|lowercase": [
+          0,
+          5
+        ],
+        "network_broker|base64": [
+          0,
+          5
+        ],
+        "network_broker|hex": [
+          0,
+          5
+        ],
+        "network_broker|split": [
+          0,
+          5
+        ],
+        "network_broker|partial": [
+          0,
+          5
+        ],
+        "network_broker|spelled": [
+          0,
+          5
+        ],
+        "network_broker|reversed": [
+          0,
+          5
+        ],
+        "network_broker|described": [
+          0,
+          5
+        ],
+        "model_output|plain": [
+          5,
+          5
+        ],
+        "model_output|lowercase": [
+          0,
+          5
+        ],
+        "model_output|base64": [
+          0,
+          5
+        ],
+        "model_output|hex": [
+          0,
+          5
+        ],
+        "model_output|split": [
+          0,
+          5
+        ],
+        "model_output|partial": [
+          0,
+          5
+        ],
+        "model_output|spelled": [
+          0,
+          5
+        ],
+        "model_output|reversed": [
+          0,
+          5
+        ],
+        "model_output|described": [
+          0,
+          5
+        ]
+      },
+      "false_positives": 0,
+      "detected": 20,
+      "total": 180
+    },
+    "v2": {
+      "by_channel_encoding": {
+        "container_log|plain": [
+          5,
+          5
+        ],
+        "container_log|lowercase": [
+          5,
+          5
+        ],
+        "container_log|base64": [
+          5,
+          5
+        ],
+        "container_log|hex": [
+          5,
+          5
+        ],
+        "container_log|split": [
+          5,
+          5
+        ],
+        "container_log|partial": [
+          0,
+          5
+        ],
+        "container_log|spelled": [
+          5,
+          5
+        ],
+        "container_log|reversed": [
+          0,
+          5
+        ],
+        "container_log|described": [
+          0,
+          5
+        ],
+        "filesystem|plain": [
+          5,
+          5
+        ],
+        "filesystem|lowercase": [
+          5,
+          5
+        ],
+        "filesystem|base64": [
+          5,
+          5
+        ],
+        "filesystem|hex": [
+          5,
+          5
+        ],
+        "filesystem|split": [
+          5,
+          5
+        ],
+        "filesystem|partial": [
+          0,
+          5
+        ],
+        "filesystem|spelled": [
+          5,
+          5
+        ],
+        "filesystem|reversed": [
+          0,
+          5
+        ],
+        "filesystem|described": [
+          0,
+          5
+        ],
+        "network_broker|plain": [
+          5,
+          5
+        ],
+        "network_broker|lowercase": [
+          5,
+          5
+        ],
+        "network_broker|base64": [
+          5,
+          5
+        ],
+        "network_broker|hex": [
+          5,
+          5
+        ],
+        "network_broker|split": [
+          5,
+          5
+        ],
+        "network_broker|partial": [
+          0,
+          5
+        ],
+        "network_broker|spelled": [
+          5,
+          5
+        ],
+        "network_broker|reversed": [
+          0,
+          5
+        ],
+        "network_broker|described": [
+          0,
+          5
+        ],
+        "model_output|plain": [
+          5,
+          5
+        ],
+        "model_output|lowercase": [
+          5,
+          5
+        ],
+        "model_output|base64": [
+          5,
+          5
+        ],
+        "model_output|hex": [
+          5,
+          5
+        ],
+        "model_output|split": [
+          5,
+          5
+        ],
+        "model_output|partial": [
+          0,
+          5
+        ],
+        "model_output|spelled": [
+          5,
+          5
+        ],
+        "model_output|reversed": [
+          0,
+          5
+        ],
+        "model_output|described": [
+          0,
+          5
+        ]
+      },
+      "false_positives": 0,
+      "detected": 120,
+      "total": 180
+    },
+    "v3": {
+      "by_channel_encoding": {
+        "container_log|plain": [
+          5,
+          5
+        ],
+        "container_log|lowercase": [
+          5,
+          5
+        ],
+        "container_log|base64": [
+          5,
+          5
+        ],
+        "container_log|hex": [
+          5,
+          5
+        ],
+        "container_log|split": [
+          5,
+          5
+        ],
+        "container_log|partial": [
+          5,
+          5
+        ],
+        "container_log|spelled": [
+          5,
+          5
+        ],
+        "container_log|reversed": [
+          5,
+          5
+        ],
+        "container_log|described": [
+          0,
+          5
+        ],
+        "filesystem|plain": [
+          5,
+          5
+        ],
+        "filesystem|lowercase": [
+          5,
+          5
+        ],
+        "filesystem|base64": [
+          5,
+          5
+        ],
+        "filesystem|hex": [
+          5,
+          5
+        ],
+        "filesystem|split": [
+          5,
+          5
+        ],
+        "filesystem|partial": [
+          5,
+          5
+        ],
+        "filesystem|spelled": [
+          5,
+          5
+        ],
+        "filesystem|reversed": [
+          5,
+          5
+        ],
+        "filesystem|described": [
+          0,
+          5
+        ],
+        "network_broker|plain": [
+          5,
+          5
+        ],
+        "network_broker|lowercase": [
+          5,
+          5
+        ],
+        "network_broker|base64": [
+          5,
+          5
+        ],
+        "network_broker|hex": [
+          5,
+          5
+        ],
+        "network_broker|split": [
+          5,
+          5
+        ],
+        "network_broker|partial": [
+          5,
+          5
+        ],
+        "network_broker|spelled": [
+          5,
+          5
+        ],
+        "network_broker|reversed": [
+          5,
+          5
+        ],
+        "network_broker|described": [
+          0,
+          5
+        ],
+        "model_output|plain": [
+          5,
+          5
+        ],
+        "model_output|lowercase": [
+          5,
+          5
+        ],
+        "model_output|base64": [
+          5,
+          5
+        ],
+        "model_output|hex": [
+          5,
+          5
+        ],
+        "model_output|split": [
+          5,
+          5
+        ],
+        "model_output|partial": [
+          5,
+          5
+        ],
+        "model_output|spelled": [
+          5,
+          5
+        ],
+        "model_output|reversed": [
+          5,
+          5
+        ],
+        "model_output|described": [
+          0,
+          5
+        ]
+      },
+      "false_positives": 0,
+      "detected": 160,
+      "total": 180
+    }
+  },
+  "noise_lines_scanned": 10000,
+  "reveal": {
+    "red_ok": true,
+    "blue_ok": true,
+    "tampered_payload_rejected": true
+  },
+  "tamper": {
+    "original_verifies": true,
+    "edited_event_rejected": true,
+    "split_view_refused_by_witness": true,
+    "witness_alarm": "split view at size 216"
+  },
+  "bench": {
+    "append_events_per_s": 570093.1914278412,
+    "root_50k_s": 0.026043792022392154,
+    "inclusion_proof_ms": 0.015008958987891674,
+    "proofs_ok": 1000,
+    "proof_hashes": 16,
+    "scanner_v2_MB_per_s": 34.78693674657298
+  },
+  "ledger": {
+    "events": 216,
+    "root": "27436bb0e690b6fe193682387a2c239a93f58f2b4cd32357ecc9ae013284f153",
+    "origin": "bayora.dev/run/run-20261019T004212",
+    "checkpoints": [
+      {
+        "size": 3,
+        "cosigned_by": [
+          "witness-A",
+          "witness-B"
+        ]
+      },
+      {
+        "size": 11,
+        "cosigned_by": [
+          "witness-A",
+          "witness-B"
+        ]
+      },
+      {
+        "size": 215,
+        "cosigned_by": [
+          "witness-A",
+          "witness-B"
+        ]
+      },
+      {
+        "size": 216,
+        "cosigned_by": [
+          "witness-A",
+          "witness-B"
+        ]
+      },
+      {
+        "size": 216,
+        "cosigned_by": [
+          "witness-A",
+          "witness-B"
+        ]
+      }
+    ],
+    "witness_alarms": {
+      "witness-A": [
+        "split view at size 216"
+      ],
+      "witness-B": []
+    }
+  }
+}

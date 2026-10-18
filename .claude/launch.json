@@ -4,7 +4,7 @@
     {
       "name": "dashboard",
       "runtimeExecutable": ".venv/bin/bayora",
-      "runtimeArgs": ["dashboard", "--results", "results/colima-w", "--port", "8765"],
+      "runtimeArgs": ["dashboard", "--results", "results_final/final-3", "--port", "8765"],
       "port": 8765
     }
   ]

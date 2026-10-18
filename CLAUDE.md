@@ -30,7 +30,9 @@ Bayora runs a blind, leak-audited red-vs-blue evaluation:
 | `Dockerfile` | Zone image `bayora/py:poc` (`python:3.12-slim`). |
 | `tests/` | 8 tests. Run with `pip install -e ".[dev]" && python -m pytest -q tests`. CI: `.github/workflows/ci.yml`. |
 
-Measured results (2-vCPU sandbox), which the deck cites:
+Full-build results are in `results_final/`, `docs/test-plan.md` and `docs/deck-numbers.md` (Colima vz, Apple M5, 3 runs). The PoC results below are archived in `results_poc/`.
+
+PoC results (2-vCPU sandbox), which deck v4.1 cites:
 
 - 3/3 cross-zone paths blocked.
 - Leak drills: 100/120 caught by scanner v2, 20/120 by v1.

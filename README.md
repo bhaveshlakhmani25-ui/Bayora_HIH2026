@@ -57,22 +57,23 @@ It does not yet check witness cosignatures or whether the operator key is truste
 
 ## Measured results
 
-Measured on a 2-vCPU cloud sandbox, Docker 29.8, 3 runs. See `results_final/results.json`.
+These numbers come from Colima vz (Ubuntu 24.04, kernel 6.8, 4 vCPU) on an Apple M5, Docker 29.5 with userns-remap and the eBPF enforcer, over 3 runs. See `results_final/` and [docs/test-plan.md](docs/test-plan.md). The PoC numbers from the deck are in `results_poc/`, and [docs/deck-numbers.md](docs/deck-numbers.md) compares the two.
 
 | Test | Result |
 |---|---|
-| Cross-zone paths blocked (red→blue, red→model direct, red→internet) | 3/3 blocked; red→broker works |
-| Red sees blue volume / can write code mount | not mounted / read-only |
-| 500 requests through hardened containers | 100% completed; p50 0.63–0.66 ms vs 0.31–0.33 ms on host, about +0.3 ms per request |
-| Leak drills, scanner v1 | 20/120 detected (plain only) |
-| Leak drills, scanner v2 | 100/120 detected. Plain, lowercase, base64, hex and split all 20/20; fragment leaks 0/20 |
-| False positives | 0 in 10,000 noise lines, which include random forged `BYR…` canaries |
-| Edited event | rejected by inclusion proof against the cosigned root |
-| Mismatched reveal | rejected |
-| Split view | refused by witness ("split view at size N") |
-| Ledger | about 195k–218k appends/s; inclusion proof 16 hashes, verified in about 0.05 ms |
+| Forbidden red paths (to blue, to model directly, to the internet, to the broker on another port) | 4/4 denied with EPERM by eBPF and logged in the ledger; red→broker still works |
+| 3×500 requests through the containers | 100% completed; p50 0.25 ms with eBPF on and with it off |
+| Leak drills (4 channels × 9 encodings × 5) | v1 20/180, v2 120/180, v3 160–162/180 |
+| Fragment leaks (14 chars) | v3 20/20 (PoC: 0/20) |
+| False positives | 0 in 10,000 noise lines, for every mode |
+| Cache timing (llama.cpp, Qwen2.5-0.5B, K=8) | Shared cache: 60/60 secrets recovered. Salted: 11/60, which is chance (p=0.12), with 0 cross-tenant cache hits |
+| Tamper: edited event, bad reveal, split view | 3/3 rejected; the split view is refused by an HTTP witness process |
+| Receipt | DSSE in-toto receipt verifies with pinned keys, a 2-of-2 witness quorum, and published checkpoints |
+| Ledger | about 540–570k appends/s; inclusion proof 0.015 ms |
 
-## Not in this PoC (honest scope)
+The dashboard is `bayora dashboard` (default `results_final/final-3`). It opens at http://127.0.0.1:8765.
+
+## Not in this build (honest scope)
 
 - **Isolation layer.** Zones use Docker internal networks plus an eBPF default-deny egress policy per zone (cgroup v2 connect4/6 and UDP sendmsg4/6, `bayora/isolation/`). Blocked attempts are logged into the ledger. Measured on Colima (Ubuntu 24.04 VM, kernel 6.8, Apple M5) with `userns-remap`. Full rootless dockerd has not been tested.
 - **Model.** Evaluation traffic goes to a mock model. The cache-timing audit uses a real model: llama.cpp server, CPU, Qwen2.5-0.5B Q4_K_M.
@@ -82,4 +83,4 @@ Measured on a 2-vCPU cloud sandbox, Docker 29.8, 3 runs. See `results_final/resu
   - Measured on Colima vz, Apple M5, 20 trials, K=8 candidates. With a shared cache, B recovers the secret 20/20 times (p≈9e-19). With a per-tenant salt and slot, 2/20, which is chance (p=0.73), with 0 cross-tenant cache hits.
   - Salting is emulated, because llama.cpp has no vLLM `cache_salt`. vLLM itself has not been tested.
 - **Network channel.** It's captured at the broker (application layer), not with packet capture.
-- **Detection limit.** Fragment leaks and paraphrases are not detected by token scanning. They are reported as residual risk.
+- **Detection limit.** Fragments shorter than 10 characters, and paraphrases that never quote the canary, are not detected. They are reported as residual risk.
