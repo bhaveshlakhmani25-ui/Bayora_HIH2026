@@ -1,0 +1,21 @@
+# Bayora run configuration. Pass your own file with `bayora run -c my.yaml`;
+# any key you leave out keeps the value below.
+
+image: bayora/py:poc          # any image with python3; on a normal machine build FROM python:3.12-slim
+
+# One Docker --internal network per zone. The broker joins red and model;
+# it is the only path from red to the model.
+zones:
+  red: bz_red
+  blue: bz_blue
+  model: bz_model
+
+# Monitored channels. Anything not listed here is unmonitored and is residual risk.
+channels: [container_log, filesystem, network_broker, model_output]
+
+# Encodings the leak drills use. partial (a fragment) is a known gap for token scanners.
+encodings: [plain, lowercase, base64, hex, split, partial]
+
+drills_per_cell: 5            # drills per (channel, encoding) pair
+noise_lines: 10000            # benign lines scanned for false positives
+load_requests: 500            # requests per load run (3 runs)

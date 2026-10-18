@@ -1,0 +1,300 @@
+{
+  "run_id": "run-20261014T085140",
+  "host": {
+    "platform": "Linux-6.18.44-fc-v114-x86_64-with-glibc2.39",
+    "cpus": 2
+  },
+  "isolation_probes": {
+    "red->blue": "BLOCKED (OSError)",
+    "red->model_direct": "BLOCKED (OSError)",
+    "red->internet": "BLOCKED (OSError)",
+    "red->broker": "CONNECTED",
+    "red_reads_blue_volume": "NOT MOUNTED",
+    "red_writes_code": "READ-ONLY"
+  },
+  "function": {
+    "requests_per_run": 500,
+    "runs": 3,
+    "completed": true,
+    "containers_p50_ms": 0.6343740000147591,
+    "baseline_p50_ms": 0.3258240000150181,
+    "containers_total_s": 0.33367082300003403,
+    "baseline_total_s": 0.16705041900002016,
+    "throughput_overhead_pct": 99.74258370462022
+  },
+  "leak_drills": {
+    "v1": {
+      "by_channel_encoding": {
+        "container_log|plain": [
+          5,
+          5
+        ],
+        "container_log|lowercase": [
+          0,
+          5
+        ],
+        "container_log|base64": [
+          0,
+          5
+        ],
+        "container_log|hex": [
+          0,
+          5
+        ],
+        "container_log|split": [
+          0,
+          5
+        ],
+        "container_log|partial": [
+          0,
+          5
+        ],
+        "filesystem|plain": [
+          5,
+          5
+        ],
+        "filesystem|lowercase": [
+          0,
+          5
+        ],
+        "filesystem|base64": [
+          0,
+          5
+        ],
+        "filesystem|hex": [
+          0,
+          5
+        ],
+        "filesystem|split": [
+          0,
+          5
+        ],
+        "filesystem|partial": [
+          0,
+          5
+        ],
+        "network_broker|plain": [
+          5,
+          5
+        ],
+        "network_broker|lowercase": [
+          0,
+          5
+        ],
+        "network_broker|base64": [
+          0,
+          5
+        ],
+        "network_broker|hex": [
+          0,
+          5
+        ],
+        "network_broker|split": [
+          0,
+          5
+        ],
+        "network_broker|partial": [
+          0,
+          5
+        ],
+        "model_output|plain": [
+          5,
+          5
+        ],
+        "model_output|lowercase": [
+          0,
+          5
+        ],
+        "model_output|base64": [
+          0,
+          5
+        ],
+        "model_output|hex": [
+          0,
+          5
+        ],
+        "model_output|split": [
+          0,
+          5
+        ],
+        "model_output|partial": [
+          0,
+          5
+        ]
+      },
+      "false_positives": 0,
+      "detected": 20,
+      "total": 120
+    },
+    "v2": {
+      "by_channel_encoding": {
+        "container_log|plain": [
+          5,
+          5
+        ],
+        "container_log|lowercase": [
+          5,
+          5
+        ],
+        "container_log|base64": [
+          5,
+          5
+        ],
+        "container_log|hex": [
+          5,
+          5
+        ],
+        "container_log|split": [
+          5,
+          5
+        ],
+        "container_log|partial": [
+          0,
+          5
+        ],
+        "filesystem|plain": [
+          5,
+          5
+        ],
+        "filesystem|lowercase": [
+          5,
+          5
+        ],
+        "filesystem|base64": [
+          5,
+          5
+        ],
+        "filesystem|hex": [
+          5,
+          5
+        ],
+        "filesystem|split": [
+          5,
+          5
+        ],
+        "filesystem|partial": [
+          0,
+          5
+        ],
+        "network_broker|plain": [
+          5,
+          5
+        ],
+        "network_broker|lowercase": [
+          5,
+          5
+        ],
+        "network_broker|base64": [
+          5,
+          5
+        ],
+        "network_broker|hex": [
+          5,
+          5
+        ],
+        "network_broker|split": [
+          5,
+          5
+        ],
+        "network_broker|partial": [
+          0,
+          5
+        ],
+        "model_output|plain": [
+          5,
+          5
+        ],
+        "model_output|lowercase": [
+          5,
+          5
+        ],
+        "model_output|base64": [
+          5,
+          5
+        ],
+        "model_output|hex": [
+          5,
+          5
+        ],
+        "model_output|split": [
+          5,
+          5
+        ],
+        "model_output|partial": [
+          0,
+          5
+        ]
+      },
+      "false_positives": 0,
+      "detected": 100,
+      "total": 120
+    }
+  },
+  "noise_lines_scanned": 10000,
+  "reveal": {
+    "red_ok": true,
+    "blue_ok": true,
+    "tampered_payload_rejected": true
+  },
+  "tamper": {
+    "original_verifies": true,
+    "edited_event_rejected": true,
+    "split_view_refused_by_witness": true,
+    "witness_alarm": "split view at size 135"
+  },
+  "bench": {
+    "append_events_per_s": 218419.81762842825,
+    "root_50k_s": 0.0923306690000345,
+    "inclusion_proof_ms": 0.04645305899998675,
+    "proofs_ok": 1000,
+    "proof_hashes": 16,
+    "scanner_v2_MB_per_s": 13.633497823589291
+  },
+  "ledger": {
+    "events": 135,
+    "root": "e2aa04929222afd4375e96ac9333cbf46a3bb426a083d550870e049ed0a8427e",
+    "checkpoints": [
+      {
+        "size": 2,
+        "cosigned_by": [
+          "witness-A",
+          "witness-B"
+        ]
+      },
+      {
+        "size": 9,
+        "cosigned_by": [
+          "witness-A",
+          "witness-B"
+        ]
+      },
+      {
+        "size": 134,
+        "cosigned_by": [
+          "witness-A",
+          "witness-B"
+        ]
+      },
+      {
+        "size": 135,
+        "cosigned_by": [
+          "witness-A",
+          "witness-B"
+        ]
+      },
+      {
+        "size": 135,
+        "cosigned_by": [
+          "witness-A",
+          "witness-B"
+        ]
+      }
+    ],
+    "witness_alarms": {
+      "witness-A": [
+        "split view at size 135"
+      ],
+      "witness-B": []
+    }
+  }
+}

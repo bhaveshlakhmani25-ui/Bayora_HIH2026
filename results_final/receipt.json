@@ -1,0 +1,17 @@
+{
+  "run_id": "run-20261014T085140",
+  "log_size": 135,
+  "log_root": "e2aa04929222afd4375e96ac9333cbf46a3bb426a083d550870e049ed0a8427e",
+  "commitments": {
+    "red": "781d01727454ecd5f9cdb992c94352120ca3f691f78321eae090062c4864f914",
+    "blue": "b70dcc010d1161879f8d55cab2bf7f016f2a44be32adadbc76c397dcb662e6d7"
+  },
+  "operator_pubkey_raw": "3d80432d1f2ca0d51f14238f24c75e74c4b25eded8451fba0c9d6e283209d8e7",
+  "operator_sig": "a34f249c3b2f225fe9667ecffc08521e360aab29a92fa58a60115f572eb3f34ba38e63b5e2468dd276756d48c752c88d175275d9cafe0e94ed37679075dae309",
+  "cosigned_by": [
+    "witness-A",
+    "witness-B"
+  ],
+  "drill_recall_v2": "100/120",
+  "false_positives": 0
+}
