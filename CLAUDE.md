@@ -16,12 +16,14 @@ Bayora runs a blind, leak-audited red-vs-blue evaluation:
 | Path | Contents |
 |---|---|
 | `bayora/ledger.py` | RFC 9162 Merkle log with inclusion and consistency proofs, Ed25519-signed checkpoints, and a `Witness` that cosigns and refuses split views. |
-| `bayora/canary.py` | HMAC-derived canaries `BYR` + base32(HMAC(key, run\|tenant\|slot))[:24] with attribution. Scanner v1 does exact matching; v2 normalises case and whitespace and decodes base64/hex. |
+| `bayora/canary.py` | HMAC-derived canaries `BYR` + base32(HMAC(key, run\|tenant\|slot))[:24] with attribution. Scanner v1 does exact matching; v2 normalises case and whitespace and decodes base64/hex; v3 adds K=10 fragment matching, including reversed text. |
 | `bayora/commit.py` | Commit-reveal for blind tests. |
 | `containers/agent.py` | Mock roles: `model`, `broker`, `red`, `blue`. |
 | `bayora/run.py` (`bayora run`) | End-to-end run on Docker `--internal` networks, hardened with cap-drop ALL, read-only, non-root and no-new-privileges. It runs isolation probes, a load test, 120 leak drills, tamper tests and benchmarks, and writes `results/results.json`, `receipt.json` and `log.jsonl`. |
 | `bayora/drill.py` (`bayora drill`) | Leak-drill matrix and scoring, shared by `run`; `drill` runs it in-process without Docker. |
-| `bayora/verify.py` (`bayora verify`) | Checks a receipt against `log.jsonl`: Merkle root and operator signature. |
+| `bayora/witness.py` (`bayora witness serve`) | Witness HTTP service with a persistent key and per-origin last-seen state. `bayora run` starts two as separate processes; keys live in `~/.bayora`. |
+| `bayora/receipt.py` | in-toto Statement v1 in a DSSE envelope, plus signed-note-style checkpoints in `<out>/checkpoints/`. It is not byte-compatible with C2SP tlog-cosignature. |
+| `bayora/verify.py` (`bayora verify`) | Never contacts the operator. Checks the DSSE signature, the root against `log.jsonl`, a witness quorum against `--trust` keys, and `--checkpoints` against the log. Also accepts the old PoC receipt format. |
 | `bayora/default.yaml`, `bayora/config.py` | Run config: image, zone networks, channels, encodings, sizes. |
 | `bayora/isolation/` | `connect.bpf.c` and `enforcer.py` run as root where dockerd lives (Colima VM via `colima ssh`, or sudo on Linux). Each zone is placed in its own cgroup via `--cgroup-parent`. |
 | `bayora/cachetest.py` (`bayora cachetest`) | Tenant B times prompts to infer tenant A's secret from K=8 candidates, shared versus salted. The probe is the `cacheprobe` role in `containers/agent.py`. |

@@ -27,6 +27,9 @@ llm_threads: 4
 cache_trials: 20             # trials per condition; each trial probes all 8 candidates
 cache_audit: false           # bayora run: preflight cache-timing audit on the real model, logged in the ledger
 
+# Witness URLs (bayora witness serve). Empty = start two local witness processes with keys in ~/.bayora.
+witnesses: []
+
 drills_per_cell: 5            # drills per (channel, encoding) pair
 noise_lines: 10000            # benign lines scanned for false positives
 load_requests: 500            # requests per load run (3 runs)

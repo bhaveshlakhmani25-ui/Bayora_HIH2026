@@ -109,9 +109,9 @@ def checkpoint_body(origin, size, root):
 
 
 class LogOperator:
-    def __init__(self, origin="bayora.poc/log"):
+    def __init__(self, origin="bayora.poc/log", key=None):
         self.origin, self.log = origin, MerkleLog()
-        self.key = Ed25519PrivateKey.generate()
+        self.key = key or Ed25519PrivateKey.generate()
         self.pub = self.key.public_key()
 
     def checkpoint(self):

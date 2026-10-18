@@ -1,18 +1,21 @@
 """Bayora proof of concept: runs real Docker workloads and records every result in a
 witness-cosigned Merkle log. Needs a running Docker daemon and the configured image.
 Writes <out>/results.json, <out>/receipt.json and <out>/log.jsonl (the raw log entries)."""
-import subprocess, json, os, sys, time, base64, shutil, statistics, random, platform
+import atexit, subprocess, json, os, sys, time, base64, shutil, statistics, random, platform
 from pathlib import Path
-from .ledger import LogOperator, Witness, verify_inclusion, leaf_hash, MerkleLog, checkpoint_body
+from .ledger import LogOperator, verify_inclusion, leaf_hash, MerkleLog, checkpoint_body
 from .canary import CanaryAuthority, scan
 from .commit import commit, verify_reveal
 from .drill import make_drills, score, MODES
 from . import isolation
+from .witness import load_key, pub_hex, RemoteWitness
+from .receipt import build_receipt, write_checkpoint
 
 # shortcut: container code is read from the source checkout, so `bayora run` needs an editable install; package it when images are built properly
 CODE = Path(__file__).resolve().parents[1] / "containers"
 # under $HOME so Colima/Docker Desktop VMs see the same path (they share the home dir, not /tmp)
-WORK = os.environ.get("BAYORA_WORK", str(Path.home() / ".bayora" / "work"))
+HOME = os.environ.get("BAYORA_HOME", str(Path.home() / ".bayora"))   # operator + witness keys persist here across runs
+WORK = os.path.join(HOME, "work")
 
 
 def sh(*a, check=True):
@@ -42,16 +45,28 @@ def main(cfg, out="results"):
     # ---------------- setup ----------------
     cleanup(Z); shutil.rmtree(WORK, ignore_errors=True)
     for d in ["red", "blue", "broker"]: os.makedirs(f"{WORK}/{d}"); os.chmod(f"{WORK}/{d}", 0o777)
-    op = LogOperator(); w1 = Witness("witness-A", op.pub); w2 = Witness("witness-B", op.pub)
+    op = LogOperator(f"bayora.dev/run/{RUN}", load_key(f"{HOME}/operator.key"))
+    shutil.rmtree(f"{out}/checkpoints", ignore_errors=True); os.makedirs(out, exist_ok=True)
+    # witnesses are separate processes with their own persistent keys; config `witnesses` lists external ones instead
+    urls, wprocs = list(cfg["witnesses"]), []
+    for name in ([] if urls else ["witness-A", "witness-B"]):
+        p = subprocess.Popen([sys.executable, "-m", "bayora.cli", "witness", "serve", "--name", name, "--port", "0",
+                              "--state", f"{HOME}/{name}", "--operator-pubkey", pub_hex(op.key)], stdout=subprocess.PIPE, text=True)
+        wprocs.append(p); urls.append(f"http://127.0.0.1:{p.stdout.readline().split()[1]}")
+    atexit.register(lambda: [p.terminate() for p in wprocs])
+    witnesses = [RemoteWitness(u, op.origin) for u in urls]
+    w1 = witnesses[0]
     auth = CanaryAuthority(RUN)
     log = lambda kind, **kw: op.log.append({"run": RUN, "kind": kind, "ts": time.time(), **kw})
-    cosigs = []
+    cosigs, cps = [], []
 
     def checkpoint(prev_size):
         cp = op.checkpoint()
         proof = op.log.consistency_proof(prev_size) if prev_size else []
-        sigs = [w.cosign(cp, proof) for w in (w1, w2)]
-        cosigs.append({"size": cp["size"], "cosigned_by": [w.name for w, s in zip((w1, w2), sigs) if s]})
+        sigs = {w.name: s for w in witnesses if (s := w.cosign(cp, proof))}
+        cosigs.append({"size": cp["size"], "cosigned_by": list(sigs)})
+        write_checkpoint(out, cp, "operator", cp["sig"], list(sigs.items()))
+        cps.append(cp); cp["cosigs"] = sigs
         return cp
 
     # red payloads carry red canaries; blue rules carry blue canaries
@@ -192,16 +207,15 @@ def main(cfg, out="results"):
                   "proof_hashes": len(bl.inclusion_proof(0)), "scanner_v2_MB_per_s": len(big) / 1e6 / ts}
 
     final = checkpoint(cp3["size"])
-    R["ledger"] = {"events": final["size"], "root": final["root"].hex(), "checkpoints": cosigs,
-                   "witness_alarms": {w1.name: w1.alarms, w2.name: w2.alarms}}
-    receipt = {"run_id": RUN, "origin": op.origin, "log_size": final["size"], "log_root": final["root"].hex(),
-               "commitments": {"red": c_red, "blue": c_blue}, "model_sha256": model_sha, "operator_pubkey_raw": op.pub.public_bytes_raw().hex(),
-               "operator_sig": final["sig"].hex(), "cosigned_by": cosigs[-1]["cosigned_by"],
-               "drill_recall": {m: f'{r["detected"]}/{r["total"]}' for m, r in results.items()},
-               "false_positives": {m: r["false_positives"] for m, r in results.items()}}
-    os.makedirs(out, exist_ok=True)
+    R["ledger"] = {"events": final["size"], "root": final["root"].hex(), "origin": op.origin, "checkpoints": cosigs,
+                   "witness_alarms": {w.name: w.alarms for w in witnesses}}
+    drills_summary = {m: {"recall": f'{r["detected"]}/{r["total"]}', "false_positives": r["false_positives"]} for m, r in results.items()}
+    receipt = build_receipt(op, final, witnesses, final["cosigs"], RUN, {"red": c_red, "blue": c_blue}, drills_summary, model_sha, cps)
+    # public keys to pin: an auditor should get these out of band, not from the operator's output directory
+    keys = {"operator": pub_hex(op.key), "witnesses": {w.name: w.pub_hex for w in witnesses}, "quorum": len(witnesses)}
     json.dump(R, open(f"{out}/results.json", "w"), indent=2, default=str)
     json.dump(receipt, open(f"{out}/receipt.json", "w"), indent=2)
+    json.dump(keys, open(f"{out}/keys.json", "w"), indent=2)
     with open(f"{out}/log.jsonl", "wb") as f: f.write(b"".join(e + b"\n" for e in op.log.entries[:final["size"]]))
     cleanup(Z)
     print(json.dumps(R, indent=1, default=str)[:6000])

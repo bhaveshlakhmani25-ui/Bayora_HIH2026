@@ -12,15 +12,26 @@ def main(argv=None):
     d.add_argument("-c", "--config")
     ct = sub.add_parser("cachetest", help="prefix-cache timing attack on a real llama.cpp model: shared vs salted")
     ct.add_argument("-c", "--config"); ct.add_argument("-o", "--out", default="results"); ct.add_argument("-n", "--trials", type=int)
-    v = sub.add_parser("verify", help="check a receipt against its log file")
+    v = sub.add_parser("verify", help="check a receipt against its log file, without contacting the operator")
     v.add_argument("receipt"); v.add_argument("log")
+    v.add_argument("--trust", help="pinned keys: {operator, witnesses: {name: pubkey}, quorum}")
+    v.add_argument("--checkpoints", help="directory of published checkpoints to check against the log")
+    v.add_argument("--quorum", type=int)
+    w = sub.add_parser("witness", help="run an independent witness service")
+    w.add_argument("action", choices=["serve"]); w.add_argument("--name", required=True); w.add_argument("--port", type=int, default=0)
+    w.add_argument("--state", required=True, help="directory for this witness's key and last-seen checkpoints")
+    w.add_argument("--operator-pubkey", required=True, help="hex Ed25519 key of the only operator this witness cosigns for")
     a = p.parse_args(argv)
 
     if a.cmd == "verify":
         from .verify import verify
-        ok, msg = verify(a.receipt, a.log)
+        ok, msg = verify(a.receipt, a.log, a.trust, a.checkpoints, a.quorum)
         print(msg)
         return 0 if ok else 1
+    if a.cmd == "witness":
+        from .witness import serve
+        serve(a.name, a.port, a.state, a.operator_pubkey)
+        return 0
     try:
         cfg = config.load(a.config)
     except (OSError, ValueError) as e:
