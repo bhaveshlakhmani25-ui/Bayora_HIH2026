@@ -16,6 +16,8 @@ def test_dashboard_events_state_and_verify(tmp_path):
     st = get(base, "/api/state")
     assert st["statement"]["predicateType"] == "https://bayora.dev/receipt/v1" and [c["size"] for c in st["checkpoints"]] == [5, 8]
     assert get(base, "/api/verify", b"")["ok"] is True
+    t = json.loads(urllib.request.urlopen(urllib.request.Request(base + "/api/verify", json.dumps({"tamper": 2}).encode()), timeout=5).read())
+    assert t["ok"] is False and t["tampered"].startswith("event #2") and get(base, "/api/verify", b"")["ok"] is True   # real log untouched
     log = out / "log.jsonl"; log.write_bytes(log.read_bytes().replace(b'{"i":1}', b'{"i":7}'))
     r = get(base, "/api/verify", b"")
     assert r["ok"] is False and "root does not match" in r["message"]

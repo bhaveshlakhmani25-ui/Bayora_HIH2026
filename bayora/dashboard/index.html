@@ -3,235 +3,536 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Bayora Dashboard</title>
+<title>Bayora Evidence Console</title>
 <style>
   :root {
-    --bg: #f6f7f9; --panel: #ffffff; --ink: #14171c; --muted: #5b6472; --line: #dde1e7;
-    --ok: #127a43; --ok-bg: #e3f4ea; --bad: #b42318; --bad-bg: #fde8e6; --warn: #8a5a00; --warn-bg: #fff3d6;
-    --red: #c2410c; --blue: #1d4ed8; --model: #6d28d9; --broker: #0f766e; --accent: #1d4ed8;
+    --bg: #f4f5f2; --bg2: #eceee8; --panel: #ffffff; --ink: #11161c; --ink2: #3b4552; --muted: #66707d; --line: #dcdfd8;
+    --seal: #0f7b5f; --seal-bg: #e1f3ec; --deny: #9a5b00; --deny-bg: #fdf0d9; --leak: #b3261e; --leak-bg: #fbe5e3;
+    --red: #c4501b; --blue: #2457c5; --model: #6b3fc6; --broker: #0f7b74; --accent: #0f7b5f; --on-accent: #ffffff;
+    --shadow: 0 1px 2px rgba(17,22,28,.06), 0 8px 24px rgba(17,22,28,.06);
   }
   :root[data-theme="dark"] {
-    --bg: #0e1116; --panel: #161a21; --ink: #e8ebf0; --muted: #9aa4b2; --line: #2a303a;
-    --ok: #4ade80; --ok-bg: #12301f; --bad: #f87171; --bad-bg: #3a1614; --warn: #fbbf24; --warn-bg: #3a2c0b;
-    --red: #fb923c; --blue: #60a5fa; --model: #a78bfa; --broker: #2dd4bf; --accent: #60a5fa;
+    --bg: #0b0f14; --bg2: #10151c; --panel: #141a22; --ink: #e9edf2; --ink2: #c3cad4; --muted: #8e98a6; --line: #253040;
+    --seal: #3ddc97; --seal-bg: #0f2a20; --deny: #f5b544; --deny-bg: #2d2210; --leak: #ff7a70; --leak-bg: #3a1714;
+    --red: #ff8a4c; --blue: #6c9bff; --model: #b18cff; --broker: #39d0c4; --accent: #3ddc97; --on-accent: #062016;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --bg: #0e1116; --panel: #161a21; --ink: #e8ebf0; --muted: #9aa4b2; --line: #2a303a;
-      --ok: #4ade80; --ok-bg: #12301f; --bad: #f87171; --bad-bg: #3a1614; --warn: #fbbf24; --warn-bg: #3a2c0b;
-      --red: #fb923c; --blue: #60a5fa; --model: #a78bfa; --broker: #2dd4bf; --accent: #60a5fa;
+      --bg: #0b0f14; --bg2: #10151c; --panel: #141a22; --ink: #e9edf2; --ink2: #c3cad4; --muted: #8e98a6; --line: #253040;
+      --seal: #3ddc97; --seal-bg: #0f2a20; --deny: #f5b544; --deny-bg: #2d2210; --leak: #ff7a70; --leak-bg: #3a1714;
+      --red: #ff8a4c; --blue: #6c9bff; --model: #b18cff; --broker: #39d0c4; --accent: #3ddc97; --on-accent: #062016;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
     }
   }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
-  header { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; padding: 18px 24px; border-bottom: 1px solid var(--line); background: var(--panel); }
-  header h1 { font-size: 22px; margin: 0; letter-spacing: .2px; }
-  header .meta { color: var(--muted); font-size: 14px; flex: 1; min-width: 240px; }
-  main { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; padding: 16px 24px 40px; max-width: 1500px; margin: 0 auto; }
-  section { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; min-width: 0; }
-  section h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); margin: 0 0 12px; }
-  .s12 { grid-column: span 12; } .s8 { grid-column: span 8; } .s7 { grid-column: span 7; } .s5 { grid-column: span 5; } .s4 { grid-column: span 4; } .s6 { grid-column: span 6; }
-  @media (max-width: 1000px) { .s8, .s7, .s5, .s4, .s6 { grid-column: span 12; } main { padding: 12px 16px 32px; } header { padding: 14px 16px; } }
-  button { font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); padding: 8px 14px; }
-  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
-  button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-  .pill { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 13px; font-weight: 600; }
-  .ok { color: var(--ok); background: var(--ok-bg); } .bad { color: var(--bad); background: var(--bad-bg); } .warn { color: var(--warn); background: var(--warn-bg); }
-  .verdict { margin-top: 10px; padding: 10px 12px; border-radius: 8px; font-size: 14px; white-space: pre-wrap; word-break: break-word; }
-  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
-  .kpi { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
-  .kpi .v { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .kpi .l { color: var(--muted); font-size: 13px; }
-  table { border-collapse: collapse; width: 100%; font-size: 14px; font-variant-numeric: tabular-nums; }
-  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
-  th { color: var(--muted); font-weight: 600; }
-  .matrix td.c { text-align: center; font-weight: 600; border-radius: 4px; }
-  .scroll { overflow-x: auto; }
-  .tabs { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
-  .tabs button[aria-selected="true"] { border-color: var(--accent); color: var(--accent); font-weight: 600; }
-  .feed { max-height: 420px; overflow-y: auto; font-size: 14px; }
-  .ev { display: grid; grid-template-columns: 54px 150px 1fr; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--line); }
-  .ev .k { font-weight: 600; } .ev .i { color: var(--muted); }
-  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; word-break: break-all; }
-  .muted { color: var(--muted); font-size: 14px; }
-  details { margin-top: 8px; } summary { cursor: pointer; color: var(--muted); }
-  pre { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px; overflow: auto; max-height: 360px; font-size: 12px; }
-  svg text { fill: var(--ink); font: 13px system-ui, sans-serif; }
-  .live { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--ok); margin-right: 6px; vertical-align: middle; }
+  html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .86em; word-break: break-all; }
+  .muted { color: var(--muted); }
+  a { color: inherit; }
+  button, select { font: inherit; color: inherit; }
+  button:focus-visible, select:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 0 24px; }
+  @media (max-width: 640px) { .wrap { padding: 0 16px; } }
+
+  /* top bar */
+  .bar { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+  .bar .wrap { display: flex; align-items: center; gap: 16px; height: 60px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 19px; letter-spacing: .3px; text-decoration: none; }
+  .brand svg { width: 28px; height: 28px; color: var(--accent); }
+  nav.sections { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; flex: 1; }
+  nav.sections::-webkit-scrollbar { display: none; }
+  nav.sections a { text-decoration: none; color: var(--muted); padding: 6px 10px; border-radius: 8px; font-size: 14px; white-space: nowrap; }
+  nav.sections a:hover { color: var(--ink); background: var(--bg2); }
+  .icon-btn { border: 1px solid var(--line); background: var(--panel); border-radius: 10px; width: 40px; height: 40px; display: grid; place-items: center; cursor: pointer; flex: none; }
+  .icon-btn svg { width: 18px; height: 18px; }
+  @media (max-width: 760px) { nav.sections { display: none; } .bar .wrap { justify-content: space-between; } }
+
+  /* hero */
+  .hero { display: grid; grid-template-columns: 1.15fr .85fr; gap: 32px; padding: 40px 0 28px; align-items: start; }
+  @media (max-width: 980px) { .hero { grid-template-columns: 1fr; padding-top: 24px; } }
+  .eyebrow { display: inline-flex; gap: 8px; align-items: center; font-size: 13px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; color: var(--accent); }
+  .eyebrow::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px var(--seal-bg); }
+  h1 { font-size: clamp(30px, 4.4vw, 50px); line-height: 1.08; margin: 14px 0 14px; letter-spacing: -.8px; }
+  .lede { font-size: 18px; color: var(--ink2); max-width: 60ch; margin: 0 0 24px; }
+  .story { grid-column: 1 / -1; list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; counter-reset: step; }
+  @media (max-width: 720px) { .story { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); } }
+  .story li a { display: block; height: 100%; text-decoration: none; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px; box-shadow: var(--shadow); transition: transform .15s, border-color .15s; }
+  .story li a:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .story .n { font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: .5px; }
+  .story .t { font-weight: 700; margin: 2px 0 6px; }
+  .story .v { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .story .d { font-size: 13px; color: var(--muted); }
+
+  /* receipt */
+  .receipt { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); overflow: hidden; }
+  .receipt header { padding: 18px 20px 12px; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .receipt header h2 { margin: 0; font-size: 15px; letter-spacing: .6px; text-transform: uppercase; color: var(--muted); }
+  .receipt dl { margin: 0; padding: 0 20px 14px; display: grid; grid-template-columns: 112px 1fr; gap: 8px 12px; font-size: 14px; }
+  .receipt dt { color: var(--muted); } .receipt dd { margin: 0; min-width: 0; }
+  .perf { height: 18px; position: relative; margin: 2px 0; background: radial-gradient(circle at 0 50%, var(--bg) 9px, transparent 10px) left/18px 18px no-repeat, radial-gradient(circle at 100% 50%, var(--bg) 9px, transparent 10px) right/18px 18px no-repeat; }
+  .perf::after { content: ""; position: absolute; left: 18px; right: 18px; top: 50%; border-top: 2px dashed var(--line); }
+  .receipt .act { padding: 14px 20px 20px; display: grid; gap: 12px; }
+  .btn { border: 0; border-radius: 12px; padding: 13px 18px; font-weight: 700; cursor: pointer; display: inline-flex; gap: 10px; align-items: center; justify-content: center; }
+  .btn-primary { background: var(--accent); color: var(--on-accent); font-size: 17px; }
+  .btn-primary:hover { filter: brightness(1.06); }
+  .btn-ghost { background: transparent; border: 1px solid var(--line); }
+  .btn-ghost:hover { border-color: var(--leak); color: var(--leak); }
+  .btn[disabled] { opacity: .6; cursor: progress; }
+  .tamper { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+  .tamper select { min-width: 0; border: 1px solid var(--line); background: var(--bg2); border-radius: 10px; padding: 10px; font-size: 14px; }
+  @media (max-width: 460px) { .tamper { grid-template-columns: 1fr; } .receipt dl { grid-template-columns: 1fr; gap: 2px 0; } .receipt dt { margin-top: 6px; } }
+  .stamp { display: none; border-radius: 12px; padding: 12px 14px; font-size: 14px; }
+  .stamp.show { display: block; animation: pop .35s ease-out; }
+  .stamp.ok { background: var(--seal-bg); color: var(--seal); } .stamp.bad { background: var(--leak-bg); color: var(--leak); }
+  .stamp strong { display: block; font-size: 20px; letter-spacing: 2px; margin-bottom: 4px; }
+  .stamp p { margin: 4px 0 0; color: var(--ink2); }
+  @keyframes pop { from { transform: scale(.96); opacity: 0; } to { transform: none; opacity: 1; } }
+
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 700; white-space: nowrap; }
+  .chip.seal { background: var(--seal-bg); color: var(--seal); } .chip.deny { background: var(--deny-bg); color: var(--deny); }
+  .chip.leak { background: var(--leak-bg); color: var(--leak); } .chip.plain { background: var(--bg2); color: var(--ink2); }
+  .seal-ico { width: 14px; height: 14px; }
+
+  /* sections */
+  section.block { padding: 28px 0; border-top: 1px solid var(--line); }
+  .sec-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; margin-bottom: 18px; }
+  .sec-head .k { font-size: 12px; font-weight: 800; color: var(--accent); letter-spacing: .8px; }
+  .sec-head h2 { margin: 0; font-size: clamp(22px, 2.6vw, 30px); letter-spacing: -.3px; }
+  .sec-head p { margin: 0; flex-basis: 100%; color: var(--ink2); max-width: 75ch; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 18px; box-shadow: var(--shadow); min-width: 0; }
+  .card h3 { margin: 0 0 12px; font-size: 15px; }
+  .grid2 { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; }
+  @media (max-width: 900px) { .grid2 { grid-template-columns: 1fr; } }
+
+  /* zones */
+  .map { display: grid; grid-template-columns: 1fr 64px 1fr 64px 1fr; grid-template-rows: auto auto; align-items: center; gap: 14px 0; }
+  .zone { border: 2px solid var(--c); border-radius: 14px; padding: 14px; background: color-mix(in srgb, var(--c) 7%, var(--panel)); }
+  .zone .nm { font-weight: 800; color: var(--c); } .zone .ds { font-size: 13px; color: var(--muted); }
+  .zone ul { margin: 8px 0 0; padding-left: 18px; font-size: 13px; color: var(--ink2); }
+  .pipe { height: 4px; border-radius: 2px; background: repeating-linear-gradient(90deg, var(--seal) 0 10px, transparent 10px 18px); background-size: 18px 4px; animation: flow 1s linear infinite; position: relative; }
+  .pipe span { position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 11px; font-weight: 700; color: var(--seal); white-space: nowrap; }
+  @keyframes flow { to { background-position: 18px 0; } }
+  .z-blue { grid-column: 3; grid-row: 2; }
+  .walls { grid-column: 1; grid-row: 2; font-size: 13px; color: var(--muted); }
+  @media (max-width: 760px) {
+    .map { grid-template-columns: 1fr; gap: 0; }
+    .map .pipe { width: 4px; height: 34px; margin: 6px auto; background: repeating-linear-gradient(180deg, var(--seal) 0 10px, transparent 10px 18px); background-size: 4px 18px; animation-name: flowv; }
+    .map .pipe span { top: 50%; left: 14px; transform: translateY(-50%); }
+    .z-blue, .walls { grid-column: 1; grid-row: auto; margin-top: 14px; }
+  }
+  @keyframes flowv { to { background-position: 0 18px; } }
+  .attempts { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  .attempts li { display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 12px; background: var(--bg2); }
+  .attempts .x { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; background: var(--deny-bg); color: var(--deny); font-weight: 900; }
+  .attempts .x.ok { background: var(--seal-bg); color: var(--seal); }
+  .attempts .what { font-weight: 600; font-size: 14px; } .attempts .why { font-size: 12.5px; color: var(--muted); }
+  .hardening { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+
+  /* detection */
+  .bars { display: grid; gap: 12px; }
+  .barrow { display: grid; grid-template-columns: 150px 1fr 74px; gap: 12px; align-items: center; font-size: 14px; }
+  @media (max-width: 520px) { .barrow { grid-template-columns: 1fr 64px; } .barrow .track { grid-column: 1 / -1; grid-row: 2; } }
+  .track { height: 12px; border-radius: 6px; background: var(--bg2); overflow: hidden; position: relative; }
+  .fill { height: 100%; border-radius: 6px; background: var(--seal); width: 0; transition: width .8s ease-out; }
+  .barrow .num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+  .callout { display: flex; gap: 14px; align-items: center; margin-top: 16px; padding: 14px; border-radius: 14px; background: var(--seal-bg); }
+  .callout .big { font-size: 28px; font-weight: 900; color: var(--seal); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  .tabs button { border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 6px 12px; cursor: pointer; font-size: 14px; }
+  .tabs button[aria-selected="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { border-collapse: separate; border-spacing: 4px; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+  .matrix { width: 100%; } .matrix th { font-weight: 600; color: var(--muted); text-align: center; padding: 4px 6px; font-size: 12.5px; }
+  .matrix th.rowh { text-align: left; position: sticky; left: 0; background: var(--panel); color: var(--ink); }
+  .matrix td { text-align: center; padding: 8px 10px; border-radius: 8px; font-weight: 700; min-width: 54px; }
+  .lv0 { background: var(--leak-bg); color: var(--leak); } .lv1 { background: var(--deny-bg); color: var(--deny); } .lv2 { background: var(--seal-bg); color: var(--seal); }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 13px; color: var(--muted); margin-top: 10px; }
+  .legend i.lv2 { background: var(--seal); } .legend i.lv1 { background: var(--deny); } .legend i.lv0 { background: var(--leak); }
+  .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -2px; margin-right: 6px; }
+
+  /* cache */
+  .duel { display: grid; gap: 18px; }
+  .duel .row .lab { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; margin-bottom: 6px; }
+  .duel .track { height: 22px; border-radius: 8px; }
+  .duel .fill.bad { background: var(--leak); } .duel .fill.good { background: var(--seal); }
+  .chance { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--ink); opacity: .55; }
+  .chance-lab { font-size: 12px; color: var(--muted); }
+
+  /* ledger */
+  .chain { display: flex; gap: 0; overflow-x: auto; padding: 6px 2px 10px; align-items: stretch; }
+  .blk { flex: none; width: 190px; border: 1px solid var(--line); border-radius: 14px; padding: 12px; background: var(--bg2); }
+  .blk .sz { font-weight: 800; font-size: 18px; } .blk .rt { font-size: 12px; color: var(--muted); margin: 2px 0 8px; }
+  .blk .sigs { display: flex; flex-wrap: wrap; gap: 4px; }
+  .link { flex: none; width: 26px; align-self: center; height: 3px; background: var(--line); }
+  .filters { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .feed { list-style: none; margin: 0; padding: 0; max-height: 440px; overflow-y: auto; display: grid; gap: 6px; }
+  .feed li { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; padding: 9px 10px; border-radius: 10px; background: var(--bg2); font-size: 14px; }
+  .feed li .idx { font-size: 12px; color: var(--muted); display: block; margin-top: 2px; }
+  .feed li.new { animation: pop .4s ease-out; }
+  .live { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--seal); margin-right: 8px; animation: pulse 2s infinite; }
+  @keyframes pulse { 50% { opacity: .3; } }
+
+  /* limits */
+  .limits { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+  .limit { border-left: 4px solid var(--deny); }
+  .limit p { margin: 6px 0 0; font-size: 14px; color: var(--ink2); }
+  footer { padding: 26px 0 40px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); }
+  details summary { cursor: pointer; color: var(--muted); font-size: 14px; }
+  pre { background: var(--bg2); border: 1px solid var(--line); border-radius: 10px; padding: 12px; overflow: auto; max-height: 360px; font-size: 12px; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } html { scroll-behavior: auto; } }
 </style>
 </head>
 <body>
-<header>
-  <h1>Bayora</h1>
-  <div class="meta" id="meta">Loading…</div>
-  <button id="theme" aria-label="Toggle light or dark theme">Theme</button>
-  <button class="primary" id="verify">Verify receipt</button>
-</header>
-<main>
-  <section class="s12" id="verdict-wrap" hidden><h2>Receipt verification</h2><div id="verdict"></div></section>
-  <section class="s12"><h2>Headline (this run)</h2><div class="kpis" id="kpis"></div><p class="muted" id="env"></p></section>
-  <section class="s7"><h2>Trust zones and probe results</h2><div class="scroll"><svg id="zones" viewBox="0 0 760 300" width="100%" role="img" aria-label="Zones diagram"></svg></div><div id="probes"></div></section>
-  <section class="s5"><h2><span class="live" aria-hidden="true"></span>Live alerts</h2><div class="feed" id="feed"><p class="muted">No alerts yet.</p></div></section>
-  <section class="s8"><h2>Leak-drill coverage (channel × encoding)</h2><div class="tabs" id="modes" role="tablist"></div><div class="scroll" id="matrix"></div><p class="muted" id="matrix-note"></p></section>
-  <section class="s4"><h2>Cache-timing audit</h2><div id="cache"><p class="muted">No cache audit in this run.</p></div></section>
-  <section class="s12"><h2>Checkpoints and witness cosignatures</h2><div class="scroll" id="cps"></div></section>
-  <section class="s12"><h2>Raw data</h2><div id="raw"></div></section>
+<div class="bar">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="Bayora home">
+      <svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M16 2.5 4.5 7v8.2c0 7.1 4.9 12.6 11.5 14.3 6.6-1.7 11.5-7.2 11.5-14.3V7L16 2.5Z" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><path d="m10.5 16.2 3.8 3.8 7.4-7.6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Bayora
+    </a>
+    <nav class="sections" aria-label="Sections">
+      <a href="#isolate">Isolate</a><a href="#detect">Detect</a><a href="#cache">Side channel</a><a href="#audit">Audit</a><a href="#limits">Limits</a>
+    </nav>
+    <button class="icon-btn" id="theme" aria-label="Switch light or dark theme" title="Theme">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+    </button>
+  </div>
+</div>
+
+<main class="wrap" id="top">
+  <div class="hero">
+    <div>
+      <span class="eyebrow">Blind · leak-audited · verifiable</span>
+      <h1>Proof that this AI red-team test was fair.</h1>
+      <p class="lede">Bayora keeps the attacking team, the defending team and the model behind separate walls, plants tripwires to catch leaks, and seals every event in a log that independent witnesses co-sign. Anyone can check the receipt.</p>
+    </div>
+
+    <aside class="receipt" aria-labelledby="rc-title">
+      <header><h2 id="rc-title">Evaluation receipt</h2><span class="chip plain" id="rc-fmt">loading</span></header>
+      <dl id="rc"></dl>
+      <div class="perf" aria-hidden="true"></div>
+      <div class="act">
+        <button class="btn btn-primary" id="verify">
+          <svg class="seal-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>
+          Verify receipt
+        </button>
+        <div class="tamper">
+          <label class="sr" for="tamper-pick">Event to tamper with</label>
+          <select id="tamper-pick"><option>Loading events…</option></select>
+          <button class="btn btn-ghost" id="tamper">Tamper &amp; verify</button>
+        </div>
+        <div class="stamp" id="stamp" role="status" aria-live="polite"></div>
+        <p class="muted" style="margin:0;font-size:12.5px">The tamper demo edits a temporary copy of the log; the real log is never changed.</p>
+      </div>
+    </aside>
+    <ol class="story" id="story"></ol>
+  </div>
+
+  <section class="block" id="isolate">
+    <div class="sec-head"><span class="k">STEP 2 · ISOLATE</span><h2>Walls between the teams</h2>
+      <p>Each team runs in its own sealed container and network. The broker is the only way through. A kernel-level eBPF policy denies every other connection before a packet leaves, and logs it.</p></div>
+    <div class="grid2">
+      <div class="card">
+        <h3>Trust zones</h3>
+        <div class="map" id="map">
+          <div class="zone" style="--c:var(--red)"><div class="nm">Red team</div><div class="ds">holds attack payloads</div></div>
+          <div class="pipe" aria-hidden="true"><span>prompts</span></div>
+          <div class="zone" style="--c:var(--broker)"><div class="nm">Broker</div><div class="ds">only cross-zone path</div></div>
+          <div class="pipe" aria-hidden="true"><span>to model</span></div>
+          <div class="zone" style="--c:var(--model)"><div class="nm">Model</div><div class="ds">serving zone</div></div>
+          <div class="walls" id="walls"></div>
+          <div class="zone z-blue" style="--c:var(--blue)"><div class="nm">Blue team</div><div class="ds">holds defensive rules · sees payloads only after the test</div></div>
+        </div>
+        <div class="hardening" id="hardening"></div>
+      </div>
+      <div class="card">
+        <h3>What the red team tried</h3>
+        <ul class="attempts" id="attempts"></ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="detect">
+    <div class="sec-head"><span class="k">STEP 3 · DETECT</span><h2>Tripwires that name the leaker</h2>
+      <p>Every secret carries canaries only Bayora can mint. Bayora leaks fake ones on purpose through every monitored channel, in many disguises, and counts how many each scanner catches.</p></div>
+    <div class="grid2">
+      <div class="card">
+        <h3>Coverage by disguise and channel</h3>
+        <div class="tabs" id="modes" role="tablist" aria-label="Scanner"></div>
+        <div class="scroll"><table class="matrix" id="matrix"></table></div>
+        <div class="legend"><span><i class="lv2"></i>all caught</span><span><i class="lv1"></i>some caught</span><span><i class="lv0"></i>none caught (residual risk)</span></div>
+      </div>
+      <div class="card">
+        <h3>Recall per scanner</h3>
+        <div class="bars" id="bars"></div>
+        <div class="callout" id="frag" hidden></div>
+        <p class="muted" id="fp" style="font-size:13.5px;margin:12px 0 0"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="cache">
+    <div class="sec-head"><span class="k">STEP 3B · SIDE CHANNEL</span><h2>Can one tenant read another's prompt?</h2>
+      <p>On a shared model server, tenant B times its own prompts to guess which of several secrets tenant A's prompt contains. Bayora runs this attack against a real model before the evaluation.</p></div>
+    <div class="grid2">
+      <div class="card"><h3>Attacker's success rate</h3><div class="duel" id="duel"><p class="muted">No cache audit in this run.</p></div></div>
+      <div class="card"><h3>What it means</h3><div id="cache-text" class="muted"></div></div>
+    </div>
+  </section>
+
+  <section class="block" id="audit">
+    <div class="sec-head"><span class="k">STEP 4 · AUDIT</span><h2>A log nobody can quietly rewrite</h2>
+      <p>Every event is appended to a Merkle log. Checkpoints are signed by the operator and co-signed by independent witnesses, which refuse to sign two different histories.</p></div>
+    <div class="card" style="margin-bottom:16px"><h3>Checkpoints and seals</h3><div class="chain" id="chain"></div><p class="muted" id="alarms" style="font-size:13.5px;margin:6px 0 0"></p></div>
+    <div class="card">
+      <h3><span class="live" aria-hidden="true"></span>Live event feed</h3>
+      <div class="filters" id="filters" role="group" aria-label="Filter events"></div>
+      <ul class="feed" id="feed"></ul>
+    </div>
+  </section>
+
+  <section class="block" id="limits">
+    <div class="sec-head"><span class="k">HONEST SCOPE</span><h2>What we do not claim</h2>
+      <p>A clean scan is not proof of zero leakage. These limits are measured or stated, not hidden.</p></div>
+    <div class="limits" id="limit-list"></div>
+    <details style="margin-top:18px"><summary>Raw data</summary><div id="raw"></div></details>
+  </section>
 </main>
+<footer><div class="wrap" id="env"></div></footer>
+
 <script>
 "use strict";
-// Every value from the results/log is inserted with textContent, never parsed as HTML.
+// Values from results and log files are inserted with textContent only, never parsed as HTML.
 const $ = (id) => document.getElementById(id);
 function h(tag, attrs, ...kids) {
   const e = document.createElement(tag);
-  for (const [k, v] of Object.entries(attrs || {})) (k === "class" ? (e.className = v) : e.setAttribute(k, v));
-  for (const k of kids.flat()) if (k != null) e.append(k instanceof Node ? k : String(k));
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (k === "class") e.className = v; else if (k === "style") e.style.cssText = v; else if (k.startsWith("on")) e[k] = v; else e.setAttribute(k, v);
+  }
+  for (const k of kids.flat()) if (k != null && k !== false) e.append(k instanceof Node ? k : String(k));
   return e;
 }
-const pill = (text, cls) => h("span", { class: "pill " + cls }, text);
+const chip = (text, cls) => h("span", { class: "chip " + cls }, text);
 const blocked = (v) => typeof v === "string" && /BLOCKED|NOT MOUNTED|READ-ONLY/.test(v);
+const short = (x, n = 12) => (x ? String(x).slice(0, n) + "…" : "–");
+const SCANNER = { v1: "v1 · exact match", v2: "v2 · decoded", v3: "v3 · fragments" };
+const PROBE = {
+  "red->blue": ["Reach the blue team", "would expose defensive rules"],
+  "red->model_direct": ["Talk to the model directly", "bypassing the broker"],
+  "red->internet": ["Reach the internet", "exfiltrate payloads"],
+  "red->broker_other_port": ["Use the broker on another port", "Docker networks alone allow this; eBPF denies it"],
+  "red->broker": ["Send prompts via the broker", "the one permitted path"],
+  "red_reads_blue_volume": ["Read the blue team's files", "volume never mounted"],
+  "red_writes_code": ["Modify the evaluation code", "mounted read-only"],
+};
 
 try { const t = localStorage.getItem("bayora-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
 $("theme").onclick = () => {
-  const dark = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim() === "#0e1116";
-  document.documentElement.dataset.theme = dark ? "light" : "dark";
+  const cur = document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  document.documentElement.dataset.theme = cur === "dark" ? "light" : "dark";
   try { localStorage.setItem("bayora-theme", document.documentElement.dataset.theme); } catch (e) {}
 };
 
-let S = null, since = 0, mode = null;
+let S = null, mode = null, since = 0, filter = "all", allEvents = [];
 
-function kpis(r, st) {
-  const k = $("kpis"); k.replaceChildren();
-  const add = (v, l, cls) => k.append(h("div", { class: "kpi" }, h("div", { class: "v " + (cls || "") }, v), h("div", { class: "l" }, l)));
-  if (!r) { add("–", "no results.json yet"); return; }
-  const p = r.isolation_probes || {};
-  const cross = Object.entries(p).filter(([n]) => n.startsWith("red->") && n !== "red->broker");
-  add(`${cross.filter(([, v]) => blocked(v)).length}/${cross.length}`, "forbidden paths blocked (incl. red→broker other port)");
-  add(r.isolation ? r.isolation.enforcer : "docker", `enforcer · ${r.isolation && r.isolation.blocked_connects != null ? r.isolation.blocked_connects + " blocked connects logged" : "no eBPF"}`);
-  for (const m of Object.keys(r.leak_drills || {})) { const d = r.leak_drills[m]; add(`${d.detected}/${d.total}`, `drills caught by scanner ${m} · ${d.false_positives} FP`); }
-  if (r.tamper) { const t = [r.tamper.edited_event_rejected, r.reveal && r.reveal.tampered_payload_rejected, r.tamper.split_view_refused_by_witness]; add(`${t.filter(Boolean).length}/3`, "tamper tests rejected"); }
-  if (r.function) add(`${r.function.containers_p50_ms.toFixed(2)} ms`, `p50 via containers (host baseline ${r.function.baseline_p50_ms.toFixed(2)} ms)`);
-  if (r.cache_audit) add(r.cache_audit.pass ? "PASS" : "FAIL", "cache-timing preflight (salted at chance)", r.cache_audit.pass ? "ok" : "bad");
+function story(r, p) {
+  const ol = $("story"); ol.replaceChildren();
+  const probes = (r && r.isolation_probes) || {};
+  const forb = Object.entries(probes).filter(([n]) => n.startsWith("red->") && n !== "red->broker");
+  const best = r && r.leak_drills ? Object.values(r.leak_drills).at(-1) : null;
+  const cps = (r && r.ledger && r.ledger.checkpoints) || [];
+  const steps = [
+    ["Commit", r && r.reveal ? (r.reveal.red_ok && r.reveal.blue_ok ? "sealed" : "mismatch") : "–", "both teams lock in a hash of their work first", "#top"],
+    ["Isolate", forb.length ? `${forb.filter(([, v]) => blocked(v)).length}/${forb.length}` : "–", "forbidden paths blocked", "#isolate"],
+    ["Detect", best ? `${best.detected}/${best.total}` : "–", `planted leaks caught · ${best ? best.false_positives : "?"} false alarms`, "#detect"],
+    ["Audit", cps.length ? `${cps.length}` : "–", `checkpoints co-signed by ${p && p.witnesses ? p.witnesses.length : "?"} witnesses`, "#audit"],
+    ["Verify", "you", "check the receipt yourself, right here", "#rc-title"],
+  ];
+  steps.forEach(([t, v, d, href], i) => ol.append(h("li", {}, h("a", { href }, h("div", { class: "n" }, `STEP ${i + 1}`), h("div", { class: "t" }, t), h("div", { class: "v" }, v), h("div", { class: "d" }, d)))));
 }
 
-function zones(r) {
-  const svg = $("zones"); svg.replaceChildren();
-  const NS = "http://www.w3.org/2000/svg";
-  const el = (tag, a, text) => { const e = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(a)) e.setAttribute(k, v); if (text != null) e.textContent = text; svg.append(e); return e; };
-  const p = (r && r.isolation_probes) || {};
-  const box = (x, y, w, label, sub, color) => {
-    el("rect", { x, y, width: w, height: 64, rx: 10, fill: "none", stroke: color, "stroke-width": 2.5 });
-    el("text", { x: x + w / 2, y: y + 27, "text-anchor": "middle", "font-weight": 700 }, label);
-    el("text", { x: x + w / 2, y: y + 47, "text-anchor": "middle", fill: "currentColor", opacity: .7, "font-size": 12 }, sub);
-  };
-  const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
-  const edge = (x1, y1, x2, y2, name, lx, ly) => {
-    const v = p[name]; const ok = name === "red->broker" ? v === "CONNECTED" : blocked(v);
-    el("line", { x1, y1, x2, y2, stroke: v == null ? css("--line") : (name === "red->broker" ? css("--ok") : css("--bad")), "stroke-width": 2, "stroke-dasharray": name === "red->broker" ? "" : "6 5" });
-    el("text", { x: lx, y: ly, "text-anchor": "middle", "font-size": 12 }, `${name.replace("red->", "→ ")}: ${v == null ? "not probed" : v}${v == null ? "" : ok ? " ✓" : " ✗"}`);
-  };
-  box(20, 118, 150, "Red zone", "attack payloads", css("--red"));
-  box(305, 118, 150, "Broker", "only cross-zone path", css("--broker"));
-  box(590, 118, 150, "Model", "serving zone", css("--model"));
-  box(305, 226, 150, "Blue zone", "defensive rules", css("--blue"));
-  el("rect", { x: 590, y: 14, width: 150, height: 44, rx: 22, fill: "none", stroke: css("--muted"), "stroke-width": 1.5 });
-  el("text", { x: 665, y: 41, "text-anchor": "middle" }, "Internet");
-  edge(170, 150, 305, 150, "red->broker", 237, 142);
-  el("line", { x1: 455, y1: 150, x2: 590, y2: 150, stroke: css("--ok"), "stroke-width": 2 });
-  el("text", { x: 522, y: 142, "text-anchor": "middle", "font-size": 12 }, "broker → model ✓");
-  edge(120, 182, 305, 258, "red->blue", 175, 245);
-  edge(95, 118, 600, 58, "red->internet", 330, 72);
-  edge(140, 118, 640, 118, "red->model_direct", 470, 104);
-  const pr = $("probes"); pr.replaceChildren();
-  const extra = Object.entries(p).filter(([n]) => !["red->broker", "red->blue", "red->internet", "red->model_direct"].includes(n));
-  if (extra.length) pr.append(h("table", {}, h("tbody", {}, extra.map(([n, v]) => h("tr", {}, h("td", {}, n), h("td", {}, pill(v, blocked(v) ? "ok" : "bad")))))));
-  if (r && r.isolation && r.isolation.allow) pr.append(h("p", { class: "muted" }, "Allow-list per zone: " + Object.entries(r.isolation.allow).map(([z, a]) => `${z} → ${a.length ? a.map((x) => x.join(":")).join(", ") : "nothing"}`).join(" · ")));
+function receipt(st, r) {
+  const p = st && st.predicate;
+  $("rc-fmt").textContent = p ? "in-toto · DSSE" : (S.receipt ? "PoC format" : "no receipt");
+  const dl = $("rc"); dl.replaceChildren();
+  const row = (k, v) => dl.append(h("dt", {}, k), h("dd", {}, v));
+  if (p) {
+    row("Run", h("span", { class: "mono" }, p.run_id));
+    row("Events", `${p.log_size} logged`);
+    row("Log root", h("span", { class: "mono" }, short(p.log_root, 20)));
+    row("Commitments", h("span", {}, chip("red " + short(p.commitments.red, 8), "plain"), " ", chip("blue " + short(p.commitments.blue, 8), "plain")));
+    row("Model", p.model_sha256 ? h("span", { class: "mono" }, "sha256 " + short(p.model_sha256, 12)) : h("span", { class: "muted" }, "mock model (no hash)"));
+    row("Witnesses", h("span", {}, p.witnesses.flatMap((w) => [chip((w.cosig ? "✓ " : "✕ ") + w.name, w.cosig ? "seal" : "leak"), " "])));
+  } else if (S.receipt) {
+    row("Run", S.receipt.run_id); row("Log root", h("span", { class: "mono" }, short(S.receipt.log_root, 20)));
+  }
 }
 
-function matrix(r) {
-  const drills = (r && r.leak_drills) || {}; const modes = Object.keys(drills);
+function isolation(r) {
+  const probes = (r && r.isolation_probes) || {};
+  const ul = $("attempts"); ul.replaceChildren();
+  const order = ["red->broker", "red->blue", "red->model_direct", "red->internet", "red->broker_other_port", "red_reads_blue_volume", "red_writes_code"];
+  for (const name of order.filter((n) => n in probes).concat(Object.keys(probes).filter((n) => !order.includes(n)))) {
+    const v = probes[name], allowed = name === "red->broker", ok = allowed ? v === "CONNECTED" : blocked(v);
+    const [what, why] = PROBE[name] || [name, ""];
+    const how = /PermissionError/.test(v) ? "denied by eBPF" : v;
+    ul.append(h("li", {}, h("span", { class: "x" + (allowed ? " ok" : "") }, allowed ? "✓" : "✕"),
+      h("div", {}, h("div", { class: "what" }, what), h("div", { class: "why" }, why)),
+      chip(allowed ? (ok ? "allowed" : v) : how, ok ? (allowed ? "seal" : "deny") : "leak")));
+  }
+  if (!Object.keys(probes).length) ul.append(h("li", {}, h("span", { class: "muted" }, "No probes in this run.")));
+  const iso = (r && r.isolation) || {}, dk = (r && r.host && r.host.docker) || {};
+  $("walls").textContent = iso.enforcer === "ebpf" ? `eBPF default-deny on every zone · ${iso.blocked_connects ?? 0} blocked attempts sealed into the log` : "Docker internal networks only (eBPF off)";
+  const hd = $("hardening"); hd.replaceChildren();
+  ["cap-drop ALL", "read-only root", "non-root uid", "no-new-privileges", dk.userns_remap ? "userns-remap" : null, dk.rootless ? "rootless" : null, iso.enforcer === "ebpf" ? "eBPF egress policy" : null]
+    .filter(Boolean).forEach((t) => hd.append(chip(t, "plain")));
+}
+
+function detection(r) {
+  const drills = (r && r.leak_drills) || {}, modes = Object.keys(drills);
+  const bars = $("bars"); bars.replaceChildren();
+  for (const m of modes) {
+    const d = drills[m], pct = d.total ? (100 * d.detected / d.total) : 0;
+    const fill = h("div", { class: "fill" });
+    bars.append(h("div", { class: "barrow" }, h("span", {}, SCANNER[m] || m), h("div", { class: "track", role: "img", "aria-label": `${pct.toFixed(0)} percent` }, fill), h("span", { class: "num" }, `${d.detected}/${d.total}`)));
+    requestAnimationFrame(() => (fill.style.width = pct + "%"));
+  }
+  const frag = (m) => { const c = drills[m] && Object.entries(drills[m].by_channel_encoding).filter(([k]) => k.endsWith("|partial")); return c && c.length ? [c.reduce((a, [, v]) => a + v[0], 0), c.reduce((a, [, v]) => a + v[1], 0)] : null; };
+  const before = frag("v2"), after = frag(modes.at(-1));
+  if (before && after && modes.at(-1) !== "v2") {
+    $("frag").hidden = false;
+    $("frag").replaceChildren(h("span", { class: "big" }, `${before[0]}/${before[1]} → ${after[0]}/${after[1]}`), h("span", {}, h("strong", {}, "Fragment leaks caught. "), "Scanner v3 recognises any 10-character piece of a canary, even reversed."));
+  }
+  $("fp").textContent = modes.length ? `False alarms: ${modes.map((m) => `${m} ${drills[m].false_positives}`).join(", ")} in ${r.noise_lines_scanned ?? "?"} noise lines with forged look-alike canaries.` : "";
   const tabs = $("modes"); tabs.replaceChildren();
-  if (!modes.length) { $("matrix").replaceChildren(h("p", { class: "muted" }, "No drill results.")); return; }
-  if (!modes.includes(mode)) mode = modes[modes.length - 1];
-  for (const m of modes) { const b = h("button", { role: "tab", "aria-selected": String(m === mode) }, `scanner ${m}`); b.onclick = () => { mode = m; matrix(r); }; tabs.append(b); }
+  if (!modes.length) { $("matrix").replaceChildren(); return; }
+  if (!modes.includes(mode)) mode = modes.at(-1);
+  for (const m of modes) tabs.append(h("button", { role: "tab", "aria-selected": String(m === mode), onclick: () => { mode = m; detection(r); } }, SCANNER[m] || m));
   const cells = drills[mode].by_channel_encoding;
   const chans = [...new Set(Object.keys(cells).map((k) => k.split("|")[0]))], encs = [...new Set(Object.keys(cells).map((k) => k.split("|")[1]))];
-  const t = h("table", { class: "matrix" }, h("thead", {}, h("tr", {}, h("th", {}, "channel"), encs.map((e) => h("th", {}, e)))),
-    h("tbody", {}, chans.map((c) => h("tr", {}, h("th", {}, c), encs.map((e) => {
+  const nice = (c) => c.replace("_", " ");
+  $("matrix").replaceChildren(
+    h("thead", {}, h("tr", {}, h("th", { class: "rowh" }, "disguise"), chans.map((c) => h("th", { scope: "col" }, nice(c))))),
+    h("tbody", {}, encs.map((e) => h("tr", {}, h("th", { class: "rowh", scope: "row" }, e), chans.map((c) => {
       const v = cells[`${c}|${e}`]; if (!v) return h("td", {}, "–");
-      const f = v[0] / v[1]; return h("td", { class: "c " + (f === 1 ? "ok" : f === 0 ? "bad" : "warn") }, `${v[0]}/${v[1]}`);
+      return h("td", { class: v[0] === v[1] ? "lv2" : v[0] === 0 ? "lv0" : "lv1", title: `${nice(c)}, ${e}: ${v[0]} of ${v[1]} caught` }, `${v[0]}/${v[1]}`);
     })))));
-  $("matrix").replaceChildren(t);
-  const d = drills[mode];
-  $("matrix-note").textContent = `Scanner ${mode}: ${d.detected}/${d.total} drills detected, ${d.false_positives} false positives in ${r.noise_lines_scanned ?? "?"} noise lines. A clean scan is not proof of zero leakage: unmonitored paths are residual risk.`;
 }
 
-function cache(r, ct) {
-  const c = ct || (r && r.cache_audit); if (!c) return;
-  const row = (name) => { const x = c[name]; return h("tr", {}, h("td", {}, name), h("td", {}, `${x.correct}/${x.trials}`), h("td", {}, (x.chance * 100).toFixed(1) + "%"), h("td", {}, x.p_value_vs_chance.toPrecision(2)), h("td", {}, String(x.cross_tenant_cache_hits ?? "–"))); };
-  $("cache").replaceChildren(
-    h("p", {}, pill(c.pass ? "PASS: salted probe at chance" : "FAIL: salted probe beats chance", c.pass ? "ok" : "bad")),
-    h("table", {}, h("thead", {}, h("tr", {}, h("th", {}, "condition"), h("th", {}, "B correct"), h("th", {}, "chance"), h("th", {}, "p"), h("th", {}, "cache hits"))), h("tbody", {}, row("shared"), row("salted"))),
-    h("p", { class: "muted" }, `${c.engine} · ${c.model} · sha256 ${String(c.model_sha256).slice(0, 16)}…`),
-    h("p", { class: "muted" }, c.environment));
+function cache(r) {
+  const c = S.cachetest || (r && r.cache_audit);
+  if (!c || !c.shared) return;
+  const pct = (x) => 100 * x.correct / x.trials;
+  const bar = (name, x, cls, lab) => {
+    const fill = h("div", { class: "fill " + cls });
+    requestAnimationFrame(() => (fill.style.width = pct(x) + "%"));
+    return h("div", { class: "row" }, h("div", { class: "lab" }, h("strong", {}, lab), h("span", {}, `${x.correct}/${x.trials} secrets guessed`)),
+      h("div", { class: "track", role: "img", "aria-label": `${lab}: ${pct(x).toFixed(0)} percent` }, fill, h("div", { class: "chance", style: `left:${100 * x.chance}%` })));
+  };
+  $("duel").replaceChildren(bar("shared", c.shared, "bad", "Shared cache"), bar("salted", c.salted, "good", "Bayora per-tenant salt"),
+    h("div", { class: "chance-lab" }, `Vertical line = blind guessing (${(100 * c.shared.chance).toFixed(1)}%).`),
+    h("div", {}, chip(c.pass ? "PASS · salted attacker is at chance" : "FAIL · salted attacker beats chance", c.pass ? "seal" : "leak")));
+  $("cache-text").replaceChildren(
+    h("p", { style: "margin-top:0" }, `With a shared cache, the attacker's correct guess comes back far faster, because the server reuses tenant A's cached prompt. Cross-tenant cache hits: ${c.shared.cross_tenant_cache_hits ?? "?"} of ${c.shared.trials}.`),
+    h("p", {}, `With a separate salt and slot per tenant there is nothing to reuse: ${c.salted.cross_tenant_cache_hits ?? "?"} cache hits, and the attacker does no better than guessing (p = ${Number(c.salted.p_value_vs_chance).toPrecision(2)}).`),
+    h("p", { class: "mono" }, `${c.engine} · ${c.model || ""} · ${short(c.model_sha256, 16)}`),
+    h("p", { style: "margin-bottom:0" }, c.environment || ""));
 }
 
-function checkpoints(r, cps) {
-  const rows = cps.length ? cps.map((c) => ({ size: c.size, root: c.root, signers: c.signers })) :
-    ((r && r.ledger && r.ledger.checkpoints) || []).map((c) => ({ size: c.size, root: null, signers: ["operator", ...c.cosigned_by] }));
-  if (!rows.length) { $("cps").replaceChildren(h("p", { class: "muted" }, "No checkpoints.")); return; }
-  const alarms = r && r.ledger && r.ledger.witness_alarms ? Object.entries(r.ledger.witness_alarms).filter(([, a]) => a.length) : [];
-  $("cps").replaceChildren(h("table", {}, h("thead", {}, h("tr", {}, h("th", {}, "size"), h("th", {}, "root"), h("th", {}, "signed / cosigned by"))),
-    h("tbody", {}, rows.map((c) => h("tr", {}, h("td", {}, c.size), h("td", { class: "mono" }, c.root ? c.root.slice(0, 32) + "…" : "(not published)"), h("td", {}, c.signers.map((s) => pill(s, s === "operator" ? "warn" : "ok")).flatMap((x) => [x, " "])))))),
-    alarms.length ? h("p", {}, pill("witness alarms", "bad"), " ", alarms.map(([w, a]) => `${w}: ${a.join("; ")}`).join(" · ")) : null);
+function chain(r) {
+  const cps = S.checkpoints.length ? S.checkpoints : ((r && r.ledger && r.ledger.checkpoints) || []).map((c) => ({ size: c.size, root: null, signers: ["operator", ...c.cosigned_by] }));
+  const el = $("chain"); el.replaceChildren();
+  cps.forEach((c, i) => {
+    if (i) el.append(h("div", { class: "link", "aria-hidden": "true" }));
+    el.append(h("div", { class: "blk" }, h("div", { class: "sz" }, `${c.size} events`), h("div", { class: "rt mono" }, c.root ? "root " + short(c.root, 14) : "root not published"),
+      h("div", { class: "sigs" }, c.signers.map((s) => chip((s === "operator" ? "" : "✓ ") + s, s === "operator" ? "plain" : "seal")))));
+  });
+  if (!cps.length) el.append(h("p", { class: "muted" }, "No checkpoints."));
+  const al = r && r.ledger && r.ledger.witness_alarms ? Object.entries(r.ledger.witness_alarms).filter(([, a]) => a.length) : [];
+  $("alarms").textContent = al.length ? `Witness alarms raised during the tamper test: ${al.map(([w, a]) => `${w}: ${a.join("; ")}`).join(" · ")}. The forged history was refused.` : "";
 }
 
-function raw(st) {
-  const blocks = [["results.json", st.results], ["receipt (in-toto statement)", st.statement || st.receipt], ["cache test", st.cachetest]];
+function limits(r) {
+  const drills = (r && r.leak_drills) || {}, last = Object.values(drills).at(-1);
+  const miss = last ? Object.entries(last.by_channel_encoding).filter(([k]) => k.endsWith("|described")).reduce((a, [, v]) => [a[0] + v[0], a[1] + v[1]], [0, 0]) : null;
+  const items = [
+    ["Short fragments and paraphrases", miss && miss[1] ? `Pieces under 10 characters slip past: ${miss[0]}/${miss[1]} "described" leaks caught. Meaning-level paraphrase is untested.` : "Pieces under 10 characters and meaning-level paraphrases are not detected."],
+    ["Monitored channels only", `Bayora scans ${(r && r.config && r.config.channels || []).length || 4} channels (container logs, files, broker traffic, model output). Anything else is residual risk.`],
+    ["Network capture point", "Broker traffic is captured at the application layer, not with packet capture."],
+    ["Model under test", "Evaluation traffic uses a stand-in model. The side-channel test uses a real model (llama.cpp, not vLLM)."],
+    ["Trusted base", "The host kernel, container runtime, broker and enforcer are trusted. This build uses userns-remap, not fully rootless Docker."],
+  ];
+  $("limit-list").replaceChildren(...items.map(([t, d]) => h("div", { class: "card limit" }, h("strong", {}, t), h("p", {}, d))));
+  const blocks = [["results.json", S.results], ["receipt (in-toto statement)", S.statement || S.receipt], ["cache test", S.cachetest]];
   $("raw").replaceChildren(...blocks.filter(([, v]) => v).map(([n, v]) => h("details", {}, h("summary", {}, n), h("pre", {}, JSON.stringify(v, null, 2)))));
 }
 
-const SHOW = { leak_alert: "bad", blocked_connect: "warn", cache_audit: "ok", isolation_probe: "ok", reveal: "ok", commitment: "ok" };
+const KINDS = { leak_alert: ["leak", "Leak"], blocked_connect: ["deny", "Blocked"], cache_audit: ["seal", "Cache audit"], isolation_probe: ["plain", "Probe"], commitment: ["plain", "Commit"], reveal: ["seal", "Reveal"] };
+const FILTERS = [["all", "All"], ["leak_alert", "Leaks"], ["blocked_connect", "Blocked"], ["cache_audit", "Audits"]];
 function describe(e) {
   switch (e.kind) {
-    case "leak_alert": return `${e.src_tenant} canary seen in ${e.observed_channel} (slot ${e.slot}, ${e.canary})`;
-    case "blocked_connect": return `${e.zone} → ${e.dst}:${e.port} denied by ${e.enforcer} (pid ${e.pid}, ${e.comm})`;
-    case "cache_audit": return `${e.engine}: shared ${e.shared_correct}/${e.shared_trials}, salted ${e.salted_correct}/${e.salted_trials} · ${e.passed ? "PASS" : "FAIL"}`;
-    case "isolation_probe": return `${e.probe}: ${e.result}`;
-    case "commitment": return `${e.tenant} committed ${String(e.digest).slice(0, 16)}…`;
-    default: return Object.entries(e).filter(([k]) => !["run", "ts", "kind", "index"].includes(k)).map(([k, v]) => `${k}=${typeof v === "object" ? JSON.stringify(v) : v}`).join(" ");
+    case "leak_alert": return `${e.src_tenant} team canary found in ${String(e.observed_channel).replace("_", " ")} (${e.slot})`;
+    case "blocked_connect": return `${e.zone} zone → ${e.dst}:${e.port} denied by ${e.enforcer}`;
+    case "cache_audit": return `${e.engine}: shared ${e.shared_correct}/${e.shared_trials}, salted ${e.salted_correct}/${e.salted_trials} → ${e.passed ? "pass" : "fail"}`;
+    case "isolation_probe": return `${(PROBE[e.probe] || [e.probe])[0]}: ${e.result}`;
+    case "commitment": return `${e.tenant} team committed ${short(e.digest, 16)}`;
+    case "reveal": return `reveal matches commitments: red ${e.red_ok ? "✓" : "✕"}, blue ${e.blue_ok ? "✓" : "✕"}`;
+    default: return e.kind;
   }
+}
+function renderFilters() {
+  $("filters").replaceChildren(...FILTERS.map(([k, l]) => h("button", { class: "chip " + (filter === k ? "seal" : "plain"), style: "border:0;cursor:pointer", "aria-pressed": String(filter === k), onclick: () => { filter = k; renderFilters(); renderFeed(); } },
+    l + (k === "all" ? "" : ` ${allEvents.filter((e) => e.kind === k).length}`))));
+}
+function renderFeed(fresh = new Set()) {
+  const list = allEvents.filter((e) => e.kind in KINDS && (filter === "all" || e.kind === filter)).slice(-200).reverse();
+  $("feed").replaceChildren(...(list.length ? list.map((e) => h("li", { class: fresh.has(e.index) ? "new" : "" }, h("div", {}, chip(KINDS[e.kind][1], KINDS[e.kind][0]), h("span", { class: "idx" }, "#" + e.index)), h("div", {}, describe(e)))) : [h("li", {}, h("span", { class: "muted" }, "No events yet."))]));
+}
+function renderTamperPick() {
+  const pick = $("tamper-pick"), keep = pick.value;
+  const cands = allEvents.filter((e) => ["isolation_probe", "cache_audit", "blocked_connect", "reveal", "leak_alert"].includes(e.kind));
+  pick.replaceChildren(...cands.map((e) => h("option", { value: e.index }, `#${e.index} ${describe(e)}`)));
+  const dflt = cands.find((e) => e.probe === "red->internet") || cands[0];
+  if (keep && cands.some((e) => String(e.index) === keep)) pick.value = keep; else if (dflt) pick.value = dflt.index;
 }
 async function poll() {
   try {
     const r = await (await fetch(`/api/events?since=${since}`)).json();
-    if (r.total < since) { since = 0; $("feed").replaceChildren(); return poll(); }   // log was replaced by a new run
-    const feed = $("feed");
-    const shown = r.events.filter((e) => e.kind in SHOW);
-    if (shown.length && feed.querySelector("p.muted")) feed.replaceChildren();
-    for (const e of shown) feed.prepend(h("div", { class: "ev" }, h("span", { class: "i" }, "#" + e.index), h("span", { class: "k" }, pill(e.kind, SHOW[e.kind])), h("span", {}, describe(e))));
-    since = r.total;
+    if (r.total < since) { since = 0; allEvents = []; return poll(); }   // a new run replaced the log
+    if (r.events.length) {
+      allEvents.push(...r.events); since = r.total;
+      renderFilters(); renderFeed(new Set(r.events.map((e) => e.index))); renderTamperPick();
+    }
   } catch (e) {}
 }
 
+async function doVerify(tamper) {
+  const btns = [$("verify"), $("tamper")]; btns.forEach((b) => (b.disabled = true));
+  const st = $("stamp"); st.className = "stamp";
+  try {
+    const r = await (await fetch("/api/verify", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(tamper == null ? {} : { tamper: Number(tamper) }) })).json();
+    st.replaceChildren(...[h("strong", {}, r.ok ? "✓ VERIFIED" : "✕ REJECTED"),
+      r.tampered && h("div", {}, h("b", {}, "Tampered copy: "), r.tampered),
+      h("p", {}, r.message), h("p", { class: "muted", style: "font-size:12.5px" }, "Trust: " + r.trust)].filter(Boolean));
+    void st.offsetWidth; st.className = "stamp show " + (r.ok ? "ok" : "bad");
+  } catch (e) {
+    st.replaceChildren(h("strong", {}, "Could not reach the verifier")); st.className = "stamp show bad";
+  } finally { btns.forEach((b) => (b.disabled = false)); }
+}
+$("verify").onclick = () => doVerify(null);
+$("tamper").onclick = () => doVerify($("tamper-pick").value);
+
 async function load() {
   S = await (await fetch("/api/state")).json();
-  const r = S.results, st = S.statement;
-  const host = r && r.host ? `${r.host.platform} · ${r.host.cpus} CPUs${r.host.docker ? " · docker " + r.host.docker.context + (r.host.docker.userns_remap ? " (userns-remap)" : "") + (r.host.docker.rootless ? " (rootless)" : "") : ""}` : "";
-  $("meta").textContent = `${r ? r.run_id : "no run"} · ${S.dir}`;
-  $("env").textContent = host ? `Environment: ${host}. Numbers apply to this environment only.` : "";
-  kpis(r, st); zones(r); matrix(r); cache(r, S.cachetest); checkpoints(r, S.checkpoints); raw(S);
+  const r = S.results, p = S.statement && S.statement.predicate;
+  story(r, p); receipt(S.statement, r); isolation(r); detection(r); cache(r); chain(r); limits(r);
+  const host = r && r.host, dk = host && host.docker;
+  $("env").textContent = host ? `Run ${r.run_id} · ${S.dir} · ${host.platform} · ${host.cpus} CPUs${dk ? ` · Docker via ${dk.context}${dk.userns_remap ? ", userns-remap" : ""}` : ""}. Numbers apply to this environment only.` : `Results folder: ${S.dir}`;
 }
-
-$("verify").onclick = async () => {
-  const b = $("verify"); b.disabled = true; b.textContent = "Verifying…";
-  try {
-    const r = await (await fetch("/api/verify", { method: "POST" })).json();
-    $("verdict-wrap").hidden = false;
-    $("verdict").replaceChildren(pill(r.ok ? "VERIFIED" : "FAILED", r.ok ? "ok" : "bad"), h("div", { class: "verdict " + (r.ok ? "ok" : "bad") }, r.message), h("p", { class: "muted" }, "Trust: " + r.trust));
-  } finally { b.disabled = false; b.textContent = "Verify receipt"; }
-};
-
-load(); poll(); setInterval(poll, 1500); setInterval(load, 10000);
+load(); poll(); setInterval(poll, 1500);
 </script>
 </body>
 </html>

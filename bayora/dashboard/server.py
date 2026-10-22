@@ -1,6 +1,6 @@
 """Demo dashboard: serves index.html and read-only JSON views of one results directory.
 GET /api/state, GET /api/events?since=N (tails log.jsonl), POST /api/verify (runs bayora.verify)."""
-import base64, glob, json, os
+import base64, glob, json, os, tempfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 from ..receipt import read_checkpoint
@@ -27,7 +27,7 @@ def state(d):
     ct = _json(f"{d}/cachetest.json")
     if ct:
         for c in ("shared", "salted"): ct[c].pop("rows", None)
-    return {"dir": os.path.abspath(d), "results": _json(f"{d}/results.json"), "receipt": rc, "statement": statement,
+    return {"dir": os.path.basename(os.path.abspath(d)), "results": _json(f"{d}/results.json"), "receipt": rc, "statement": statement,
             "checkpoints": cps, "cachetest": ct}
 
 
@@ -37,6 +37,20 @@ def events(d, since):
     except OSError:
         return {"total": 0, "events": []}
     return {"total": len(lines), "events": [dict(json.loads(l), index=i) for i, l in enumerate(lines) if i >= since]}
+
+
+def tampered_copy(log_path, index, tmpdir):
+    """Writes a copy of the log with event `index` edited the way a dishonest operator might; the real log is never touched."""
+    with open(log_path, "rb") as f: lines = f.read().splitlines()
+    if not 0 <= index < len(lines): raise ValueError(f"event index {index} out of range (0..{len(lines) - 1})")
+    old = lines[index]
+    for a, b in ((b"BLOCKED", b"CONNECTED"), (b"true", b"false"), (b"false", b"true")):
+        if a in old: lines[index], change = old.replace(a, b, 1), f"changed {a.decode()} to {b.decode()}"; break
+    else:
+        lines[index], change = old + b" ", "added one space"
+    path = os.path.join(tmpdir, "log.jsonl")
+    with open(path, "wb") as f: f.write(b"".join(l + b"\n" for l in lines))
+    return path, f"event #{index}: {change}"
 
 
 def make_server(results_dir, port, trust=None):
@@ -58,12 +72,17 @@ def make_server(results_dir, port, trust=None):
 
         def do_POST(self):
             if urlparse(self.path).path != "/api/verify": return self._send(404, {"error": "not found"})
+            cps = f"{results_dir}/checkpoints" if os.path.isdir(f"{results_dir}/checkpoints") else None
             try:
-                ok, msg = verify(f"{results_dir}/receipt.json", f"{results_dir}/log.jsonl", trust,
-                                 f"{results_dir}/checkpoints" if os.path.isdir(f"{results_dir}/checkpoints") else None)
-            except (OSError, ValueError, KeyError) as e:
-                ok, msg = False, f"could not verify: {e}"
-            self._send(200, {"ok": ok, "message": msg, "trust": trust or "keys taken from the receipt"})
+                n = int(self.headers.get("Content-Length", 0))
+                req = json.loads(self.rfile.read(n) or b"{}") if n else {}
+                with tempfile.TemporaryDirectory() as tmp:
+                    log, change = f"{results_dir}/log.jsonl", None
+                    if req.get("tamper") is not None: log, change = tampered_copy(log, int(req["tamper"]), tmp)
+                    ok, msg = verify(f"{results_dir}/receipt.json", log, trust, cps)
+            except (OSError, ValueError, KeyError, TypeError) as e:
+                ok, msg, change = False, f"could not verify: {e}", None
+            self._send(200, {"ok": ok, "message": msg, "tampered": change, "trust": trust or "keys taken from the receipt"})
 
         def log_message(self, *a): pass
 
