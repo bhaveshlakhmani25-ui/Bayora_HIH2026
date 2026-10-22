@@ -19,7 +19,7 @@ Bayora runs a blind, leak-audited red-vs-blue evaluation:
 | `bayora/canary.py` | HMAC-derived canaries `BYR` + base32(HMAC(key, run\|tenant\|slot))[:24] with attribution. Scanner v1 does exact matching; v2 normalises case and whitespace and decodes base64/hex; v3 adds K=10 fragment matching, including reversed text. |
 | `bayora/commit.py` | Commit-reveal for blind tests. |
 | `containers/agent.py` | Mock roles: `model`, `broker`, `red`, `blue`. |
-| `bayora/run.py` (`bayora run`) | End-to-end run on Docker `--internal` networks, hardened with cap-drop ALL, read-only, non-root and no-new-privileges. It runs isolation probes, a load test, 120 leak drills, tamper tests and benchmarks, and writes `results/results.json`, `receipt.json` and `log.jsonl`. |
+| `bayora/run.py` (`bayora run`) | End-to-end run on Docker `--internal` networks, hardened with cap-drop ALL, read-only, non-root and no-new-privileges. It runs isolation probes, a load test, 180 leak drills (4 channels × 9 encodings × 5), tamper tests and benchmarks, and writes `results/results.json`, `receipt.json` and `log.jsonl`. |
 | `bayora/drill.py` (`bayora drill`) | Leak-drill matrix and scoring, shared by `run`; `drill` runs it in-process without Docker. |
 | `bayora/witness.py` (`bayora witness serve`) | Witness HTTP service with a persistent key and per-origin last-seen state. `bayora run` starts two as separate processes; keys live in `~/.bayora`. |
 | `bayora/receipt.py` | in-toto Statement v1 in a DSSE envelope, plus signed-note-style checkpoints in `<out>/checkpoints/`. It is not byte-compatible with C2SP tlog-cosignature. |
@@ -28,7 +28,7 @@ Bayora runs a blind, leak-audited red-vs-blue evaluation:
 | `bayora/isolation/` | `connect.bpf.c` and `enforcer.py` run as root where dockerd lives (Colima VM via `colima ssh`, or sudo on Linux). Each zone is placed in its own cgroup via `--cgroup-parent`. |
 | `bayora/cachetest.py` (`bayora cachetest`) | Tenant B times prompts to infer tenant A's secret from K=8 candidates, shared versus salted. The probe is the `cacheprobe` role in `containers/agent.py`. |
 | `Dockerfile` | Zone image `bayora/py:poc` (`python:3.12-slim`). |
-| `tests/` | 8 tests. Run with `pip install -e ".[dev]" && python -m pytest -q tests`. CI: `.github/workflows/ci.yml`. |
+| `tests/` | 17 tests. Run with `pip install -e ".[dev]" && python -m pytest -q tests`. CI: `.github/workflows/ci.yml`. |
 
 Full-build results are in `results_final/`, `docs/test-plan.md` and `docs/deck-numbers.md` (Colima vz, Apple M5, 3 runs). The PoC results below are archived in `results_poc/`.
 
