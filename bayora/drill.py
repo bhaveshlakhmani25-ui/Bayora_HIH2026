@@ -31,7 +31,9 @@ def make_drills(auth, channels, encodings, per):
 
 
 def score(drills, sources, auth, channels, mode):
-    """Returns (summary, hits per channel). Red canaries on the broker are red's own legitimate traffic, not FPs."""
+    """Returns (summary, alerts). An alert is any canary of the tenant that is foreign to the channel
+    (TENANT); a tenant's own canary in its own zone, such as red's prompts at the broker, is normal traffic.
+    Non-drill alerts are possible real leaks: in a drill-only run they are false alarms, so they are counted."""
     found = {ch: scan(sources[ch], auth, mode) for ch in channels}
     tab = {}
     for d in drills:
@@ -39,10 +41,10 @@ def score(drills, sources, auth, channels, mode):
         cell[1] += 1
         cell[0] += d["token"] in found[d["channel"]]
     drill_toks = {d["token"] for d in drills}
-    fps = sum(1 for ch in channels for t, a in found[ch].items()
-              if t not in drill_toks and not (ch == "network_broker" and a["tenant"] == "red"))
-    return {"by_channel_encoding": tab, "false_positives": fps,
-            "detected": sum(v[0] for v in tab.values()), "total": sum(v[1] for v in tab.values())}, found
+    alerts = [{"channel": ch, "token": t, **a, "drill": t in drill_toks}
+              for ch in channels for t, a in found[ch].items() if a["tenant"] == TENANT[ch]]
+    return {"by_channel_encoding": tab, "false_positives": sum(not x["drill"] for x in alerts),
+            "detected": sum(v[0] for v in tab.values()), "total": sum(v[1] for v in tab.values())}, alerts
 
 
 def noise(n, seed=7):

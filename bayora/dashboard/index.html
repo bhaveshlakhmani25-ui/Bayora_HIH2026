@@ -745,7 +745,7 @@ const KINDS = { leak_alert: ["leak", "Leak"], blocked_connect: ["deny", "Blocked
 const FILTERS = [["all", "All"], ["leak_alert", "Leaks"], ["blocked_connect", "Blocked"], ["cache_audit", "Audits"]];
 function describe(e) {
   switch (e.kind) {
-    case "leak_alert": return `${e.src_tenant} team canary found in ${String(e.observed_channel).replace("_", " ")} (${e.slot})`;
+    case "leak_alert": return `${e.drill === false ? "Possible real leak: " : ""}${e.src_tenant} team canary found in ${String(e.observed_channel).replace("_", " ")} (${e.slot})`;
     case "blocked_connect": return `${e.zone} zone → ${e.dst}:${e.port} denied by ${e.enforcer}`;
     case "cache_audit": return `${e.engine}: shared ${e.shared_correct}/${e.shared_trials}, salted ${e.salted_correct}/${e.salted_trials} → ${e.passed ? "pass" : "fail"}`;
     case "isolation_probe": return `${(PROBE[e.probe] || [e.probe])[0]}: ${e.result}`;

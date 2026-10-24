@@ -53,3 +53,12 @@ def test_binomial_tail():
     assert abs(p_at_least(0, 20, 1 / 8) - 1) < 1e-12
     assert p_at_least(20, 20, 1 / 8) == (1 / 8) ** 20
     assert 0.05 < p_at_least(4, 20, 1 / 8) < 0.5 and p_at_least(8, 20, 1 / 8) < 0.01
+
+
+def test_cache_pass_needs_zero_cross_tenant_hits():
+    from bayora.cachetest import passed, p_at_least
+    leaky = {"correct": 3, "trials": 8, "cross_tenant_cache_hits": 2, "p_value_vs_chance": p_at_least(3, 8, 1 / 8)}
+    clean = {"correct": 4, "trials": 20, "cross_tenant_cache_hits": 0, "p_value_vs_chance": p_at_least(4, 20, 1 / 8)}
+    lucky = {"correct": 9, "trials": 20, "cross_tenant_cache_hits": 0, "p_value_vs_chance": p_at_least(9, 20, 1 / 8)}
+    assert leaky["p_value_vs_chance"] >= 0.05 and not passed(leaky)   # chance-looking accuracy, but the cache was reused
+    assert passed(clean) and not passed(lucky)

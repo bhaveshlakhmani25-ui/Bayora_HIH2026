@@ -66,3 +66,13 @@ def test_split_view_refused_by_http_witness_and_bad_published_checkpoint(tmp_pat
     assert ws[0].cosign(forged, []) is None and "split view" in ws[0].alarms[-1]
     write_checkpoint(str(out), forged, "operator", forged["sig"], [])       # operator publishes the forked view
     assert v(out) == 1
+
+
+def test_one_witness_listed_twice_does_not_meet_quorum(tmp_path):
+    class Twin:                                   # the same witness entered a second time by the operator
+        pass
+    op, ws, cp, out = setup_run(tmp_path)
+    twin = Twin(); twin.name, twin.pub_hex = ws[0].name, ws[0].pub_hex
+    rc = build_receipt(op, cp, [ws[0], twin], {ws[0].name: cp["cosigs"][ws[0].name]}, "test", {"red": "c"}, {}, None, [cp])
+    (out / "receipt.json").write_text(json.dumps(rc))
+    assert v(out) == 1                            # trust file pins witness-A and witness-B, quorum 2

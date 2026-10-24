@@ -24,6 +24,12 @@ def p_at_least(k, n, p):
     return sum(math.comb(n, i) * p ** i * (1 - p) ** (n - i) for i in range(k, n + 1))
 
 
+def passed(salted):
+    """The timing probe must fail with salt on: the server reused no cross-tenant cache, and the attacker's
+    accuracy is not distinguishable from chance. Chance-level accuracy alone is weak evidence with few trials."""
+    return salted["cross_tenant_cache_hits"] == 0 and salted["p_value_vs_chance"] >= 0.05
+
+
 def model_sha256(path):
     h = hashlib.sha256()
     with open(path, "rb") as f:
@@ -74,8 +80,7 @@ def run(cfg, trials=None, out=None):
                "shared": probe(cfg, net, url, False, trials, 1), "salted": probe(cfg, net, url, True, trials, 2)}
     finally:
         sh("docker", "rm", "-f", "bz-llm", check=False); sh("docker", "network", "rm", net, check=False)
-    # pass = the timing probe fails with salt on: salted accuracy is not distinguishable from chance at the 5% level
-    res["pass"] = res["salted"]["p_value_vs_chance"] >= 0.05
+    res["pass"] = passed(res["salted"])
     if out:
         os.makedirs(out, exist_ok=True)
         json.dump(res, open(f"{out}/cachetest.json", "w"), indent=2)

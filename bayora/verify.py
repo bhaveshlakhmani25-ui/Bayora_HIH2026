@@ -41,7 +41,8 @@ def verify(receipt_path, log_path, trust_path=None, checkpoints_dir=None, quorum
     if not _ok(op_pub, bytes.fromhex(p["operator_sig"]), body_cp): return False, "operator signature does not cover the final checkpoint"
     keys = trust["witnesses"] if trust else {w["name"]: w["pubkey"] for w in p["witnesses"]}
     need = quorum or (trust or {}).get("quorum") or 2
-    good = [w["name"] for w in p["witnesses"] if w["cosig"] and w["name"] in keys and _ok(keys[w["name"]], bytes.fromhex(w["cosig"]), b"cosig\n" + body_cp)]
+    # a set: a witness listed twice by the operator still counts once towards the quorum
+    good = sorted({w["name"] for w in p["witnesses"] if w["cosig"] and w["name"] in keys and _ok(keys[w["name"]], bytes.fromhex(w["cosig"]), b"cosig\n" + body_cp)})
     if len(good) < need: return False, f"witness quorum not met: {len(good)}/{need} valid cosignatures ({', '.join(good) or 'none'})"
     n_cp = 0
     for path in sorted(glob.glob(os.path.join(checkpoints_dir, "*")) if checkpoints_dir else [], key=lambda x: int(os.path.basename(x))):

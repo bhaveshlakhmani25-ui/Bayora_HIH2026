@@ -162,14 +162,11 @@ def main(cfg, out="results"):
         "model_output": "\n".join(t["resp"]["output"] for t in transcript),
     }
     results = {}
-    drill_toks = {d["token"] for d in drills}
     for mode in MODES:
-        results[mode], found = score(drills, sources, auth, CH, mode)
-        if mode == MODES[-1]:
-            for ch in CH:
-                for tok, a in found[ch].items():
-                    if tok in drill_toks:
-                        log("leak_alert", observed_channel=ch, src_tenant=a["tenant"], slot=a["slot"], canary=tok[:10] + "...")
+        results[mode], alerts = score(drills, sources, auth, CH, mode)
+    # alerts from the strongest scanner: planted drills and possible real leaks alike
+    for x in alerts:
+        log("leak_alert", observed_channel=x["channel"], src_tenant=x["tenant"], slot=x["slot"], canary=x["token"][:10] + "...", drill=x["drill"])
     R["leak_drills"] = results
     blocked = enf.stop()
     for b in blocked: log("blocked_connect", **b)
