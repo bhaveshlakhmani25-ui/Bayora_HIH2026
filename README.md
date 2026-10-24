@@ -71,7 +71,7 @@ These numbers come from Colima vz (Ubuntu 24.04, kernel 6.8, 4 vCPU) on an Apple
 | Receipt | DSSE in-toto receipt verifies with pinned keys, a 2-of-2 witness quorum, and published checkpoints |
 | Ledger | about 540–570k appends/s; inclusion proof 0.015 ms |
 
-The dashboard is `bayora dashboard` (default `results_final/final-3`). It opens at http://127.0.0.1:8765. It has a landing page (`#/`) and a console (`#/app/overview`, isolation, detection, side channel, ledger, verify, limits). **Tamper and verify** edits a temporary copy of one event and shows the receipt being rejected, without touching the real log.
+The dashboard is `bayora dashboard --trust results_final/demo/keys.json` (default results folder `results_final/demo`, the complete demo run with the cache audit and reveal). It opens at http://127.0.0.1:8765. Without `--trust` it still verifies, but shows the result as consistent with unpinned keys. It has a landing page (`#/`) and a console (`#/app/overview`, isolation, detection, side channel, ledger, verify, limits). **Tamper and verify** edits a temporary copy of one event and shows the receipt being rejected, without touching the real log.
 
 ## Not in this build (honest scope)
 

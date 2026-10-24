@@ -83,6 +83,7 @@
   .hero h1 span { color: var(--seal); }
   .hero .lede { font-size: clamp(17px, 1.5vw, 19px); color: var(--ink-2); max-width: 54ch; margin: 22px 0 28px; }
   .hero .ctas { display: flex; flex-wrap: wrap; gap: 12px; }
+  @media (max-width: 460px) { .hero .ctas .btn, .tag-actions .btn { flex: 1 1 100%; } }
 
   /* the custody tag: receipt + tamper seal */
   .tag { position: relative; background: var(--sheet); border: 1.5px solid var(--ink); border-radius: 14px; padding: 22px 22px 0 44px; box-shadow: 0 1px 2px color-mix(in srgb, var(--ink) 10%, transparent), 0 18px 40px -12px color-mix(in srgb, var(--ink) 28%, transparent); }
@@ -139,6 +140,12 @@
   .report td.res small { font-size: 15px; color: var(--muted); font-weight: 500; }
   .report td.was { font: 500 14px var(--mono); color: var(--muted); white-space: nowrap; }
   .report .what { font-weight: 600; } .report .how { color: var(--muted); font-size: 14px; }
+  @media (max-width: 640px) {
+    table.report { min-width: 0; } .report thead { display: none; }
+    .report tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 16px; padding: 14px 0; border-bottom: 1px solid var(--rule); }
+    .report td { border: 0; padding: 0; } .report td.res { grid-row: span 2; align-self: center; text-align: right; }
+    .report td.was::before { content: "Round 1: "; } .report td.how { grid-column: 1 / -1; margin-top: 4px; }
+  }
   .envline { margin-top: 18px; font-size: 14px; color: var(--muted); max-width: 90ch; }
 
   .team-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1.5px solid var(--ink); }
@@ -328,7 +335,7 @@
     <section class="hero" id="top">
       <div class="wrap">
         <div>
-          <h1>Evidence that an AI red-team test was <span>fair</span>.</h1>
+          <h1>Evidence that an AI red&#8209;team test was <span>fair</span>.</h1>
           <p class="lede">Bayora keeps the attacking team, the defending team and the model behind enforced walls, catches leaks with canaries that name the leaker, and seals every event in a log that witnesses co-sign. The run ends with a custody receipt that anyone can check.</p>
           <div class="ctas">
             <a class="btn solid" href="#/app/overview">Open the console <svg class="i"><use href="#i-arrow"/></svg></a>
@@ -339,7 +346,7 @@
 
         <article class="tag" aria-labelledby="tag-title">
           <div class="tag-head"><h2 id="tag-title">Custody receipt</h2><span class="label" id="tag-fmt">in-toto · DSSE</span></div>
-          <dl id="tag-dl"></dl>
+          <dl id="tag-dl"><dt>Receipt</dt><dd class="muted">Loading the latest case…</dd></dl>
           <div class="sig" id="tag-sig"></div>
           <div class="tag-actions">
             <button class="btn solid" id="t-verify"><svg class="i"><use href="#i-check"/></svg>Verify seal</button>
@@ -767,7 +774,7 @@ function renderFeeds(fresh = new Set()) {
   const list = shown.filter((e) => filter === "all" || e.kind === filter).slice(-200).reverse();
   $("feed").replaceChildren(...(list.length ? list.map((e) => evRow(e, fresh.has(e.index))) : [h("li", {}, h("span", { class: "muted" }, "No events yet."))]));
   $("feed-mini").replaceChildren(...shown.slice(-6).reverse().map((e) => evRow(e, fresh.has(e.index))));
-  $("filters").replaceChildren(...FILTERS.map(([k, l]) => h("button", { "aria-selected": String(filter === k), onclick: () => { filter = k; renderFeeds(); } }, l + (k === "all" ? "" : ` ${shown.filter((e) => e.kind === k).length}`))));
+  $("filters").replaceChildren(...FILTERS.map(([k, l]) => h("button", { "aria-pressed": String(filter === k), "aria-selected": String(filter === k), onclick: () => { filter = k; renderFeeds(); } }, l + (k === "all" ? "" : ` ${shown.filter((e) => e.kind === k).length}`))));
 }
 function renderTamperPick() {
   const pick = $("tamper-pick"), keep = pick.value;

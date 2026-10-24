@@ -19,7 +19,7 @@ def main(argv=None):
     v.add_argument("--quorum", type=int)
     v.add_argument("--reveal", help="reveal.json: check the teams' revealed content against their commitments")
     ds = sub.add_parser("dashboard", help="web UI for one results directory")
-    ds.add_argument("--results", default="results_final/final-3"); ds.add_argument("--port", type=int, default=8765)
+    ds.add_argument("--results", default="results_final/demo"); ds.add_argument("--port", type=int, default=8765)
     ds.add_argument("--trust", help="pinned keys for the Verify button (default: keys from the receipt)")
     w = sub.add_parser("witness", help="run a witness service (on another machine for real independence)")
     w.add_argument("action", choices=["serve"]); w.add_argument("--name", required=True); w.add_argument("--port", type=int, default=0)
