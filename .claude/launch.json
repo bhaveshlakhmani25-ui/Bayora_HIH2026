@@ -4,7 +4,7 @@
     {
       "name": "dashboard",
       "runtimeExecutable": ".venv/bin/bayora",
-      "runtimeArgs": ["dashboard", "--results", "results_final/final-3", "--port", "8765"],
+      "runtimeArgs": ["dashboard", "--results", "results/fix47", "--trust", "results/fix47/keys.json", "--port", "8765"],
       "port": 8765
     }
   ]
