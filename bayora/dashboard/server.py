@@ -79,10 +79,12 @@ def make_server(results_dir, port, trust=None):
                 with tempfile.TemporaryDirectory() as tmp:
                     log, change = f"{results_dir}/log.jsonl", None
                     if req.get("tamper") is not None: log, change = tampered_copy(log, int(req["tamper"]), tmp)
-                    ok, msg = verify(f"{results_dir}/receipt.json", log, trust, cps)
+                    rv = f"{results_dir}/reveal.json" if os.path.exists(f"{results_dir}/reveal.json") else None
+                    ok, msg = verify(f"{results_dir}/receipt.json", log, trust, cps, None, rv)
             except (OSError, ValueError, KeyError, TypeError) as e:
                 ok, msg, change = False, f"could not verify: {e}", None
-            self._send(200, {"ok": ok, "message": msg, "tampered": change, "trust": trust or "keys taken from the receipt"})
+            # without pinned keys a self-made receipt also verifies, so the page must not show it as fully trusted
+            self._send(200, {"ok": ok, "pinned": bool(trust), "message": msg, "tampered": change, "trust": trust or "keys taken from the receipt"})
 
         def log_message(self, *a): pass
 

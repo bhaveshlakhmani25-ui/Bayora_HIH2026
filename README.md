@@ -53,7 +53,7 @@ Configuration lives in `bayora/default.yaml` (image, zone networks, monitored ch
 Override any key with `bayora run -c my.yaml` or `bayora drill -c my.yaml`.
 
 `bayora verify` checks that the log entries hash to the receipt's root and that the operator signature covers it.
-It does not yet check witness cosignatures or whether the operator key is trusted (build plan step 5).
+With `--trust keys.json` it checks a witness quorum against pinned keys. `--checkpoints` checks the published checkpoints against the log, and `--reveal reveal.json` checks that each team's revealed content matches its commitment. In this build both witnesses run on the operator's machine. For independence, run one elsewhere with `bayora witness serve --host 0.0.0.0` and list it under `witnesses:` in the config.
 
 ## Measured results
 

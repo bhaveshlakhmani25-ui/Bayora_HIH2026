@@ -355,7 +355,7 @@
           <div class="mcard"><span class="num">02</span><div class="ico"><svg class="i"><use href="#i-layers"/></svg></div><h3>Enforced zones</h3><p>Separate containers per team, a broker as the only path, and an eBPF policy that denies everything else.</p></div>
           <div class="mcard"><span class="num">03</span><div class="ico"><svg class="i"><use href="#i-radar"/></svg></div><h3>Attributed canaries</h3><p>Key-derived tripwires name who leaked, through which channel. Leak drills measure the catch rate.</p></div>
           <div class="mcard"><span class="num">04</span><div class="ico"><svg class="i"><use href="#i-timer"/></svg></div><h3>Salted serving</h3><p>Per-tenant cache salt blocks prefix reuse, and a timing attack runs before every evaluation to prove it.</p></div>
-          <div class="mcard"><span class="num">05</span><div class="ico"><svg class="i"><use href="#i-badge"/></svg></div><h3>Witnessed receipt</h3><p>A Merkle log co-signed by independent witnesses, ending in a signed in-toto receipt anyone can verify.</p></div>
+          <div class="mcard"><span class="num">05</span><div class="ico"><svg class="i"><use href="#i-badge"/></svg></div><h3>Witnessed receipt</h3><p>A Merkle log co-signed by separate witness processes, ending in a signed in-toto receipt anyone can verify.</p></div>
         </div>
         <ol class="flow" style="margin:56px 0 0;padding:0">
           <li><span class="dot">1</span><h4>Commit</h4><p>teams lock in hashes</p></li>
@@ -467,7 +467,7 @@
       </section>
 
       <section data-page="ledger" hidden>
-        <div class="page-head"><p>Every event is appended to a Merkle log. Checkpoints are signed by the operator and co-signed by independent witnesses, which refuse to sign two different histories.</p></div>
+        <div class="page-head"><p>Every event is appended to a Merkle log. Checkpoints are signed by the operator and co-signed by witness processes, which refuse to sign two different histories.</p></div>
         <div class="stack">
           <div class="card"><h3><svg class="i"><use href="#i-link"/></svg>Checkpoints and seals</h3><div class="chain" id="chain"></div><p class="muted" id="alarms" style="font-size:14px;margin:8px 0 0"></p></div>
           <div class="card"><h3><span class="live"></span>Event feed<span class="r seg" id="filters" role="group" aria-label="Filter events" style="margin:0"></span></h3><ul class="feed" id="feed"></ul></div>
