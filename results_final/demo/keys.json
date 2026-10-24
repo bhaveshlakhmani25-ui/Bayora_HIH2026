@@ -1,0 +1,8 @@
+{
+  "operator": "2267aec86b6c6ab6f29b44fa7b4475d98ed8fff18ebcacac741c4a148348a2de",
+  "witnesses": {
+    "witness-A": "1c9341a81fc83e1ad06f6d2b047eb120c8e52547c736eb9982a4d0a92c9bb37a",
+    "witness-B": "08b88b8b88a215ec9dfdff9bc8d5bc978a15a58f869e0ae39611c1c8157cffea"
+  },
+  "quorum": 2
+}

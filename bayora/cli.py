@@ -17,18 +17,20 @@ def main(argv=None):
     v.add_argument("--trust", help="pinned keys: {operator, witnesses: {name: pubkey}, quorum}")
     v.add_argument("--checkpoints", help="directory of published checkpoints to check against the log")
     v.add_argument("--quorum", type=int)
+    v.add_argument("--reveal", help="reveal.json: check the teams' revealed content against their commitments")
     ds = sub.add_parser("dashboard", help="web UI for one results directory")
-    ds.add_argument("--results", default="results_final/final-3"); ds.add_argument("--port", type=int, default=8765)
+    ds.add_argument("--results", default="results_final/demo"); ds.add_argument("--port", type=int, default=8765)
     ds.add_argument("--trust", help="pinned keys for the Verify button (default: keys from the receipt)")
-    w = sub.add_parser("witness", help="run an independent witness service")
+    w = sub.add_parser("witness", help="run a witness service (on another machine for real independence)")
     w.add_argument("action", choices=["serve"]); w.add_argument("--name", required=True); w.add_argument("--port", type=int, default=0)
+    w.add_argument("--host", default="127.0.0.1", help="address to listen on; use 0.0.0.0 to serve other machines")
     w.add_argument("--state", required=True, help="directory for this witness's key and last-seen checkpoints")
     w.add_argument("--operator-pubkey", required=True, help="hex Ed25519 key of the only operator this witness cosigns for")
     a = p.parse_args(argv)
 
     if a.cmd == "verify":
         from .verify import verify
-        ok, msg = verify(a.receipt, a.log, a.trust, a.checkpoints, a.quorum)
+        ok, msg = verify(a.receipt, a.log, a.trust, a.checkpoints, a.quorum, a.reveal)
         print(msg)
         return 0 if ok else 1
     if a.cmd == "dashboard":
@@ -37,7 +39,7 @@ def main(argv=None):
         return 0
     if a.cmd == "witness":
         from .witness import serve
-        serve(a.name, a.port, a.state, a.operator_pubkey)
+        serve(a.name, a.port, a.state, a.operator_pubkey, a.host)
         return 0
     try:
         cfg = config.load(a.config)

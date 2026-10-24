@@ -76,3 +76,25 @@ def test_one_witness_listed_twice_does_not_meet_quorum(tmp_path):
     rc = build_receipt(op, cp, [ws[0], twin], {ws[0].name: cp["cosigs"][ws[0].name]}, "test", {"red": "c"}, {}, None, [cp])
     (out / "receipt.json").write_text(json.dumps(rc))
     assert v(out) == 1                            # trust file pins witness-A and witness-B, quorum 2
+
+
+def test_reveal_matches_commitments_and_catches_changed_rules(tmp_path):
+    from bayora.commit import commit
+    import base64
+    op, ws, cp, out = setup_run(tmp_path)
+    red, blue = b"attack payloads", b"defensive rules"
+    (c_red, n_red), (c_blue, n_blue) = commit(red), commit(blue)
+    rc = build_receipt(op, cp, ws, cp["cosigs"], "test", {"red": c_red, "blue": c_blue}, {}, None, [cp])
+    (out / "receipt.json").write_text(json.dumps(rc))
+    rv = lambda b: {"red": {"nonce": n_red.hex(), "content": base64.b64encode(red).decode()}, "blue": {"nonce": n_blue.hex(), "content": base64.b64encode(b).decode()}}
+    (out / "reveal.json").write_text(json.dumps(rv(blue)))
+    assert v(out, "--reveal", str(out / "reveal.json")) == 0
+    (out / "reveal.json").write_text(json.dumps(rv(b"defensive rules, tuned after seeing the attacks")))
+    assert v(out, "--reveal", str(out / "reveal.json")) == 1
+
+
+def test_reveal_needs_both_teams_commitments(tmp_path):
+    op, ws, cp, out = setup_run(tmp_path)
+    rc = build_receipt(op, cp, ws, cp["cosigs"], "test", {}, {}, None, [cp])     # operator leaves the commitments out
+    (out / "receipt.json").write_text(json.dumps(rc)); (out / "reveal.json").write_text("{}")
+    assert v(out, "--reveal", str(out / "reveal.json")) == 1

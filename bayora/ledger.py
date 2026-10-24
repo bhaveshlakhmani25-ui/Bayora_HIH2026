@@ -1,5 +1,5 @@
 """Append-only Merkle log following IETF RFC 9162 (Certificate Transparency v2.0) hashing,
-with Ed25519-signed checkpoints and an independent witness that cosigns only consistent views."""
+with Ed25519-signed checkpoints and a witness that cosigns only consistent views."""
 import hashlib, json, base64, time
 from functools import lru_cache
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
@@ -121,7 +121,7 @@ class LogOperator:
 
 
 class Witness:
-    """Independent cosigner: verifies the operator signature and consistency with the
+    """Cosigner: verifies the operator signature and consistency with the
     last checkpoint it saw; refuses (and flags) a split view."""
     def __init__(self, name, operator_pub):
         self.name, self.op_pub = name, operator_pub

@@ -47,7 +47,7 @@ class WitnessService:
             return cosig, None
 
 
-def make_server(name, port, state_dir, operator_pub_hex):
+def make_server(name, port, state_dir, operator_pub_hex, host="127.0.0.1"):
     svc = WitnessService(name, state_dir, operator_pub_hex)
 
     class H(BaseHTTPRequestHandler):
@@ -72,13 +72,13 @@ def make_server(name, port, state_dir, operator_pub_hex):
 
         def log_message(self, *a): pass
 
-    httpd = ThreadingHTTPServer(("127.0.0.1", port), H)
+    httpd = ThreadingHTTPServer((host, port), H)
     httpd.pub_hex = pub_hex(svc.key)
     return httpd
 
 
-def serve(name, port, state_dir, operator_pub_hex):
-    httpd = make_server(name, port, state_dir, operator_pub_hex)
+def serve(name, port, state_dir, operator_pub_hex, host="127.0.0.1"):
+    httpd = make_server(name, port, state_dir, operator_pub_hex, host)
     print(f"LISTENING {httpd.server_address[1]} {httpd.pub_hex}", flush=True)
     httpd.serve_forever()
 
