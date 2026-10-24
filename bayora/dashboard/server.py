@@ -4,7 +4,7 @@ import base64, glob, json, os, socket, tempfile, threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 from ..receipt import read_checkpoint
-from ..verify import verify
+from ..verify import verify, checkpoint_files
 
 HTML = os.path.join(os.path.dirname(os.path.abspath(__file__)), "index.html")
 FONTS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fonts")
@@ -21,7 +21,7 @@ def state(d):
     rc = _json(f"{d}/receipt.json")
     statement = json.loads(base64.b64decode(rc["payload"])) if rc and "payload" in rc else None
     cps = []
-    for p in sorted(glob.glob(f"{d}/checkpoints/*"), key=lambda x: int(os.path.basename(x))):
+    for p in checkpoint_files(f"{d}/checkpoints"):
         body, sigs = read_checkpoint(p)
         origin, size, root = body.decode().splitlines()
         cps.append({"size": int(size), "root": base64.b64decode(root).hex(), "signers": list(sigs)})
@@ -34,10 +34,12 @@ def state(d):
 
 def events(d, since):
     try:
-        with open(f"{d}/log.jsonl", "rb") as f: lines = f.read().splitlines()
+        with open(f"{d}/log.jsonl", "rb") as f: data = f.read()
     except OSError:
         return {"total": 0, "events": []}
-    return {"total": len(lines), "events": [dict(json.loads(l), index=i) for i, l in enumerate(lines) if i >= since]}
+    # a run still writing can leave the last line unfinished: count it only once its newline lands
+    lines = data.split(b"\n")[:-1]
+    return {"total": len(lines), "events": [dict(json.loads(l), index=i) for i, l in enumerate(lines) if i >= since and l.strip()]}
 
 
 def tampered_copy(log_path, index, tmpdir):

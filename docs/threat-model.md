@@ -29,7 +29,7 @@ This document updates the risk register on slide 7 of the deck with the status m
 ## Known limits that are not risks of the design but of this build
 
 - **Mock model for evaluation traffic.** The evaluation traffic in `bayora run` goes to the mock model. The real model is used only for the cache-timing audit.
-- **Overhead baseline.** The host baseline runs on macOS while the containers run inside the VM, so container-vs-host p50 (0.25 vs 0.10 ms) mixes VM and network effects. The clean comparison is eBPF on versus off, both in the VM: 0.247–0.250 vs 0.248 ms p50. No measurable overhead was added.
+- **Overhead baseline.** The macOS host baseline was removed, because it mixed VM and network effects into the number. The policy's cost is measured as eBPF on versus off, both in the VM: 0.247–0.250 vs 0.248 ms p50, so no measurable overhead was added. Scanner speed on this Mac: v2 about 35 MB/s, v3 about 6 MB/s (fragment matching costs about 6×).
 - **Network channel capture.** The network channel is captured at the broker (application layer), not with packet capture.
 - **Checkpoint and cosignature format.** These are signed-note style but not byte-compatible with C2SP tlog-cosignature.
 - **Blind-test reveal.** `reveal.json` (content plus nonce) is published after the run; `bayora verify --reveal` checks it against the commitments in the receipt.

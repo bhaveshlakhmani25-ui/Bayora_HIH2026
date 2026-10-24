@@ -22,6 +22,11 @@ def _log(log_path):
     return m
 
 
+def checkpoint_files(d):
+    """Published checkpoints are files named by their tree size; anything else in the folder is ignored."""
+    return sorted((p for p in glob.glob(os.path.join(d, "*")) if os.path.basename(p).isdigit()), key=lambda p: int(os.path.basename(p))) if d else []
+
+
 def verify(receipt_path, log_path, trust_path=None, checkpoints_dir=None, quorum=None, reveal_path=None):
     """Returns (ok, message)."""
     with open(receipt_path) as f: rc = json.load(f)
@@ -46,7 +51,7 @@ def verify(receipt_path, log_path, trust_path=None, checkpoints_dir=None, quorum
     good = sorted({w["name"] for w in p["witnesses"] if w["cosig"] and w["name"] in keys and _ok(keys[w["name"]], bytes.fromhex(w["cosig"]), b"cosig\n" + body_cp)})
     if len(good) < need: return False, f"witness quorum not met: {len(good)}/{need} valid cosignatures ({', '.join(good) or 'none'})"
     n_cp = 0
-    for path in sorted(glob.glob(os.path.join(checkpoints_dir, "*")) if checkpoints_dir else [], key=lambda x: int(os.path.basename(x))):
+    for path in checkpoint_files(checkpoints_dir):
         cbody, sigs = read_checkpoint(path)
         origin, size, root_b64 = cbody.decode().splitlines()
         size = int(size)

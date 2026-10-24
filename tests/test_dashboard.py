@@ -36,3 +36,19 @@ def test_dashboard_events_state_and_verify(tmp_path):
         assert get(f"http://[::1]:{httpd.server_address[1]}", "/api/events?since=0")["total"] == get(base, "/api/events?since=0")["total"]
         v6.shutdown()
     httpd.shutdown()
+
+
+def test_half_written_line_and_stray_checkpoint_file_do_not_break_the_page(tmp_path):
+    from bayora.dashboard.server import page, events
+    from bayora.verify import verify
+    *_, out = setup_run(tmp_path)
+    full = events(str(out), 0)["total"]
+    with open(out / "log.jsonl", "ab") as f: f.write(b'{"kind":"isolation_probe","probe":"red->bl')   # a run still writing
+    (out / "checkpoints" / "notes.txt").write_text("not a checkpoint")
+    assert b"window.__BOOT__ = {" in page(str(out))
+    assert events(str(out), 0)["total"] == full                 # the partial line waits until it is complete
+    with open(out / "log.jsonl", "ab") as f: f.write(b'ue","result":"BLOCKED"}\n')
+    assert events(str(out), full)["events"][0]["probe"] == "red->blue"
+    with open(out / "log.jsonl", "rb") as f: lines = f.read().splitlines()
+    (out / "log.jsonl").write_bytes(b"".join(l + b"\n" for l in lines[:-1]))   # back to the receipt's log
+    assert verify(str(out / "receipt.json"), str(out / "log.jsonl"), None, str(out / "checkpoints"))[0] is True

@@ -143,14 +143,26 @@
   .cue svg { width: 16px; height: 16px; }
   .cue { box-shadow: 0 8px 24px -12px color-mix(in srgb, var(--ink) 45%, transparent); }
   html.scrolled .cue { opacity: 0; transform: translate(-50%, 8px); pointer-events: none; }
-  .story { padding-block: 88px 40px; border-bottom: 1px solid var(--rule); }
-  .story-grid { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 56px; }
-  .step { min-height: 74vh; display: grid; align-content: center; gap: 12px; padding-block: 24px; }
-  .step h3 { font-size: clamp(32px, 3.4vw, 46px); font-weight: 800; text-transform: uppercase; line-height: .95; }
-  .step p { margin: 0; color: var(--ink-2); max-width: 46ch; font-size: 17px; }
+  .story { padding-block: 88px 0; border-bottom: 1px solid var(--rule); }
+  /* one pinned screen: scrolling through the track moves the timeline and the console from scene to scene */
+  .story-track { height: calc(100vh + 6 * 34vh); }
+  .story-pin { position: sticky; top: calc(var(--top) + env(safe-area-inset-top, 0px)); height: calc(100vh - var(--top)); display: flex; align-items: center; }
+  .story-grid { width: 100%; display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 56px; align-items: center; }
+  .steps { position: relative; display: grid; padding-left: 36px; }
+  .steps::before, .steps::after { content: ""; position: absolute; left: 10px; top: 18px; bottom: 18px; width: 2px; border-radius: 1px; background: var(--rule-2); }
+  .steps::after { background: var(--seal); transform-origin: top; transform: scaleY(var(--p, 0)); transition: transform .3s ease-out; }
+  .step::before { content: ""; position: absolute; left: -32px; top: 13px; width: 14px; height: 14px; border-radius: 50%; background: var(--paper); border: 2px solid var(--rule-2); z-index: 1; }
+  .step.done::before { background: var(--seal); border-color: var(--seal); }
+  .step.on::before { background: var(--sheet); border-color: var(--seal); box-shadow: 0 0 0 4px var(--seal-wash); }
+  .go { all: unset; cursor: pointer; } .go:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 4px; }
+  .story-cap { margin: 22px 0 0 36px; min-height: calc(7 * 1.6em); max-width: 46ch; color: var(--ink-2); font-size: 17px; }
+  .step { position: relative; display: grid; gap: 2px; padding-block: 8px; }
+  .step h3 { font-size: clamp(22px, 2vw, 28px); font-weight: 800; text-transform: uppercase; line-height: 1; }
+  .step .label { font-size: 11px; }
+  .step p { display: none; margin: 6px 0 0; color: var(--ink-2); max-width: 46ch; font-size: 16.5px; }
   .step:not(.on) h3 { color: var(--muted); }
   .step-frame { display: none; }
-  .stage { position: sticky; top: calc(var(--top) + 32px); align-self: start; height: min(560px, calc(100vh - var(--top) - 64px)); margin-top: 12vh; }
+  .stage { height: min(560px, calc(100vh - var(--top) - 72px)); }
   .screen { height: 100%; display: flex; flex-direction: column; background: var(--sheet); border: 1.5px solid var(--ink); border-radius: 14px; overflow: hidden;
     box-shadow: 0 1px 2px color-mix(in srgb, var(--ink) 10%, transparent), 0 24px 48px -20px color-mix(in srgb, var(--ink) 35%, transparent); }
   .screen-bar { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--rule); background: var(--well); font: 500 12.5px var(--mono); color: var(--muted); }
@@ -177,8 +189,10 @@
   .scene-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
   .scene-verdict { margin-top: 12px; min-height: 3.2em; font: 13px/1.5 var(--mono); color: var(--ink-2); }
   @media (max-width: 1000px) {
-    .story-grid { grid-template-columns: 1fr; } .stage { display: none; }
-    .step { min-height: 0; padding-block: 28px; border-top: 1px solid var(--rule); } .step:not(.on) h3 { color: var(--ink); }
+    .story-track { height: auto; } .story-pin { position: static; height: auto; display: block; padding-block: 8px 40px; }
+    .story-grid { grid-template-columns: 1fr; } .stage, .story-cap, .steps::after { display: none; }
+    .step p { display: block; } .step::before { top: 33px; } .step.done::before { background: var(--paper); border-color: var(--rule-2); }
+    .step { padding-block: 28px; } .step:not(.on) h3 { color: var(--ink); }
     .step-frame { display: block; margin-top: 8px; border: 1.5px solid var(--ink); border-radius: 12px; background: var(--sheet); padding: 18px; container-type: inline-size; }
   }
   .report-wrap { overflow-x: auto; }
@@ -272,23 +286,9 @@
   .kv > :nth-last-child(-n+2) { border-bottom: 0; }
   @container (max-width: 420px) { .kv { grid-template-columns: 1fr; } .kv dt { border: 0; padding-bottom: 0; } }
 
-  .map { display: grid; grid-template-columns: minmax(0, 1fr) 48px minmax(0, 1fr) 48px minmax(0, 1fr); align-items: center; gap: 14px 0; }
-  .zone { border: 1.5px solid var(--c); border-radius: 8px; padding: 12px; background: color-mix(in srgb, var(--c) 7%, var(--sheet)); }
-  .zone .nm { font: 800 20px var(--display); letter-spacing: .01em; color: var(--c); } .zone .ds { font-size: 13px; color: var(--muted); }
-  .pipe { height: 0; border-top: 2px dashed var(--seal); position: relative; }
-  .pipe span { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font: 600 11px var(--body); color: var(--seal); white-space: nowrap; }
-  .z-blue { grid-column: 3; } .walls { grid-column: 1; font-size: 13px; color: var(--muted); }
-  @container (max-width: 560px) {
-    .map { grid-template-columns: 1fr; gap: 0; }
-    .map .pipe { width: 0; height: 30px; margin: 6px auto; border-top: 0; border-left: 2px dashed var(--seal); }
-    .map .pipe span { top: 50%; left: 12px; transform: translateY(-50%); }
-    .z-blue, .walls { grid-column: 1; margin-top: 12px; }
-  }
   .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
-  .zfig { margin: 0; } .zfig svg { display: block; width: 100%; height: auto; color: var(--ink); }
+  .zfig { margin: 0; overflow-x: auto; } .zfig svg { display: block; width: 100%; min-width: 560px; height: auto; color: var(--ink); }
   .zfig figcaption { font-size: 13.5px; margin-top: 6px; }
-  .zfig + .map { display: none; }
-  @container (max-width: 600px) { .zfig { display: none; } .zfig + .map { display: grid; } }
 
   .rows { list-style: none; margin: 0; padding: 0; }
   .rows li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 14px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--rule); }
@@ -433,19 +433,26 @@
     <section class="story" id="story">
       <div class="wrap">
         <div class="sec-head"><h2>One run, step by step</h2><p id="story-sub">A replay of a real Bayora run. Every frame below is that run's own data, not an illustration.</p></div>
-        <div class="story-grid">
-          <div class="steps">
-          <article class="step" data-scene="0"><span class="label">Scene 1 · The problem</span><h3>A safety test is only as good as its walls</h3><p>An AI lab has to show regulators that its model was red-teamed (EU AI Act, Art. 55). The attackers, the defenders and the model share one machine. If the defenders glimpse the attacks, or one tenant reads another's prompt from a shared cache (NDSS 2025), the finding is void, and nobody outside could tell.</p><div class="step-frame" data-frame="0"></div></article>
-          <article class="step" data-scene="1"><span class="label">Scene 2 · Before the run</span><h3>Both teams seal their work</h3><p>Before anything runs, each team publishes a fingerprint (a hash) of its attacks and its rules. Neither can change them later without breaking the match.</p><div class="step-frame" data-frame="1"></div></article>
-          <article class="step" data-scene="2"><span class="label">Scene 3 · Setup</span><h3>The walls go up</h3><p>Each team gets its own container and network, and the broker is the only way through. When the red team tries to reach blue, the model directly or the internet, the kernel refuses before a packet leaves, and the attempt goes into the log.</p><div class="step-frame" data-frame="2"></div></article>
-          <article class="step" data-scene="3"><span class="label">Scene 4 · During the run</span><h3>A leak is caught, and named</h3><p>Every secret carries canaries only Bayora can mint. During the run Bayora leaks fake ones on purpose, in nine disguises, to measure what it catches. When one surfaces, the alert says whose secret it is and where it escaped. Pieces shorter than 10 characters still slip past, and the console lists them as residual risk.</p><div class="step-frame" data-frame="3"></div></article>
-          <article class="step" data-scene="4"><span class="label">Scene 5 · Against the real model</span><h3>The <span class="nw">shared-cache</span> trick fails</h3><p>Before the evaluation, Bayora attacks the real model itself: tenant B times its own prompts to guess which of 8 secrets tenant A's prompt holds. Bayora gives each tenant its own salt and slot, and checks that the attack no longer works.</p><div class="step-frame" data-frame="4"></div></article>
-          <article class="step" data-scene="5"><span class="label">Scene 6 · After the run</span><h3>Sealed, witnessed, checkable</h3><p>Every event is chained into a log that two witness processes co-sign. The run ends in a receipt anyone can check without trusting the operator. Try it: verify, then edit one event.</p><div class="step-frame" data-frame="5"></div></article>
-          </div>
-          <div class="stage" aria-label="Replay of the run">
-            <div class="screen">
-              <div class="screen-bar"><i></i><i></i><i></i><span id="screen-title">bayora console · replay</span><span class="screen-n" id="screen-n">Scene 1 of 6</span></div>
-              <div class="scenes" id="scenes"></div>
+      </div>
+      <div class="story-track" id="story-track">
+        <div class="story-pin">
+          <div class="wrap story-grid">
+            <div class="tl">
+              <div class="steps" id="steps">
+            <article class="step" data-scene="0"><span class="label">Scene 1 · The problem</span><h3><button class="go" type="button">A safety test is only as good as its walls</button></h3><p>An AI lab has to show regulators that its model was red-teamed (EU AI Act, Art. 55). The attackers, the defenders and the model share one machine. If the defenders glimpse the attacks, or one tenant reads another's prompt from a shared cache (NDSS 2025), the finding is void, and nobody outside could tell.</p><div class="step-frame" data-frame="0"></div></article>
+            <article class="step" data-scene="1"><span class="label">Scene 2 · Before the run</span><h3><button class="go" type="button">Both teams seal their work</button></h3><p>Before anything runs, each team publishes a fingerprint (a hash) of its attacks and its rules. Neither can change them later without breaking the match.</p><div class="step-frame" data-frame="1"></div></article>
+            <article class="step" data-scene="2"><span class="label">Scene 3 · Setup</span><h3><button class="go" type="button">The walls go up</button></h3><p>Each team gets its own container and network, and the broker is the only way through. When the red team tries to reach blue, the model directly or the internet, <span data-fill="refuser">the kernel refuses before a packet leaves</span>, and the attempt goes into the log.</p><div class="step-frame" data-frame="2"></div></article>
+            <article class="step" data-scene="3"><span class="label">Scene 4 · During the run</span><h3><button class="go" type="button">A leak is caught, and named</button></h3><p>Every secret carries canaries only Bayora can mint. During the run Bayora leaks fake ones on purpose, in <span data-fill="disguises">nine</span> disguises, to measure what it catches. When one surfaces, the alert says whose secret it is and where it escaped. Pieces shorter than 10 characters still slip past, and the console lists them as residual risk.</p><div class="step-frame" data-frame="3"></div></article>
+            <article class="step" data-scene="4"><span class="label">Scene 5 · Against the real model</span><h3><button class="go" type="button">The <span class="nw">shared-cache</span> trick fails</button></h3><p>Before the evaluation, Bayora attacks the real model itself: tenant B times its own prompts to guess which of 8 secrets tenant A's prompt holds. Bayora gives each tenant its own salt and slot, and checks that the attack no longer works.</p><div class="step-frame" data-frame="4"></div></article>
+            <article class="step" data-scene="5"><span class="label">Scene 6 · After the run</span><h3><button class="go" type="button">Sealed, witnessed, checkable</button></h3><p>Every event is chained into a log that <span data-fill="witnesses">two</span> witness processes co-sign. The run ends in a receipt anyone can check without trusting the operator. Try it: verify, then edit one event.</p><div class="step-frame" data-frame="5"></div></article>
+              </div>
+              <p class="story-cap" id="story-cap" aria-live="polite"></p>
+            </div>
+            <div class="stage" aria-label="Replay of the run">
+              <div class="screen">
+                <div class="screen-bar"><i></i><i></i><i></i><span id="screen-title">bayora console · replay</span><span class="screen-n" id="screen-n">Scene 1 of 6</span></div>
+                <div class="scenes" id="scenes"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -506,15 +513,6 @@
         <div class="panel" style="margin-top:20px"><header><h2>Trust zones and the paths between them</h2></header><div class="body">
             <figure class="zfig"><svg id="zones-svg" viewBox="0 0 760 330" role="img" aria-label="Red reaches the model only through the broker; direct paths to blue, the model and the internet are denied by eBPF"></svg>
               <figcaption class="muted" id="zones-cap"></figcaption></figure>
-            <div class="map">
-              <div class="zone" style="--c:var(--red)"><div class="nm">Red team</div><div class="ds">attack payloads</div></div>
-              <div class="pipe" aria-hidden="true"><span>prompts</span></div>
-              <div class="zone" style="--c:var(--broker)"><div class="nm">Broker</div><div class="ds">only cross-zone path</div></div>
-              <div class="pipe" aria-hidden="true"><span>model</span></div>
-              <div class="zone" style="--c:var(--model)"><div class="nm">Model</div><div class="ds">serving zone</div></div>
-              <div class="walls" id="walls"></div>
-              <div class="zone z-blue" style="--c:var(--blue)"><div class="nm">Blue team</div><div class="ds">defensive rules · sees payloads only after the test</div></div>
-            </div>
             <div class="chips" id="hardening"></div>
           </div></div>
         <div class="panel" style="margin-top:20px"><header><h2>What the red team tried</h2></header><div class="body"><ul class="rows" id="attempts"></ul></div></div>
@@ -666,8 +664,8 @@ menu.addEventListener("focusout", (e) => { if (!menu.contains(e.relatedTarget) &
 document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !menu.hidden) { setMenu(false); menuBtn.focus(); } });
 matchMedia("(min-width: 861px)").addEventListener("change", (e) => e.matches && setMenu(false));
 const bar = document.querySelector(".bar");
-const onScroll = () => { bar.classList.toggle("scrolled", scrollY > 8); document.documentElement.classList.toggle("scrolled", scrollY > 120); };
-addEventListener("scroll", onScroll, { passive: true }); onScroll();   // a reload halfway down starts with the cue hidden
+const onScroll = () => { bar.classList.toggle("scrolled", scrollY > 8); document.documentElement.classList.toggle("scrolled", scrollY > 120); storyScroll(); };
+addEventListener("scroll", onScroll, { passive: true });
 const spy = new IntersectionObserver((entries) => {
   for (const en of entries) if (en.isIntersecting) document.querySelectorAll(`.bar nav a, .menu a.mlink`).forEach((a) => a.setAttribute("aria-current", String(a.getAttribute("href") === "#" + en.target.id)));
 }, { rootMargin: "-45% 0px -50% 0px" });
@@ -774,7 +772,6 @@ function isolation(r) {
   if (!Object.keys(probes).length) ul.append(h("li", {}, h("span", { class: "muted" }, "No probes in this run.")));
   const iso = (r && r.isolation) || {}, dk = (r && r.host && r.host.docker) || {};
   zones(probes, iso);
-  $("walls").textContent = iso.enforcer === "ebpf" ? `eBPF default-deny on every zone${iso.deny_before_start ? ", before containers start" : ""} · ${iso.blocked_connects ?? 0} attempts logged` : "Docker internal networks only (eBPF off)";
   $("hardening").replaceChildren(...["cap-drop ALL", "read-only root", "non-root uid", "no-new-privileges", dk.userns_remap && "userns-remap", dk.rootless && "rootless", iso.enforcer === "ebpf" && "eBPF egress policy"].filter(Boolean).map((t) => stamp(t, "neutral")));
 }
 
@@ -924,19 +921,36 @@ function scene(i, r, p, pfx) {
 function story(r, p) {
   if (r) $("story-sub").textContent = `A replay of case ${r.run_id}, measured on ${r.host && r.host.docker ? `Docker via ${r.host.docker.context}` : r.host.platform}. Every frame below is that run's own data, not an illustration.`;
   if (r) $("screen-title").textContent = `bayora console · replay of ${r.run_id}`;
+  const words = ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"], say = (n) => words[n] || String(n);
+  const fill = { disguises: say(((r && r.config && r.config.encodings) || []).length || 9), witnesses: say(((p && p.witnesses) || []).length || 2),
+    refuser: r && r.isolation && r.isolation.enforcer !== "ebpf" ? "Docker's internal networks refuse the connection" : "the kernel refuses before a packet leaves" };
+  document.querySelectorAll("[data-fill]").forEach((el) => (el.textContent = fill[el.dataset.fill]));
   $("scenes").replaceChildren(...[0, 1, 2, 3, 4, 5].map((i) => h("div", { class: "scene" + (i === storyAt ? " on" : ""), "data-scene": i }, ...scene(i, r, p, `s${i}`).filter(Boolean))));
   document.querySelectorAll(".step-frame").forEach((f) => f.replaceChildren(...scene(+f.dataset.frame, r, p, `m${f.dataset.frame}`).filter(Boolean)));
 }
 let storyAt = 0;
 function showScene(i) {
   storyAt = i;
+  document.querySelectorAll(".step").forEach((el) => el.classList.toggle("done", +el.dataset.scene < i));
+  $("story-cap").textContent = document.querySelector(`.step[data-scene="${i}"] p`).textContent;
   document.querySelectorAll("#scenes .scene").forEach((el) => el.classList.toggle("on", +el.dataset.scene === i));
   document.querySelectorAll(".step").forEach((el) => el.classList.toggle("on", +el.dataset.scene === i));
   $("screen-n").textContent = `Scene ${i + 1} of 6`;
 }
-const stepSpy = new IntersectionObserver((entries) => { for (const en of entries) if (en.isIntersecting) showScene(+en.target.dataset.scene); }, { rootMargin: "-45% 0px -45% 0px" });
-document.querySelectorAll(".step").forEach((el) => stepSpy.observe(el));
-document.querySelector(".step").classList.add("on");
+const track = $("story-track"), desktop = matchMedia("(min-width: 1001px)");
+function storyScroll() {
+  if (!desktop.matches) return;                                   // phones show every scene in order
+  const r = track.getBoundingClientRect(), span = Math.max(1, r.height - innerHeight);
+  const prog = Math.min(1, Math.max(0, -r.top / span)), i = Math.min(5, Math.floor(prog * 6));
+  $("steps").style.setProperty("--p", i / 5);                    // the line reaches the active dot
+  if (i !== storyAt || !$("story-cap").textContent) showScene(i);
+}
+document.querySelectorAll(".step").forEach((el) => el.querySelector(".go").addEventListener("click", () => {
+  if (!desktop.matches) return el.scrollIntoView({ block: "start" });
+  const span = track.offsetHeight - innerHeight;
+  scrollTo({ top: track.getBoundingClientRect().top + scrollY + span * (+el.dataset.scene + 0.5) / 6 });
+}));
+desktop.addEventListener("change", storyScroll);
 
 function limits(r) {
   const last = r && r.leak_drills ? Object.values(r.leak_drills).at(-1) : null;
@@ -1026,7 +1040,8 @@ async function load() {
 }
 route();
 if (boot && boot.events) { allEvents = boot.events.events; since = boot.events.total; renderFeeds(); renderTamperPick(); }
-load(); poll(); setInterval(poll, 1500);
+load(); onScroll();   // after the story exists; a reload halfway down starts on the right scene with the cue hidden
+poll(); setInterval(poll, 1500);
 </script>
 </body>
 </html>
