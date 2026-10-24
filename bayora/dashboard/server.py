@@ -7,6 +7,7 @@ from ..receipt import read_checkpoint
 from ..verify import verify
 
 HTML = os.path.join(os.path.dirname(os.path.abspath(__file__)), "index.html")
+FONTS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fonts")
 
 
 def _json(path):
@@ -63,6 +64,12 @@ def make_server(results_dir, port, trust=None):
         def do_GET(self):
             u = urlparse(self.path)
             if u.path == "/": return self._send(200, open(HTML, "rb").read(), "text/html; charset=utf-8")
+            if u.path.startswith("/fonts/"):
+                name = u.path[len("/fonts/"):]
+                # only files that ship in the fonts folder; no paths, so nothing outside it can be read
+                if name.endswith(".woff2") and name in os.listdir(FONTS):
+                    with open(os.path.join(FONTS, name), "rb") as f: return self._send(200, f.read(), "font/woff2")
+                return self._send(404, {"error": "not found"})
             if u.path == "/api/state": return self._send(200, state(results_dir))
             if u.path == "/api/events":
                 try: since = int(parse_qs(u.query).get("since", ["0"])[0])

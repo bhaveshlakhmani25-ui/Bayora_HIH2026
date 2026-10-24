@@ -1,4 +1,4 @@
-import json, threading, urllib.request
+import json, threading, urllib.error, urllib.request
 from bayora.dashboard.server import make_server
 from test_receipt import setup_run
 
@@ -22,4 +22,9 @@ def test_dashboard_events_state_and_verify(tmp_path):
     log = out / "log.jsonl"; log.write_bytes(log.read_bytes().replace(b'{"i":1}', b'{"i":7}'))
     r = get(base, "/api/verify", b"")
     assert r["ok"] is False and "root does not match" in r["message"]
+    f = urllib.request.urlopen(base + "/fonts/ibm-plex-sans.woff2", timeout=5)
+    assert f.headers["Content-Type"] == "font/woff2" and f.read(4) == b"wOF2"
+    for bad in ("/fonts/../server.py", "/fonts/OFL-ibm-plex-sans.txt", "/fonts/%2e%2e%2fserver.py"):
+        try: urllib.request.urlopen(base + bad, timeout=5); assert False, bad
+        except urllib.error.HTTPError as e: assert e.code == 404
     httpd.shutdown()
