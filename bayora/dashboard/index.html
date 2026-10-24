@@ -104,7 +104,7 @@
   @media (max-width: 1000px) { .hero { padding-block: 40px; } .hero .wrap { grid-template-columns: 1fr; gap: 36px; } }
   .event { margin: 24px 0 0; font-size: 14px; color: var(--muted); }
   .hero h1 { font-size: clamp(46px, 7.2vw, 92px); font-weight: 900; text-transform: uppercase; line-height: .9; letter-spacing: .005em; }
-  .hero h1 .fair { color: var(--seal-text); } .hero h1 .nw { white-space: nowrap; }
+  .hero h1 .fair { color: var(--seal-text); } .hero h1 .nw, .step h3 .nw { white-space: nowrap; }
   .hero .lede { font-size: clamp(17px, 1.5vw, 19px); color: var(--ink-2); max-width: 54ch; margin: 24px 0 32px; }
   .hero .ctas { display: flex; flex-wrap: wrap; gap: 12px; }
   @media (max-width: 460px) { .hero .ctas .btn, .tag-actions .btn { flex: 1 1 100%; } }
@@ -138,24 +138,49 @@
   .sec-head p { margin: 0; color: var(--ink-2); font-size: 17.5px; max-width: 60ch; }
   @media (max-width: 860px) { .sec-head { grid-template-columns: 1fr; } }
 
-  .ruled { border-top: 1.5px solid var(--ink); }
-  .ruled > div { display: grid; grid-template-columns: 200px minmax(0, 1fr) minmax(0, 220px); gap: 8px 32px; padding: 24px 0; border-bottom: 1px solid var(--rule); align-items: baseline; }
-  .ruled h3 { font-size: 26px; font-weight: 700; }
-  .ruled p { margin: 0; color: var(--ink-2); max-width: 62ch; }
-  .ruled .src { font-size: 13px; color: var(--muted); }
-  @media (max-width: 860px) { .ruled > div { grid-template-columns: 1fr; } }
-
-  .protocol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border-top: 1.5px solid var(--ink); }
-  .protocol li { padding: 20px 20px 24px 0; border-right: 1px solid var(--rule); display: grid; gap: 10px; align-content: start; }
-  .protocol li + li { padding-left: 20px; }
-  .protocol li:last-child { border-right: 0; }
-  .protocol .step { font: 600 12px var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
-  .protocol h3 { font-size: 32px; font-weight: 800; text-transform: uppercase; }
-  .protocol p { margin: 0; font-size: 15px; color: var(--ink-2); }
-  .protocol .leaves { font-size: 13px; color: var(--muted); border-top: 1px dashed var(--rule-2); padding-top: 10px; }
-  .protocol .leaves b { display: block; color: var(--ink); font: 500 12.5px var(--mono); margin-top: 2px; }
-  @media (max-width: 1000px) { .protocol { grid-template-columns: 1fr; } .protocol li, .protocol li + li { padding: 18px 0; border-right: 0; border-bottom: 1px solid var(--rule); grid-template-columns: 110px minmax(0, 1fr); column-gap: 16px; } .protocol li > :not(.step) { grid-column: 2; } .protocol .step { grid-row: span 3; } }
-
+  .cue { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 25; display: flex; width: max-content; align-items: center; gap: 8px; color: var(--ink-2); font-size: 14px; font-weight: 600; text-decoration: none; padding: 10px 16px; border-radius: 999px; border: 1px solid var(--rule-2); background: var(--sheet); transition: opacity .3s, transform .3s; }
+  .cue:hover { color: var(--ink); border-color: var(--ink); }
+  .cue svg { width: 16px; height: 16px; }
+  .cue { box-shadow: 0 8px 24px -12px color-mix(in srgb, var(--ink) 45%, transparent); }
+  html.scrolled .cue { opacity: 0; transform: translate(-50%, 8px); pointer-events: none; }
+  .story { padding-block: 88px 40px; border-bottom: 1px solid var(--rule); }
+  .story-grid { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 56px; }
+  .step { min-height: 74vh; display: grid; align-content: center; gap: 12px; padding-block: 24px; }
+  .step h3 { font-size: clamp(32px, 3.4vw, 46px); font-weight: 800; text-transform: uppercase; line-height: .95; }
+  .step p { margin: 0; color: var(--ink-2); max-width: 46ch; font-size: 17px; }
+  .step:not(.on) h3 { color: var(--muted); }
+  .step-frame { display: none; }
+  .stage { position: sticky; top: calc(var(--top) + 32px); align-self: start; height: min(560px, calc(100vh - var(--top) - 64px)); margin-top: 12vh; }
+  .screen { height: 100%; display: flex; flex-direction: column; background: var(--sheet); border: 1.5px solid var(--ink); border-radius: 14px; overflow: hidden;
+    box-shadow: 0 1px 2px color-mix(in srgb, var(--ink) 10%, transparent), 0 24px 48px -20px color-mix(in srgb, var(--ink) 35%, transparent); }
+  .screen-bar { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--rule); background: var(--well); font: 500 12.5px var(--mono); color: var(--muted); }
+  .screen-bar i { width: 10px; height: 10px; border-radius: 50%; background: var(--rule-2); }
+  .screen-bar span:first-of-type { margin-left: 8px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .scenes { position: relative; flex: 1; }
+  .scene { position: absolute; inset: 0; padding: 24px; overflow: auto; opacity: 0; visibility: hidden; transition: opacity .35s ease-out, visibility 0s linear .35s; }
+  .scene.on { opacity: 1; visibility: visible; transition: opacity .35s ease-out; }
+  .scene .frame-title { font: 700 13px var(--body); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 0 0 14px; }
+  .sandbox { border: 1.5px dashed var(--crit); border-radius: 10px; padding: 18px; display: grid; gap: 14px; }
+  .sandbox .row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .pill { padding: 8px 12px; border-radius: 8px; font: 800 17px var(--display); letter-spacing: .02em; border: 1.5px solid currentColor; }
+  .pill.red { color: var(--red); } .pill.blue { color: var(--blue); } .pill.model { color: var(--model); }
+  .loglines { list-style: none; margin: 0; padding: 0; font: 13px/1.5 var(--mono); }
+  .loglines li { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--rule); }
+  .loglines li:last-child { border-bottom: 0; }
+  .loglines .idx { color: var(--muted); }
+  .seal-row { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 4px 14px; padding: 12px 0; border-bottom: 1px solid var(--rule); align-items: baseline; }
+  .out-line { font: 13.5px/1.6 var(--mono); background: var(--well); border: 1px solid var(--rule); border-radius: 8px; padding: 12px 14px; word-break: break-all; }
+  .out-line mark { background: var(--crit-wash); color: var(--crit); padding: 0 2px; border-radius: 3px; }
+  .alert-card { margin-top: 14px; border: 1.5px solid var(--crit); border-radius: 10px; padding: 14px 16px; display: grid; gap: 6px; background: color-mix(in srgb, var(--crit) 5%, var(--sheet)); }
+  .alert-card strong { font: 800 20px var(--display); letter-spacing: .04em; text-transform: uppercase; color: var(--crit); }
+  .scene-stat { margin-top: 16px; font-size: 14px; color: var(--ink-2); }
+  .scene-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+  .scene-verdict { margin-top: 12px; min-height: 3.2em; font: 13px/1.5 var(--mono); color: var(--ink-2); }
+  @media (max-width: 1000px) {
+    .story-grid { grid-template-columns: 1fr; } .stage { display: none; }
+    .step { min-height: 0; padding-block: 28px; border-top: 1px solid var(--rule); } .step:not(.on) h3 { color: var(--ink); }
+    .step-frame { display: block; margin-top: 8px; border: 1.5px solid var(--ink); border-radius: 12px; background: var(--sheet); padding: 18px; container-type: inline-size; }
+  }
   .report-wrap { overflow-x: auto; }
   table.report { width: 100%; border-collapse: collapse; font-size: 15px; font-variant-numeric: tabular-nums; min-width: 640px; }
   .report th { text-align: left; font: 600 12px var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding: 10px 16px 10px 0; border-bottom: 1.5px solid var(--ink); }
@@ -347,6 +372,7 @@
   <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
   <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></symbol>
   <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></symbol>
   <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
   <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></symbol>
@@ -359,7 +385,7 @@
   <header class="bar">
     <div class="wrap">
       <a class="brand" href="#/" aria-label="Bayora home"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-mark"/></svg>Bayora</a>
-      <nav aria-label="Primary"><a href="#why">Why it matters</a><a href="#protocol">Protocol</a><a href="#measured">Measured</a><a href="#team">Team</a></nav>
+      <nav aria-label="Primary"><a href="#story">How it works</a><a href="#measured">Measured</a><a href="#team">Team</a></nav>
       <div class="act">
         <button class="icon-btn theme-btn" aria-label="Switch light or dark theme"><svg class="i"><use href="#i-moon"/></svg></button>
         <a class="btn solid open-console" href="#/app/overview">Open console <svg class="i"><use href="#i-arrow"/></svg></a>
@@ -369,8 +395,7 @@
   </header>
   <div class="menu" id="menu" hidden>
     <nav class="wrap" aria-label="Sections">
-      <a class="mlink" href="#why">Why it matters <svg class="i"><use href="#i-arrow"/></svg></a>
-      <a class="mlink" href="#protocol">Protocol <svg class="i"><use href="#i-arrow"/></svg></a>
+      <a class="mlink" href="#story">How it works <svg class="i"><use href="#i-arrow"/></svg></a>
       <a class="mlink" href="#measured">Measured <svg class="i"><use href="#i-arrow"/></svg></a>
       <a class="mlink" href="#team">Team <svg class="i"><use href="#i-arrow"/></svg></a>
       <a class="btn solid" href="#/app/overview">Open the console <svg class="i"><use href="#i-arrow"/></svg></a>
@@ -385,7 +410,7 @@
           <p class="lede">Bayora keeps the attacking team, the defending team and the model behind enforced walls, catches leaks with canaries that name the leaker, and seals every event in a log that witnesses co-sign. The run ends with a custody receipt that anyone can check.</p>
           <div class="ctas">
             <a class="btn solid" href="#/app/overview">Open the console <svg class="i"><use href="#i-arrow"/></svg></a>
-            <a class="btn" href="#protocol">Read the protocol</a>
+            <a class="btn" href="#story">Watch a run</a>
           </div>
           <p class="event">Built for Hack in Hills '26, Track 04: securing adversarial AI safety testing.</p>
         </div>
@@ -402,29 +427,28 @@
           <div class="seal-strip" id="seal"><strong id="seal-word">Seal not checked</strong><span class="mono" id="seal-root"></span></div>
         </article>
       </div>
+      <a class="cue" href="#story" id="cue">See a real run, step by step <svg class="i"><use href="#i-down"/></svg></a>
     </section>
 
-    <section class="sec" id="why">
+    <section class="story" id="story">
       <div class="wrap">
-        <div class="sec-head"><h2>Why a safety finding can be void</h2><p>Red team, blue team and the client model share infrastructure. One leak between them quietly invalidates the result, and today nobody outside the lab can check that it didn't happen.</p></div>
-        <div class="ruled">
-          <div><h3>Defenders see attacks</h3><p>If the blue team glimpses red's payloads before the test, the defence looks stronger than it is and the finding is worthless.</p><span class="src">Container, file and network paths</span></div>
-          <div><h3>Shared caches talk</h3><p>On a shared model server, one tenant can work out another's prompt from how fast cached text comes back.</p><span class="src">NDSS 2025, prompt leakage via KV-cache sharing</span></div>
-          <div><h3>Records can be rewritten</h3><p>Without a tamper-evident log, results can be edited after the fact, and the EU AI Act now asks providers to document adversarial testing.</p><span class="src">EU AI Act, Art. 55(1)(a)</span></div>
+        <div class="sec-head"><h2>One run, step by step</h2><p id="story-sub">A replay of a real Bayora run. Every frame below is that run's own data, not an illustration.</p></div>
+        <div class="story-grid">
+          <div class="steps">
+          <article class="step" data-scene="0"><span class="label">Scene 1 · The problem</span><h3>A safety test is only as good as its walls</h3><p>An AI lab has to show regulators that its model was red-teamed (EU AI Act, Art. 55). The attackers, the defenders and the model share one machine. If the defenders glimpse the attacks, or one tenant reads another's prompt from a shared cache (NDSS 2025), the finding is void, and nobody outside could tell.</p><div class="step-frame" data-frame="0"></div></article>
+          <article class="step" data-scene="1"><span class="label">Scene 2 · Before the run</span><h3>Both teams seal their work</h3><p>Before anything runs, each team publishes a fingerprint (a hash) of its attacks and its rules. Neither can change them later without breaking the match.</p><div class="step-frame" data-frame="1"></div></article>
+          <article class="step" data-scene="2"><span class="label">Scene 3 · Setup</span><h3>The walls go up</h3><p>Each team gets its own container and network, and the broker is the only way through. When the red team tries to reach blue, the model directly or the internet, the kernel refuses before a packet leaves, and the attempt goes into the log.</p><div class="step-frame" data-frame="2"></div></article>
+          <article class="step" data-scene="3"><span class="label">Scene 4 · During the run</span><h3>A leak is caught, and named</h3><p>Every secret carries canaries only Bayora can mint. During the run Bayora leaks fake ones on purpose, in nine disguises, to measure what it catches. When one surfaces, the alert says whose secret it is and where it escaped. Pieces shorter than 10 characters still slip past, and the console lists them as residual risk.</p><div class="step-frame" data-frame="3"></div></article>
+          <article class="step" data-scene="4"><span class="label">Scene 5 · Against the real model</span><h3>The <span class="nw">shared-cache</span> trick fails</h3><p>Before the evaluation, Bayora attacks the real model itself: tenant B times its own prompts to guess which of 8 secrets tenant A's prompt holds. Bayora gives each tenant its own salt and slot, and checks that the attack no longer works.</p><div class="step-frame" data-frame="4"></div></article>
+          <article class="step" data-scene="5"><span class="label">Scene 6 · After the run</span><h3>Sealed, witnessed, checkable</h3><p>Every event is chained into a log that two witness processes co-sign. The run ends in a receipt anyone can check without trusting the operator. Try it: verify, then edit one event.</p><div class="step-frame" data-frame="5"></div></article>
+          </div>
+          <div class="stage" aria-label="Replay of the run">
+            <div class="screen">
+              <div class="screen-bar"><i></i><i></i><i></i><span id="screen-title">bayora console · replay</span><span class="screen-n" id="screen-n">Scene 1 of 6</span></div>
+              <div class="scenes" id="scenes"></div>
+            </div>
+          </div>
         </div>
-      </div>
-    </section>
-
-    <section class="sec" id="protocol">
-      <div class="wrap">
-        <div class="sec-head"><h2>The protocol, in order</h2><p>Each stage leaves evidence in the log. The receipt at the end binds all of it, so a verifier can check the whole chain without trusting the people who ran it.</p></div>
-        <ol class="protocol">
-          <li><span class="step">Before the run</span><h3>Commit</h3><p>Both teams publish a hash of their payloads and rules.</p><div class="leaves">Leaves<b>commitment hashes</b></div></li>
-          <li><span class="step">Setup</span><h3>Isolate</h3><p>Each team gets its own container and network. eBPF denies every connection except red → broker → model.</p><div class="leaves">Leaves<b>blocked_connect events</b></div></li>
-          <li><span class="step">During</span><h3>Detect</h3><p>Canaries only Bayora can mint are leaked on purpose in many disguises, and scanners count the catches.</p><div class="leaves">Leaves<b>leak_alert events</b></div></li>
-          <li><span class="step">Throughout</span><h3>Audit</h3><p>Events go into a Merkle log. Witness processes co-sign checkpoints and refuse two histories.</p><div class="leaves">Leaves<b>signed checkpoints</b></div></li>
-          <li><span class="step">After</span><h3>Verify</h3><p>Anyone checks the receipt, the witness quorum and the teams' reveal against their commitments.</p><div class="leaves">Leaves<b>a verdict</b></div></li>
-        </ol>
       </div>
     </section>
 
@@ -554,7 +578,7 @@
   <div class="wrap">
     <div class="cols">
       <div><a class="brand" href="#/"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-mark"/></svg>Bayora</a><p class="tagline">Blind, leak-audited red-vs-blue evaluation, ending in a receipt anyone can check.</p></div>
-      <div><h4>Site</h4><ul><li><a href="#why" data-anchor="why">Why it matters</a></li><li><a href="#protocol" data-anchor="protocol">Protocol</a></li><li><a href="#measured" data-anchor="measured">Measured</a></li><li><a href="#team" data-anchor="team">Team</a></li></ul></div>
+      <div><h4>Site</h4><ul><li><a href="#story" data-anchor="story">How it works</a></li><li><a href="#measured" data-anchor="measured">Measured</a></li><li><a href="#team" data-anchor="team">Team</a></li></ul></div>
       <div><h4>Console</h4><ul><li><a href="#/app/overview">Overview</a></li><li><a href="#/app/isolation">Isolation</a></li><li><a href="#/app/detection">Detection</a></li><li><a href="#/app/verify">Verify a receipt</a></li></ul></div>
       <div><h4>Project</h4><ul><li><a href="https://github.com/bhaveshlakhmani25-ui/Bayora_HIH2026" target="_blank" rel="noopener">Source on GitHub</a></li><li><a href="#/app/limits">Limits</a></li></ul></div>
     </div>
@@ -642,11 +666,12 @@ menu.addEventListener("focusout", (e) => { if (!menu.contains(e.relatedTarget) &
 document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !menu.hidden) { setMenu(false); menuBtn.focus(); } });
 matchMedia("(min-width: 861px)").addEventListener("change", (e) => e.matches && setMenu(false));
 const bar = document.querySelector(".bar");
-addEventListener("scroll", () => bar.classList.toggle("scrolled", scrollY > 8), { passive: true });
+const onScroll = () => { bar.classList.toggle("scrolled", scrollY > 8); document.documentElement.classList.toggle("scrolled", scrollY > 120); };
+addEventListener("scroll", onScroll, { passive: true }); onScroll();   // a reload halfway down starts with the cue hidden
 const spy = new IntersectionObserver((entries) => {
   for (const en of entries) if (en.isIntersecting) document.querySelectorAll(`.bar nav a, .menu a.mlink`).forEach((a) => a.setAttribute("aria-current", String(a.getAttribute("href") === "#" + en.target.id)));
 }, { rootMargin: "-45% 0px -50% 0px" });
-["top", "why", "protocol", "measured", "team"].forEach((id) => spy.observe($(id)));   // "top" clears the highlight over the hero
+["top", "story", "measured", "team"].forEach((id) => spy.observe($(id)));   // "top" clears the highlight over the hero
 document.querySelectorAll("[data-anchor]").forEach((a) => (a.onclick = (e) => { if (!location.hash.startsWith("#/app")) return; e.preventDefault(); location.hash = "#/"; setTimeout(() => $(a.dataset.anchor).scrollIntoView(), 30); }));
 
 let S = null, mode = null, since = 0, filter = "all", allEvents = [];
@@ -754,11 +779,11 @@ function isolation(r) {
 }
 
 /* trust-zone diagram: allowed paths solid and labelled, refused paths dashed with a cross, all from the probes */
-function zones(probes, iso) {
-  const NS = "http://www.w3.org/2000/svg", el = $("zones-svg");
+function zones(probes, iso, el = $("zones-svg"), pfx = "z") {
+  const NS = "http://www.w3.org/2000/svg";
   const n = (tag, attrs, text) => { const e = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (text != null) e.textContent = text; return e; };
   const defs = n("defs", {});
-  for (const [id, color] of [["ah-ok", "var(--seal)"], ["ah-bad", "var(--crit)"]]) {
+  for (const [id, color] of [[`${pfx}-ok`, "var(--seal)"], [`${pfx}-bad`, "var(--crit)"]]) {
     const m = n("marker", { id, viewBox: "0 0 10 10", refX: "9", refY: "5", markerWidth: "7", markerHeight: "7", orient: "auto-start-reverse" });
     m.append(n("path", { d: "M0 0 10 5 0 10Z", style: `fill:${color}` })); defs.append(m);
   }
@@ -768,12 +793,12 @@ function zones(probes, iso) {
   const state = (k) => (k in probes ? (blocked(probes[k]) ? "denied" : "breach") : "untested");
   const path = (d, k, lx, ly, text, anchor = "middle") => {
     const st = state(k), col = st === "breach" ? "var(--crit)" : st === "denied" ? "var(--crit)" : "var(--muted)";
-    const out = [n("path", { d, fill: "none", style: `stroke:${col};stroke-width:1.75;${st === "breach" ? "" : "stroke-dasharray:5 5"}`, "marker-end": "url(#ah-bad)" })];
+    const out = [n("path", { d, fill: "none", style: `stroke:${col};stroke-width:1.75;${st === "breach" ? "" : "stroke-dasharray:5 5"}`, "marker-end": `url(#${pfx}-bad)` })];
     out.push(label(lx, ly, st === "breach" ? `${text} · CONNECTED (breach)` : st === "denied" ? `${text} · denied${/PermissionError/.test(probes[k]) ? " by eBPF" : ""}` : `${text} · not probed`, col, anchor));
     return out;
   };
   const cross = (x, y) => n("path", { d: `M${x - 6} ${y - 6}l12 12M${x + 6} ${y - 6}l-12 12`, style: "stroke:var(--crit);stroke-width:2.5;stroke-linecap:round" });
-  const ok = (x1, x2, y, text) => [n("line", { x1, y1: y, x2: x2 - 2, y2: y, style: "stroke:var(--seal);stroke-width:2", "marker-end": "url(#ah-ok)" }), label((x1 + x2) / 2, y - 10, text, "var(--seal)")];
+  const ok = (x1, x2, y, text) => [n("line", { x1, y1: y, x2: x2 - 2, y2: y, style: "stroke:var(--seal);stroke-width:2", "marker-end": `url(#${pfx}-ok)` }), label((x1 + x2) / 2, y - 10, text, "var(--seal)")];
   el.replaceChildren(defs,
     n("rect", { x: 560, y: 14, width: 180, height: 44, rx: 22, style: "fill:var(--well);stroke:var(--rule-2);stroke-width:1.25" }), n("text", { x: 650, y: 41, "text-anchor": "middle", style: "fill:var(--ink-2);font:600 13px var(--body)" }, "Internet"),
     ...box(20, 120, 170, "Red team", "attack payloads", "var(--red)"),
@@ -785,6 +810,7 @@ function zones(probes, iso) {
     ...path("M105 188 V246", "red->blue", 119, 222, "red → blue", "start"), cross(105, 217),
     ...path("M150 120 C 150 86, 600 86, 640 116", "red->model_direct", 400, 82, "red → model directly"), cross(400, 98),
     ...path("M60 120 V36 H554", "red->internet", 300, 28, "red → internet"), cross(300, 36));
+  if (el.id !== "zones-svg") return;
   $("zones-cap").textContent = iso.enforcer === "ebpf"
     ? `Solid green: the only permitted path. Dashed with a cross: refused in the kernel by the eBPF default-deny policy${iso.deny_before_start ? ", attached before any container started" : ""}. ${iso.blocked_connects ?? 0} refused attempts were sealed into the log.`
     : "Solid green: the only permitted path. Dashed with a cross: refused by Docker's internal networks (eBPF was off in this run).";
@@ -817,10 +843,7 @@ function detection(r) {
 function cache(r) {
   const c = S.cachetest || (r && r.cache_audit);
   if (!c || !c.shared) return;
-  const bar = (x, bad, lab) => { const fill = h("div", { class: "fill" + (bad ? " badfill" : "") }); grow(fill, x.correct / x.trials);
-    return h("div", {}, h("div", { class: "lab" }, h("strong", {}, lab), h("span", { class: "mono" }, `${x.correct}/${x.trials} secrets guessed`)),
-      h("div", { class: "track", role: "img", "aria-label": `${lab}: ${x.correct} of ${x.trials}`, "data-tip": `${lab}: ${x.correct} of ${x.trials} secrets guessed · chance is ${(100 * x.chance).toFixed(1)}%` }, fill, h("div", { class: "chance", style: `left:${100 * x.chance}%` }))); };
-  $("duel").replaceChildren(bar(c.shared, true, "Shared cache"), bar(c.salted, false, "Per-tenant salt and slot"),
+  $("duel").replaceChildren(...duelBars(c),
     h("div", { class: "muted", style: "font-size:13px" }, `The black line marks blind guessing (${(100 * c.shared.chance).toFixed(1)}%).`),
     h("div", {}, stamp(c.pass ? "pass · attacker at chance, no cache reuse" : "fail", c.pass ? "ok" : "bad")));
   $("cache-text").replaceChildren(
@@ -829,18 +852,91 @@ function cache(r) {
     h("p", { class: "hex muted" }, `${c.engine} · ${c.model || ""} · sha256 ${short(c.model_sha256, 14)}`), h("p", { class: "muted", style: "margin-bottom:0;font-size:14px" }, c.environment || ""));
 }
 
-function chain(r) {
+function duelBars(c) {
+  const bar = (x, bad, lab) => { const fill = h("div", { class: "fill" + (bad ? " badfill" : "") }); grow(fill, x.correct / x.trials);
+    return h("div", {}, h("div", { class: "lab" }, h("strong", {}, lab), h("span", { class: "mono" }, `${x.correct}/${x.trials} secrets guessed`)),
+      h("div", { class: "track", role: "img", "aria-label": `${lab}: ${x.correct} of ${x.trials}`, "data-tip": `${lab}: ${x.correct} of ${x.trials} secrets guessed · chance is ${(100 * x.chance).toFixed(1)}%` }, fill, h("div", { class: "chance", style: `left:${100 * x.chance}%` }))); };
+  return [bar(c.shared, true, "Shared cache"), bar(c.salted, false, "Per-tenant salt and slot")];
+}
+
+function chain(r, el = $("chain")) {
   const cps = S.checkpoints.length ? S.checkpoints : ((r && r.ledger && r.ledger.checkpoints) || []).map((c) => ({ size: c.size, root: null, signers: ["operator", ...c.cosigned_by] }));
-  const el = $("chain"); el.replaceChildren();
+  el.replaceChildren();
   cps.forEach((c, i) => {
     if (i) el.append(h("div", { class: "link", "aria-hidden": "true" }));
     el.append(h("div", { class: "blk" }, h("div", { class: "sz" }, `${c.size} events`), h("div", { class: "rt hex" }, c.root ? hexgroups(c.root, 16) : "root not published"),
       h("div", { class: "sigs" }, c.signers.map((s) => stamp(s, s === "operator" ? "neutral" : "ok")))));
   });
   if (!cps.length) el.append(h("p", { class: "muted" }, "No checkpoints."));
+  if (el.id !== "chain") return;
   const al = r && r.ledger && r.ledger.witness_alarms ? Object.entries(r.ledger.witness_alarms).filter(([, a]) => a.length) : [];
   $("alarms").textContent = al.length ? `During the tamper test the operator showed ${al.map(([w]) => w).join(", ")} a forged history (${al.map(([, a]) => a.join("; ")).join(" · ")}). It was refused.` : "";
 }
+
+/* the landing story: six scenes, each built from the run on screen; desktop shows them in one sticky window, phones in each step */
+function scene(i, r, p, pfx) {
+  const probes = (r && r.isolation_probes) || {}, iso = (r && r.isolation) || {}, ev = (k) => allEvents.filter((e) => e.kind === k);
+  const title = (t) => h("p", { class: "frame-title" }, t);
+  if (i === 0) return [title("Without Bayora: one shared sandbox"),
+    h("div", { class: "sandbox" }, h("div", { class: "row" }, h("span", { class: "pill red" }, "RED TEAM"), h("span", { class: "pill blue" }, "BLUE TEAM"), h("span", { class: "pill model" }, "MODEL")),
+      h("div", { class: "loglines" }, h("div", { class: "bad" }, "attack payloads visible to the blue team"), h("div", { class: "bad" }, "tenant prompts share one cache"), h("div", { class: "bad" }, "results kept in an editable log"))),
+    h("p", { class: "scene-stat" }, stamp("finding void", "bad"), "  Nobody outside the lab can tell the test was compromised.")];
+  if (i === 1) {
+    const c = (p && p.commitments) || {}, lines = ev("commitment");
+    return [title("Commitments, before the run"),
+      ...["red", "blue"].map((t) => h("div", { class: "seal-row" }, team(t), h("span", { class: "hex" }, hexgroups(c[t], 32)))),
+      h("ul", { class: "loglines", style: "margin-top:14px" }, lines.map((e) => h("li", {}, h("span", { class: "idx" }, "#" + e.index), h("span", {}, `commitment · ${e.tenant} team · ${short(e.digest, 16)}`)))),
+      h("p", { class: "scene-stat" }, stamp("sealed", "ok"), "  Revealed after the run and checked against these hashes.")];
+  }
+  if (i === 2) {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("viewBox", "0 0 760 330"); svg.setAttribute("role", "img"); svg.setAttribute("aria-label", "Red reaches the model only through the broker; every other path is refused");
+    svg.style.cssText = "display:block;width:100%;min-width:560px;height:auto;color:var(--ink)";
+    zones(probes, iso, svg, pfx);
+    const bl = ev("blocked_connect").slice(0, 4);
+    return [title("Isolation, as the red team saw it"), h("div", { class: "scroll" }, svg),
+      h("ul", { class: "loglines", style: "margin-top:10px" }, bl.map((e) => h("li", {}, h("span", { class: "idx" }, "#" + e.index), h("span", {}, `${e.zone} zone → ${e.dst}:${e.port} · denied by ${e.enforcer}`))))];
+  }
+  if (i === 3) {
+    const best = r && r.leak_drills ? Object.values(r.leak_drills).at(-1) : null;
+    const a = ev("leak_alert").find((e) => e.observed_channel === "model_output") || ev("leak_alert")[0];
+    return [title("Model output, scanned as it streams"),
+      h("div", { class: "out-line" }, "model › Sure, here is what I remember: ", h("mark", {}, a ? a.canary : "BYR…")),
+      h("div", { class: "alert-card" }, h("strong", {}, "Leak caught"),
+        h("span", {}, a ? `${a.src_tenant} team's canary · found in ${String(a.observed_channel).replace("_", " ")} · ${a.drill === false ? "possible real leak" : "planted drill"}` : "no alert in this run"),
+        h("span", { class: "muted", style: "font-size:13px" }, a ? `log event #${a.index}` : "")),
+      best && h("p", { class: "scene-stat" }, `${best.detected} of ${best.total} planted leaks caught in this run, ${best.false_positives} false alarms.`)];
+  }
+  if (i === 4) {
+    const c = S.cachetest || (r && r.cache_audit);
+    if (!c || !c.shared) return [title("Cache-timing attack"), h("p", { class: "muted" }, "This run had no cache audit.")];
+    return [title(`Tenant B guessing tenant A's secret · ${c.engine}`), h("div", { class: "duel" }, ...duelBars(c),
+      h("div", { class: "muted", style: "font-size:13px" }, `The black line marks blind guessing (${(100 * c.shared.chance).toFixed(1)}%).`)),
+      h("p", { class: "scene-stat" }, stamp(c.pass ? "pass" : "fail", c.pass ? "ok" : "bad"), `  Shared cache ${c.shared.correct}/${c.shared.trials}; salted ${c.salted.correct}/${c.salted.trials} with ${c.salted.cross_tenant_cache_hits} cross-tenant cache hits.`)];
+  }
+  const chainEl = h("div", { class: "chain" }); chain(r, chainEl);
+  const out = h("div", { class: "scene-verdict", "aria-live": "polite" }, "Not checked yet.");
+  const run = async (tamper) => { out.textContent = "Checking…"; const v = await apiVerify(tamper), [cls, word] = verdictOf(v); out.replaceChildren(stamp(word, cls), "  ", (v.tampered ? v.tampered + ". " : "") + v.message); };
+  const ed = () => { const e = allEvents.find((x) => x.probe === "red->internet") || allEvents[2]; run(e ? e.index : 0); };
+  return [title("Checkpoints co-signed by the witnesses"), chainEl,
+    h("div", { class: "scene-actions" }, h("button", { class: "btn solid", onclick: () => run(null) }, icon("check"), "Verify this run"), h("button", { class: "btn break", onclick: ed }, icon("edit"), "Edit one event")), out];
+}
+function story(r, p) {
+  if (r) $("story-sub").textContent = `A replay of case ${r.run_id}, measured on ${r.host && r.host.docker ? `Docker via ${r.host.docker.context}` : r.host.platform}. Every frame below is that run's own data, not an illustration.`;
+  if (r) $("screen-title").textContent = `bayora console · replay of ${r.run_id}`;
+  $("scenes").replaceChildren(...[0, 1, 2, 3, 4, 5].map((i) => h("div", { class: "scene" + (i === storyAt ? " on" : ""), "data-scene": i }, ...scene(i, r, p, `s${i}`).filter(Boolean))));
+  document.querySelectorAll(".step-frame").forEach((f) => f.replaceChildren(...scene(+f.dataset.frame, r, p, `m${f.dataset.frame}`).filter(Boolean)));
+}
+let storyAt = 0;
+function showScene(i) {
+  storyAt = i;
+  document.querySelectorAll("#scenes .scene").forEach((el) => el.classList.toggle("on", +el.dataset.scene === i));
+  document.querySelectorAll(".step").forEach((el) => el.classList.toggle("on", +el.dataset.scene === i));
+  $("screen-n").textContent = `Scene ${i + 1} of 6`;
+}
+const stepSpy = new IntersectionObserver((entries) => { for (const en of entries) if (en.isIntersecting) showScene(+en.target.dataset.scene); }, { rootMargin: "-45% 0px -45% 0px" });
+document.querySelectorAll(".step").forEach((el) => stepSpy.observe(el));
+document.querySelector(".step").classList.add("on");
 
 function limits(r) {
   const last = r && r.leak_drills ? Object.values(r.leak_drills).at(-1) : null;
@@ -923,7 +1019,7 @@ async function load() {
   const b = boot; boot = null;
   try { S = b ? b.state : await (await fetch("/api/state")).json(); } catch (e) { $("l-env").textContent = "Could not load the run. Is bayora dashboard running?"; return; }
   const r = S.results, p = S.statement && S.statement.predicate;
-  site(r, p); overview(r, p); receiptDl($("rc"), p, false); isolation(r); detection(r); cache(r); chain(r); limits(r);
+  site(r, p); story(r, p); overview(r, p); receiptDl($("rc"), p, false); isolation(r); detection(r); cache(r); chain(r); limits(r);
   $("rc-fmt").textContent = p ? "in-toto · DSSE" : (S.receipt ? "PoC format" : "none");
   $("side-run").replaceChildren(h("span", { class: "label" }, "Open case"), h("b", {}, r ? r.run_id : "no run"), r && r.host && r.host.docker ? `${r.host.docker.context}${r.host.docker.userns_remap ? " · userns-remap" : ""} · ${r.isolation ? r.isolation.enforcer : ""}` : S.dir);
   if (r && r.host) $("foot-env").textContent = `Latest case measured on ${r.host.platform}. Numbers apply to that environment only.`;
