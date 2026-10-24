@@ -26,8 +26,8 @@
      Type: Big Shoulders Display (stencilled civic labelling) for headings, IBM Plex Sans + Plex Mono as one document voice. */
   :root {
     --paper: #eef1f5; --sheet: #ffffff; --well: #f5f7fa; --ink: #13203a; --ink-2: #3b4963; --muted: #5d6a80; --rule: #d3d9e3; --rule-2: #b9c2d0;
-    --seal: #0b7563; --seal-wash: #e0f2ee; --deny: #8f5f00; --deny-wash: #fbf0d6; --crit: #b0263a; --crit-wash: #fbe6e8;
-    --red: #c4471d; --blue: #2655c9; --model: #6a43b8; --broker: #0b7563;
+    --seal: #087f5b; --seal-wash: #e1f3ec; --deny: #9a6700; --deny-wash: #fbf1d8; --crit: #c2185b; --crit-wash: #fce7ef;
+    --red: #c4471d; --blue: #2655c9; --model: #6a43b8; --broker: #087f5b;
     --focus: #2655c9; --on-ink: #ffffff; --foot: #13203a; --foot-ink: #eef1f5; --foot-rule: #13203a;
     --display: "Big Shoulders Display", "Arial Narrow", "Roboto Condensed", Arial, sans-serif;
     --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -37,12 +37,12 @@
   }
   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
     --paper: #0d1420; --sheet: #131c2b; --well: #0f1724; --ink: #e5eaf2; --ink-2: #c0c9d8; --muted: #8d9ab0; --rule: #243149; --rule-2: #33425e;
-    --seal: #45c6ad; --seal-wash: #10302b; --deny: #e4b04f; --deny-wash: #2f2510; --crit: #ff7b86; --crit-wash: #3a1820;
-    --red: #ff8a5c; --blue: #7ea3ff; --model: #b597ff; --broker: #45c6ad; --focus: #7ea3ff; --on-ink: #0d1420; --foot: #090e17; --foot-ink: #c0c9d8; --foot-rule: #243149; color-scheme: dark; } }
+    --seal: #1f9f79; --seal-wash: #0f2a23; --deny: #c08626; --deny-wash: #2b210f; --crit: #e2548a; --crit-wash: #33141f;
+    --red: #ff8a5c; --blue: #7ea3ff; --model: #b597ff; --broker: #1f9f79; --focus: #7ea3ff; --on-ink: #0d1420; --foot: #090e17; --foot-ink: #c0c9d8; --foot-rule: #243149; color-scheme: dark; } }
   :root[data-theme="dark"] {
     --paper: #0d1420; --sheet: #131c2b; --well: #0f1724; --ink: #e5eaf2; --ink-2: #c0c9d8; --muted: #8d9ab0; --rule: #243149; --rule-2: #33425e;
-    --seal: #45c6ad; --seal-wash: #10302b; --deny: #e4b04f; --deny-wash: #2f2510; --crit: #ff7b86; --crit-wash: #3a1820;
-    --red: #ff8a5c; --blue: #7ea3ff; --model: #b597ff; --broker: #45c6ad; --focus: #7ea3ff; --on-ink: #0d1420; --foot: #090e17; --foot-ink: #c0c9d8; --foot-rule: #243149; color-scheme: dark; }
+    --seal: #1f9f79; --seal-wash: #0f2a23; --deny: #c08626; --deny-wash: #2b210f; --crit: #e2548a; --crit-wash: #33141f;
+    --red: #ff8a5c; --blue: #7ea3ff; --model: #b597ff; --broker: #1f9f79; --focus: #7ea3ff; --on-ink: #0d1420; --foot: #090e17; --foot-ink: #c0c9d8; --foot-rule: #243149; color-scheme: dark; }
 
   * { box-sizing: border-box; }
   ::selection { background: color-mix(in srgb, var(--seal) 28%, transparent); color: var(--ink); }
@@ -160,7 +160,7 @@
   table.report { width: 100%; border-collapse: collapse; font-size: 15px; font-variant-numeric: tabular-nums; min-width: 640px; }
   .report th { text-align: left; font: 600 12px var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding: 10px 16px 10px 0; border-bottom: 1.5px solid var(--ink); }
   .report td { padding: 16px 16px 16px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
-  .report td.res { font: 700 26px/1.1 var(--mono); letter-spacing: -.02em; white-space: nowrap; }
+  .report td.res { font: 700 30px/1.05 var(--body); font-variant-numeric: lining-nums proportional-nums; letter-spacing: -.02em; white-space: nowrap; }
   .report td.res small { font-size: 15px; color: var(--muted); font-weight: 500; }
   .report td.was { font: 500 14px var(--mono); color: var(--muted); white-space: nowrap; }
   .report .what { font-weight: 600; } .report .how { color: var(--muted); font-size: 14px; }
@@ -236,7 +236,7 @@
   .register a:hover { background: var(--well); }
   .register a:nth-child(3n) { border-right: 0; }
   .register a:nth-last-child(-n+3) { border-bottom: 0; }
-  .register .v { font: 700 30px/1.1 var(--mono); letter-spacing: -.02em; }
+  .register .v { font: 700 32px/1.1 var(--body); font-variant-numeric: lining-nums proportional-nums; letter-spacing: -.02em; }
   .register .d { font-size: 13.5px; color: var(--muted); }
   .register .top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
   @media (max-width: 640px) { .register { grid-template-columns: 1fr 1fr; } .register a, .register a:nth-child(3n) { border-right: 1px solid var(--rule); } .register a:nth-child(2n) { border-right: 0; } .register a:nth-last-child(-n+3) { border-bottom: 1px solid var(--rule); } .register a:nth-last-child(-n+2) { border-bottom: 0; } .register .v { font-size: 24px; } .register a { padding: 14px; } .register .top { flex-wrap: wrap; } }
@@ -261,6 +261,10 @@
   }
   @keyframes flowv { to { background-position: 0 11px; } }
   .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
+  .zfig { margin: 0; } .zfig svg { display: block; width: 100%; height: auto; color: var(--ink); }
+  .zfig figcaption { font-size: 13.5px; margin-top: 6px; }
+  .zfig + .map { display: none; }
+  @container (max-width: 600px) { .zfig { display: none; } .zfig + .map { display: grid; } }
 
   .rows { list-style: none; margin: 0; padding: 0; }
   .rows li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 14px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--rule); }
@@ -271,12 +275,12 @@
   .bars { display: grid; gap: 14px; }
   .barrow { display: grid; grid-template-columns: 130px minmax(0, 1fr) 72px; gap: 12px; align-items: center; font-size: 14px; }
   @container (max-width: 420px) { .barrow { grid-template-columns: 1fr 70px; } .barrow .track { grid-column: 1 / -1; grid-row: 2; } }
-  .track { height: 10px; background: var(--well); border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; position: relative; }
-  .fill { height: 100%; width: 100%; background: var(--seal); transform-origin: left; transform: scaleX(0); }
+  .track { height: 8px; background: color-mix(in srgb, var(--ink) 8%, transparent); border-radius: 4px; position: relative; }
+  .fill { height: 100%; width: 0; background: var(--seal); border-radius: 4px; }
   .fill.badfill { background: var(--crit); }
   .barrow .num { text-align: right; font: 600 14px var(--mono); }
   .callout { margin-top: 18px; padding: 14px 16px; border: 1px solid color-mix(in srgb, var(--seal) 35%, transparent); border-radius: 8px; background: var(--seal-wash); display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
-  .callout .big { font: 700 24px var(--mono); color: var(--seal); white-space: nowrap; }
+  .callout .big { font: 700 28px var(--body); font-variant-numeric: lining-nums proportional-nums; color: var(--seal); white-space: nowrap; }
   .seg { display: inline-flex; gap: 2px; padding: 3px; border: 1px solid var(--rule); border-radius: 8px; background: var(--well); margin-bottom: 14px; flex-wrap: wrap; }
   .seg button { border: 0; background: transparent; border-radius: 6px; min-height: 34px; padding: 0 12px; cursor: pointer; font-size: 14px; color: var(--muted); }
   .seg button[aria-selected="true"] { background: var(--sheet); color: var(--ink); font-weight: 600; box-shadow: 0 0 0 1px var(--rule-2); }
@@ -287,12 +291,18 @@
   .matrix thead th.rowh { border-bottom: 1.5px solid var(--ink); }
   .matrix td { text-align: center; padding: 7px 6px; border-bottom: 1px solid var(--rule); font-weight: 600; }
   .lv2 { color: var(--seal); } .lv1 { color: var(--deny); background: var(--deny-wash); } .lv0 { color: var(--crit); background: var(--crit-wash); }
+  [data-tip] { position: relative; }
+  [data-tip]:hover::after, [data-tip]:focus-visible::after { content: attr(data-tip); position: absolute; left: 50%; bottom: calc(100% + 8px); transform: translateX(-50%); z-index: 5;
+    width: max-content; max-width: min(260px, 80vw); white-space: normal; text-align: left; padding: 6px 10px; border-radius: 6px; background: var(--ink); color: var(--on-ink); font: 500 12.5px/1.3 var(--body); letter-spacing: 0; text-transform: none; pointer-events: none; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+  .legend .lv2 i { background: var(--seal); } .legend .lv1 i { background: var(--deny); } .legend .lv0 i { background: var(--crit); }
+  .legend span { background: none; }
   .legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13px; margin-top: 12px; }
 
   .duel { display: grid; gap: 18px; }
   .duel .lab { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; margin-bottom: 8px; flex-wrap: wrap; }
-  .duel .track { height: 22px; }
-  .chance { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--ink); }
+  .duel .track { height: 16px; border-radius: 4px; }
+  .chance { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--ink); border-radius: 1px; }
 
   .chain { display: flex; overflow-x: auto; padding-bottom: 6px; }
   .blk { flex: none; width: 196px; border: 1px solid var(--rule-2); border-radius: 6px; padding: 12px; background: var(--well); display: grid; gap: 6px; align-content: start; }
@@ -321,7 +331,7 @@
   pre.raw { background: var(--well); border: 1px solid var(--rule); border-radius: 6px; padding: 12px; overflow: auto; max-height: 360px; font: 12px var(--mono); }
   details summary { cursor: pointer; min-height: 32px; color: var(--ink-2); }
   [hidden] { display: none !important; }
-  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } .fill { transform: none !important; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 </style>
 </head>
 <body>
@@ -470,8 +480,9 @@
 
       <section data-page="isolation" hidden>
         <p class="intro">Each team runs in its own sealed container and network. The broker is the only way through. An eBPF policy in the kernel denies every other connection before a packet leaves, from before the first container starts, and logs the attempt.</p>
-        <div class="cols2">
-          <div class="panel"><header><h2>Trust zones</h2></header><div class="body">
+        <div class="panel" style="margin-top:20px"><header><h2>Trust zones and the paths between them</h2></header><div class="body">
+            <figure class="zfig"><svg id="zones-svg" viewBox="0 0 760 330" role="img" aria-label="Red reaches the model only through the broker; direct paths to blue, the model and the internet are denied by eBPF"></svg>
+              <figcaption class="muted" id="zones-cap"></figcaption></figure>
             <div class="map">
               <div class="zone" style="--c:var(--red)"><div class="nm">Red team</div><div class="ds">attack payloads</div></div>
               <div class="pipe" aria-hidden="true"><span>prompts</span></div>
@@ -483,8 +494,7 @@
             </div>
             <div class="chips" id="hardening"></div>
           </div></div>
-          <div class="panel"><header><h2>What the red team tried</h2></header><div class="body"><ul class="rows" id="attempts"></ul></div></div>
-        </div>
+        <div class="panel" style="margin-top:20px"><header><h2>What the red team tried</h2></header><div class="body"><ul class="rows" id="attempts"></ul></div></div>
       </section>
 
       <section data-page="detection" hidden>
@@ -493,7 +503,7 @@
           <div class="panel"><header><h2>Catches by disguise and channel</h2></header><div class="body">
             <div class="seg" id="modes" role="tablist" aria-label="Scanner"></div>
             <div class="scroll"><table class="matrix" id="matrix"></table></div>
-            <div class="legend"><span class="lv2">all caught</span><span class="lv1">some caught</span><span class="lv0">none caught: residual risk</span></div>
+            <div class="legend"><span class="lv2"><i></i>all caught</span><span class="lv1"><i></i>some caught</span><span class="lv0"><i></i>none caught: residual risk</span></div>
           </div></div>
           <div class="panel"><header><h2>Recall per scanner</h2></header><div class="body">
             <div class="bars" id="bars"></div>
@@ -571,7 +581,7 @@ const stamp = (text, cls) => h("span", { class: "stamp-ink " + cls }, text);
 const blocked = (v) => typeof v === "string" && /BLOCKED|NOT MOUNTED|READ-ONLY/.test(v);
 const short = (x, n = 12) => (x ? String(x).slice(0, n) + "…" : "–");
 const hexgroups = (x, n = 32) => (x ? String(x).slice(0, n).match(/.{1,4}/g).join(" ") + " …" : "–");
-const grow = (fill, frac) => (fill.style.transform = `scaleX(${frac})`);
+const grow = (fill, frac) => (fill.style.width = `${Math.max(0, Math.min(1, frac)) * 100}%`);
 const team = (t) => h("span", { class: "team " + t }, t);
 const SCANNER = { v1: "v1 exact", v2: "v2 decoded", v3: "v3 fragments" };
 const PROBE = {
@@ -738,15 +748,53 @@ function isolation(r) {
   }
   if (!Object.keys(probes).length) ul.append(h("li", {}, h("span", { class: "muted" }, "No probes in this run.")));
   const iso = (r && r.isolation) || {}, dk = (r && r.host && r.host.docker) || {};
+  zones(probes, iso);
   $("walls").textContent = iso.enforcer === "ebpf" ? `eBPF default-deny on every zone${iso.deny_before_start ? ", before containers start" : ""} · ${iso.blocked_connects ?? 0} attempts logged` : "Docker internal networks only (eBPF off)";
   $("hardening").replaceChildren(...["cap-drop ALL", "read-only root", "non-root uid", "no-new-privileges", dk.userns_remap && "userns-remap", dk.rootless && "rootless", iso.enforcer === "ebpf" && "eBPF egress policy"].filter(Boolean).map((t) => stamp(t, "neutral")));
+}
+
+/* trust-zone diagram: allowed paths solid and labelled, refused paths dashed with a cross, all from the probes */
+function zones(probes, iso) {
+  const NS = "http://www.w3.org/2000/svg", el = $("zones-svg");
+  const n = (tag, attrs, text) => { const e = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (text != null) e.textContent = text; return e; };
+  const defs = n("defs", {});
+  for (const [id, color] of [["ah-ok", "var(--seal)"], ["ah-bad", "var(--crit)"]]) {
+    const m = n("marker", { id, viewBox: "0 0 10 10", refX: "9", refY: "5", markerWidth: "7", markerHeight: "7", orient: "auto-start-reverse" });
+    m.append(n("path", { d: "M0 0 10 5 0 10Z", style: `fill:${color}` })); defs.append(m);
+  }
+  const box = (x, y, w, name, sub, color) => [n("rect", { x, y, width: w, height: 68, rx: 8, style: `fill:color-mix(in srgb, ${color} 8%, var(--sheet));stroke:${color};stroke-width:1.5` }),
+    n("text", { x: x + 16, y: y + 29, style: `fill:${color};font:800 19px var(--display);letter-spacing:.02em` }, name.toUpperCase()), n("text", { x: x + 16, y: y + 50, style: "fill:var(--muted);font:500 12.5px var(--body)" }, sub)];
+  const label = (x, y, text, color, anchor = "middle") => n("text", { x, y, "text-anchor": anchor, style: `fill:${color};font:600 12.5px var(--body)` }, text);
+  const state = (k) => (k in probes ? (blocked(probes[k]) ? "denied" : "breach") : "untested");
+  const path = (d, k, lx, ly, text, anchor = "middle") => {
+    const st = state(k), col = st === "breach" ? "var(--crit)" : st === "denied" ? "var(--crit)" : "var(--muted)";
+    const out = [n("path", { d, fill: "none", style: `stroke:${col};stroke-width:1.75;${st === "breach" ? "" : "stroke-dasharray:5 5"}`, "marker-end": "url(#ah-bad)" })];
+    out.push(label(lx, ly, st === "breach" ? `${text} · CONNECTED (breach)` : st === "denied" ? `${text} · denied${/PermissionError/.test(probes[k]) ? " by eBPF" : ""}` : `${text} · not probed`, col, anchor));
+    return out;
+  };
+  const cross = (x, y) => n("path", { d: `M${x - 6} ${y - 6}l12 12M${x + 6} ${y - 6}l-12 12`, style: "stroke:var(--crit);stroke-width:2.5;stroke-linecap:round" });
+  const ok = (x1, x2, y, text) => [n("line", { x1, y1: y, x2: x2 - 2, y2: y, style: "stroke:var(--seal);stroke-width:2", "marker-end": "url(#ah-ok)" }), label((x1 + x2) / 2, y - 10, text, "var(--seal)")];
+  el.replaceChildren(defs,
+    n("rect", { x: 560, y: 14, width: 180, height: 44, rx: 22, style: "fill:var(--well);stroke:var(--rule-2);stroke-width:1.25" }), n("text", { x: 650, y: 41, "text-anchor": "middle", style: "fill:var(--ink-2);font:600 13px var(--body)" }, "Internet"),
+    ...box(20, 120, 170, "Red team", "attack payloads", "var(--red)"),
+    ...box(290, 120, 180, "Broker", "only cross-zone path", "var(--broker)"),
+    ...box(560, 120, 180, "Model", "serving zone", "var(--model)"),
+    ...box(20, 252, 170, "Blue team", "defensive rules", "var(--blue)"),
+    ...ok(190, 290, 154, probes["red->broker"] === "CONNECTED" || !("red->broker" in probes) ? "prompts :7000" : "prompts · FAILED"),
+    ...ok(470, 560, 154, "forwards :9000"),
+    ...path("M105 188 V246", "red->blue", 119, 222, "red → blue", "start"), cross(105, 217),
+    ...path("M150 120 C 150 86, 600 86, 640 116", "red->model_direct", 400, 82, "red → model directly"), cross(400, 98),
+    ...path("M60 120 V36 H554", "red->internet", 300, 28, "red → internet"), cross(300, 36));
+  $("zones-cap").textContent = iso.enforcer === "ebpf"
+    ? `Solid green: the only permitted path. Dashed with a cross: refused in the kernel by the eBPF default-deny policy${iso.deny_before_start ? ", attached before any container started" : ""}. ${iso.blocked_connects ?? 0} refused attempts were sealed into the log.`
+    : "Solid green: the only permitted path. Dashed with a cross: refused by Docker's internal networks (eBPF was off in this run).";
 }
 
 function detection(r) {
   const drills = (r && r.leak_drills) || {}, modes = Object.keys(drills);
   $("bars").replaceChildren(...modes.map((m) => {
     const d = drills[m], fill = h("div", { class: "fill" }); grow(fill, d.total ? d.detected / d.total : 0);
-    return h("div", { class: "barrow" }, h("span", {}, SCANNER[m] || m), h("div", { class: "track", role: "img", "aria-label": `${d.detected} of ${d.total}` }, fill), h("span", { class: "num" }, `${d.detected}/${d.total}`));
+    return h("div", { class: "barrow" }, h("span", {}, SCANNER[m] || m), h("div", { class: "track", role: "img", tabindex: "0", "aria-label": `${d.detected} of ${d.total}`, "data-tip": `${SCANNER[m] || m}: ${d.detected} of ${d.total} planted leaks caught, ${d.false_positives} false alarms` }, fill), h("span", { class: "num" }, `${d.detected}/${d.total}`));
   }));
   const frag = (m) => { const c = drills[m] && Object.entries(drills[m].by_channel_encoding).filter(([k]) => k.endsWith("|partial")); return c && c.length ? c.reduce((a, [, v]) => [a[0] + v[0], a[1] + v[1]], [0, 0]) : null; };
   const before = frag("v2"), after = frag(modes.at(-1));
@@ -762,7 +810,7 @@ function detection(r) {
     h("thead", {}, h("tr", {}, h("th", { class: "rowh" }, "disguise"), chans.map((c) => h("th", { scope: "col" }, nice(c))))),
     h("tbody", {}, encs.map((e) => h("tr", {}, h("th", { class: "rowh", scope: "row" }, e), chans.map((c) => {
       const v = cells[`${c}|${e}`]; if (!v) return h("td", {}, "–");
-      return h("td", { class: v[0] === v[1] ? "lv2" : v[0] === 0 ? "lv0" : "lv1", title: `${nice(c)}, ${e}: ${v[0]} of ${v[1]} caught` }, `${v[0]}/${v[1]}`);
+      return h("td", { class: v[0] === v[1] ? "lv2" : v[0] === 0 ? "lv0" : "lv1", tabindex: "0", "data-tip": `${nice(c)} · ${e}: ${v[0]} of ${v[1]} caught` }, `${v[0]}/${v[1]}`);
     })))));
 }
 
@@ -771,7 +819,7 @@ function cache(r) {
   if (!c || !c.shared) return;
   const bar = (x, bad, lab) => { const fill = h("div", { class: "fill" + (bad ? " badfill" : "") }); grow(fill, x.correct / x.trials);
     return h("div", {}, h("div", { class: "lab" }, h("strong", {}, lab), h("span", { class: "mono" }, `${x.correct}/${x.trials} secrets guessed`)),
-      h("div", { class: "track", role: "img", "aria-label": `${lab}: ${x.correct} of ${x.trials}` }, fill, h("div", { class: "chance", style: `left:${100 * x.chance}%` }))); };
+      h("div", { class: "track", role: "img", tabindex: "0", "aria-label": `${lab}: ${x.correct} of ${x.trials}`, "data-tip": `${lab}: ${x.correct} of ${x.trials} secrets guessed · chance is ${(100 * x.chance).toFixed(1)}%` }, fill, h("div", { class: "chance", style: `left:${100 * x.chance}%` }))); };
   $("duel").replaceChildren(bar(c.shared, true, "Shared cache"), bar(c.salted, false, "Per-tenant salt and slot"),
     h("div", { class: "muted", style: "font-size:13px" }, `The black line marks blind guessing (${(100 * c.shared.chance).toFixed(1)}%).`),
     h("div", {}, stamp(c.pass ? "pass · attacker at chance, no cache reuse" : "fail", c.pass ? "ok" : "bad")));
