@@ -4,7 +4,7 @@ on:
   pull_request:
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         python: ["3.10", "3.12"]
@@ -30,7 +30,7 @@ jobs:
       - run: |
           echo "enforcer: ebpf" > ci.yaml
           bayora run -c ci.yaml -o results/ci
-      - run: bayora verify results/ci/receipt.json results/ci/log.jsonl
+      - run: bayora verify results/ci/receipt.json results/ci/log.jsonl --trust results/ci/keys.json --checkpoints results/ci/checkpoints --reveal results/ci/reveal.json
       - name: eBPF enforced and blocked attempts logged
         run: |
           python -c "import json; r=json.load(open('results/ci/results.json')); print(r['isolation'], r['isolation_probes']); assert r['isolation']['enforcer']=='ebpf' and r['isolation']['blocked_connects']>=4"

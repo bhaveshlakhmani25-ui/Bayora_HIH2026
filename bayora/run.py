@@ -97,17 +97,19 @@ def main(cfg, out="results"):
     cp0 = checkpoint(0)
 
     # ---------------- zones ----------------
+    # default-deny egress on every zone cgroup before any container starts; allow entries follow once IPs exist
+    enf = isolation.Enforcer(cfg["enforcer"], {z: {"cgroup": CG[z][1], "allow": []} for z in CG}, f"{WORK}/blocked.jsonl")
     for n in Z.values(): sh("docker", "network", "create", "--internal", n)
     sh("docker", "run", "-d", "--name", "bz-model", "--network", Z["model"], *HARDEN, *zone("model"), IMG, "python3", "/app/agent.py", "model")
     sh("docker", "run", "-d", "--name", "bz-blue", "--network", Z["blue"], *HARDEN, *zone("blue"), "-v", f"{WORK}/blue:/data", IMG, "python3", "/app/agent.py", "blue", "serve")
     sh("docker", "create", "--name", "bz-broker", "--network", Z["red"], *HARDEN, *zone("broker"), "-e", "MODEL_HOST=bz-model", "-v", f"{WORK}/broker:/data", IMG, "python3", "/app/agent.py", "broker")
     sh("docker", "network", "connect", Z["model"], "bz-broker"); sh("docker", "start", "bz-broker")
     time.sleep(2)
-    # default-deny egress per zone: red may reach only the broker, the broker only the model
+    # red may reach only the broker, the broker only the model
     net_ip = lambda c, n: sh("docker", "inspect", "-f", f'{{{{(index .NetworkSettings.Networks "{n}").IPAddress}}}}', c)
     allow = {"red": [[net_ip("bz-broker", Z["red"]), 7000]], "broker": [[ip("bz-model"), 9000]], "blue": [], "model": []}
-    enf = isolation.Enforcer(cfg["enforcer"], {z: {"cgroup": CG[z][1], "allow": allow[z]} for z in CG}, f"{WORK}/blocked.jsonl")
-    R["isolation"] = {"enforcer": enf.mode, "allow": allow}
+    enf.allow(allow)
+    R["isolation"] = {"enforcer": enf.mode, "allow": allow, "deny_before_start": enf.mode == "ebpf"}
     env = ["-e", f"BLUE_IP={ip('bz-blue')}", "-e", f"MODEL_IP={ip('bz-model')}", "-e", "BROKER_HOST=bz-broker"]
     red = lambda *args, extra=(): sh("docker", "run", "--rm", "--network", Z["red"], *HARDEN, *zone("red"), *env, *extra, "-v", f"{WORK}/red:/data", IMG, "python3", "/app/agent.py", "red", *args)
 
@@ -217,6 +219,9 @@ def main(cfg, out="results"):
     json.dump(R, open(f"{out}/results.json", "w"), indent=2, default=str)
     json.dump(receipt, open(f"{out}/receipt.json", "w"), indent=2)
     json.dump(keys, open(f"{out}/keys.json", "w"), indent=2)
+    # published after the run so anyone can check the blind commitments (bayora verify --reveal)
+    reveal = {t: {"nonce": n.hex(), "content": base64.b64encode(c.encode()).decode()} for t, n, c in (("red", n_red, payloads), ("blue", n_blue, rules))}
+    json.dump(reveal, open(f"{out}/reveal.json", "w"), indent=2)
     logf.close()
     cleanup(Z)
     print(json.dumps(R, indent=1, default=str)[:6000])

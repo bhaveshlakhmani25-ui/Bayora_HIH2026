@@ -46,6 +46,12 @@ class Enforcer:
         if line != "READY": raise RuntimeError(f"enforcer failed to start: {line!r}")
         self.mode = "ebpf"
 
+    def allow(self, zones_allow):
+        """Open the listed (ip, port) pairs for each zone; everything else stays denied."""
+        if not self.proc: return
+        self.proc.stdin.write(json.dumps({"allow": zones_allow}) + "\n"); self.proc.stdin.flush()
+        if (line := self.proc.stdout.readline().strip()) != "OK": raise RuntimeError(f"enforcer did not apply allow-list: {line!r}")
+
     def stop(self):
         """Detach the programs and return the blocked-connect events."""
         if self.proc:

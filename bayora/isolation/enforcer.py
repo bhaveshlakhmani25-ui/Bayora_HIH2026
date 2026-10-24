@@ -1,13 +1,19 @@
 """Runs as root next to dockerd (inside the Colima VM, or on a Linux host). Not imported by bayora.
 stdin line 1: JSON {"zones": {name: {"cgroup": path, "allow": [[ip, port], ...]}}, "out": blocked.jsonl path}.
-Attaches connect.bpf.c to every zone cgroup, prints READY, streams blocked attempts to `out`,
-and detaches everything when stdin closes (the parent exits or ends the run)."""
+Attaches connect.bpf.c to every zone cgroup, prints READY, streams blocked attempts to `out`.
+Each later line {"allow": {name: [[ip, port], ...]}} adds allow entries and is answered with OK, so zones
+can be default-deny before their containers start. Detaches everything when stdin closes."""
 import ctypes, json, os, socket, struct, sys, threading
 from bcc import BPF, BPFAttachType
 
 HOOKS = [("connect4", BPFAttachType.CGROUP_INET4_CONNECT), ("sendmsg4", BPFAttachType.CGROUP_UDP4_SENDMSG),
          ("connect6", BPFAttachType.CGROUP_INET6_CONNECT), ("sendmsg6", BPFAttachType.CGROUP_UDP6_SENDMSG)]
 SRC = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "connect.bpf.c")).read()
+
+
+def allow(b, entries):
+    for ip, port in entries:
+        b["allow"][b["allow"].Key(struct.unpack("I", socket.inet_aton(ip))[0], socket.htons(int(port)))] = ctypes.c_uint8(1)
 
 
 def main():
@@ -20,9 +26,7 @@ def main():
             z = cfg["zones"][name]
             os.makedirs(z["cgroup"], exist_ok=True)       # the zone slice may have no container yet
             b = BPF(text=SRC, cflags=[f"-DZONE={zid}"])
-            for ip, port in z["allow"]:
-                k = b["allow"].Key(struct.unpack("I", socket.inet_aton(ip))[0], socket.htons(int(port)))
-                b["allow"][k] = ctypes.c_uint8(1)
+            allow(b, z["allow"])
 
             def cb(ctx, data, size, b=b):
                 e = b["events"].event(data)
@@ -38,8 +42,14 @@ def main():
                 attached.append((b, fn, fd, kind))
             progs.append(b)
         print("READY", flush=True)
-        stop = threading.Event()
-        threading.Thread(target=lambda: (sys.stdin.read(), stop.set()), daemon=True).start()
+        stop, by_name = threading.Event(), dict(zip(names, progs))
+
+        def commands():
+            for line in sys.stdin:
+                for name, entries in json.loads(line)["allow"].items(): allow(by_name[name], entries)
+                print("OK", flush=True)
+            stop.set()
+        threading.Thread(target=commands, daemon=True).start()
         while not stop.is_set():
             for b in progs: b.ring_buffer_poll(100)
         for b in progs: b.ring_buffer_consume()

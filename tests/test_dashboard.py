@@ -15,7 +15,8 @@ def test_dashboard_events_state_and_verify(tmp_path):
     assert get(base, "/api/events?since=6")["total"] == 8 and len(get(base, "/api/events?since=6")["events"]) == 2
     st = get(base, "/api/state")
     assert st["statement"]["predicateType"] == "https://bayora.dev/receipt/v1" and [c["size"] for c in st["checkpoints"]] == [5, 8]
-    assert get(base, "/api/verify", b"")["ok"] is True
+    r0 = get(base, "/api/verify", b"")
+    assert r0["ok"] is True and r0["pinned"] is False          # no --trust: consistent, but keys not pinned
     t = json.loads(urllib.request.urlopen(urllib.request.Request(base + "/api/verify", json.dumps({"tamper": 2}).encode()), timeout=5).read())
     assert t["ok"] is False and t["tampered"].startswith("event #2") and get(base, "/api/verify", b"")["ok"] is True   # real log untouched
     log = out / "log.jsonl"; log.write_bytes(log.read_bytes().replace(b'{"i":1}', b'{"i":7}'))
