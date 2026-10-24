@@ -26,7 +26,7 @@
      Type: Big Shoulders Display (stencilled civic labelling) for headings, IBM Plex Sans + Plex Mono as one document voice. */
   :root {
     --paper: #eef1f5; --sheet: #ffffff; --well: #f5f7fa; --ink: #13203a; --ink-2: #3b4963; --muted: #5d6a80; --rule: #d3d9e3; --rule-2: #b9c2d0;
-    --seal: #087f5b; --seal-wash: #e1f3ec; --deny: #9a6700; --deny-wash: #fbf1d8; --crit: #c2185b; --crit-wash: #fce7ef;
+    --seal: #087f5b; --seal-text: #087f5b; --seal-wash: #e1f3ec; --deny: #9a6700; --deny-wash: #fbf1d8; --crit: #c2185b; --crit-wash: #fce7ef;
     --red: #c4471d; --blue: #2655c9; --model: #6a43b8; --broker: #087f5b;
     --focus: #2655c9; --on-ink: #ffffff; --foot: #13203a; --foot-ink: #eef1f5; --foot-rule: #13203a;
     --display: "Big Shoulders Display", "Arial Narrow", "Roboto Condensed", Arial, sans-serif;
@@ -37,11 +37,11 @@
   }
   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
     --paper: #0d1420; --sheet: #131c2b; --well: #0f1724; --ink: #e5eaf2; --ink-2: #c0c9d8; --muted: #8d9ab0; --rule: #243149; --rule-2: #33425e;
-    --seal: #1f9f79; --seal-wash: #0f2a23; --deny: #c08626; --deny-wash: #2b210f; --crit: #e2548a; --crit-wash: #33141f;
+    --seal: #1f9f79; --seal-text: #46c9a0; --seal-wash: #0f2a23; --deny: #c08626; --deny-wash: #2b210f; --crit: #e2548a; --crit-wash: #33141f;
     --red: #ff8a5c; --blue: #7ea3ff; --model: #b597ff; --broker: #1f9f79; --focus: #7ea3ff; --on-ink: #0d1420; --foot: #090e17; --foot-ink: #c0c9d8; --foot-rule: #243149; color-scheme: dark; } }
   :root[data-theme="dark"] {
     --paper: #0d1420; --sheet: #131c2b; --well: #0f1724; --ink: #e5eaf2; --ink-2: #c0c9d8; --muted: #8d9ab0; --rule: #243149; --rule-2: #33425e;
-    --seal: #1f9f79; --seal-wash: #0f2a23; --deny: #c08626; --deny-wash: #2b210f; --crit: #e2548a; --crit-wash: #33141f;
+    --seal: #1f9f79; --seal-text: #46c9a0; --seal-wash: #0f2a23; --deny: #c08626; --deny-wash: #2b210f; --crit: #e2548a; --crit-wash: #33141f;
     --red: #ff8a5c; --blue: #7ea3ff; --model: #b597ff; --broker: #1f9f79; --focus: #7ea3ff; --on-ink: #0d1420; --foot: #090e17; --foot-ink: #c0c9d8; --foot-rule: #243149; color-scheme: dark; }
 
   * { box-sizing: border-box; }
@@ -74,7 +74,7 @@
 
   /* ink stamps: the one recurring state device */
   .stamp-ink { display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border: 1.5px solid currentColor; border-radius: 4px; font: 700 11.5px/1.5 var(--body); letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; }
-  .ok { color: var(--seal); } .warn { color: var(--deny); } .bad { color: var(--crit); } .neutral { color: var(--muted); }
+  .ok { color: var(--seal-text); } .warn { color: var(--deny); } .bad { color: var(--crit); } .neutral { color: var(--muted); }
   .team { font-weight: 700; } .team.red { color: var(--red); } .team.blue { color: var(--blue); }
 
   /* ------------ site ------------ */
@@ -104,7 +104,7 @@
   @media (max-width: 1000px) { .hero { padding-block: 40px; } .hero .wrap { grid-template-columns: 1fr; gap: 36px; } }
   .event { margin: 24px 0 0; font-size: 14px; color: var(--muted); }
   .hero h1 { font-size: clamp(46px, 7.2vw, 92px); font-weight: 900; text-transform: uppercase; line-height: .9; letter-spacing: .005em; }
-  .hero h1 .fair { color: var(--seal); } .hero h1 .nw { white-space: nowrap; }
+  .hero h1 .fair { color: var(--seal-text); } .hero h1 .nw { white-space: nowrap; }
   .hero .lede { font-size: clamp(17px, 1.5vw, 19px); color: var(--ink-2); max-width: 54ch; margin: 24px 0 32px; }
   .hero .ctas { display: flex; flex-wrap: wrap; gap: 12px; }
   @media (max-width: 460px) { .hero .ctas .btn, .tag-actions .btn { flex: 1 1 100%; } }
@@ -121,15 +121,15 @@
   .sig { display: grid; gap: 4px; padding: 12px 0; font-size: 13.5px; }
   .sig div { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
   .seal-strip { margin: 0 -24px 0 -48px; padding: 16px 24px 16px 48px; border-top: 1.5px solid var(--ink); border-radius: 0 0 12px 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
-    background: repeating-linear-gradient(-45deg, var(--seal-wash) 0 10px, transparent 10px 20px); transition: background .3s; }
-  .seal-strip strong { font: 800 18px/1 var(--display); letter-spacing: .12em; text-transform: uppercase; color: var(--seal); }
-  .seal-strip.broken { background: repeating-linear-gradient(-45deg, var(--crit-wash) 0 10px, transparent 10px 20px); animation: tear .45s ease-out; }
+    border-top-style: dashed; background: var(--seal-wash); transition: background .3s; }
+  .seal-strip strong { font: 800 18px/1 var(--display); letter-spacing: .12em; text-transform: uppercase; color: var(--seal-text); }
+  .seal-strip.broken { background: var(--crit-wash); animation: tear .45s ease-out; }
   .seal-strip.broken strong { color: var(--crit); }
-  .seal-strip.warned { background: repeating-linear-gradient(-45deg, var(--deny-wash) 0 10px, transparent 10px 20px); }
+  .seal-strip.warned { background: var(--deny-wash); }
   .seal-strip.warned strong { color: var(--deny); }
   @keyframes tear { 0% { clip-path: inset(0); } 40% { clip-path: polygon(0 0, 100% 0, 100% 100%, 62% 100%, 55% 40%, 48% 100%, 0 100%); } 100% { clip-path: inset(0); } }
   .tag-actions { display: flex; flex-wrap: wrap; gap: 10px; padding: 16px 0 6px; }
-  .tag-out { font: 13px/1.55 var(--mono); color: var(--ink-2); padding: 4px 0 18px; min-height: 3.2em; word-break: break-word; }
+  .tag-out { font: 13px/1.55 var(--mono); color: var(--ink-2); padding: 4px 0 18px; min-height: calc(6 * 1.55em + 22px); word-break: break-word; }   /* room for the longest verdict, so the seal never jumps */
 
   .sec { padding-block: 88px; border-bottom: 1px solid var(--rule); }
   @media (max-width: 640px) { .sec { padding-block: 48px; } }
@@ -191,6 +191,7 @@
   .site-foot ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
   .site-foot a { color: var(--foot-ink); text-decoration: none; font-size: 15px; }
   .site-foot a:hover { text-decoration: underline; }
+  @media (pointer: coarse) { .site-foot ul a, .seg button, .tabs-m a { min-height: 44px; display: inline-flex; align-items: center; } }
   .site-foot .tagline { color: var(--fl); margin: 14px 0 0; max-width: 34ch; font-size: 15px; }
   .site-foot .base { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; margin-top: 36px; padding-top: 18px; border-top: 1px solid color-mix(in srgb, var(--foot-ink) 22%, transparent); color: var(--fl); font-size: 13.5px; }
   .app footer.site-foot { padding-block: 18px; } .app .site-foot .cols { display: none; } .app .site-foot .base { margin: 0; padding: 0; border: 0; }
@@ -249,17 +250,15 @@
   .map { display: grid; grid-template-columns: minmax(0, 1fr) 48px minmax(0, 1fr) 48px minmax(0, 1fr); align-items: center; gap: 14px 0; }
   .zone { border: 1.5px solid var(--c); border-radius: 8px; padding: 12px; background: color-mix(in srgb, var(--c) 7%, var(--sheet)); }
   .zone .nm { font: 800 20px var(--display); letter-spacing: .01em; color: var(--c); } .zone .ds { font-size: 13px; color: var(--muted); }
-  .pipe { height: 2px; background: repeating-linear-gradient(90deg, var(--seal) 0 6px, transparent 6px 11px); background-size: 11px 2px; animation: flow 1.2s linear infinite; position: relative; }
+  .pipe { height: 0; border-top: 2px dashed var(--seal); position: relative; }
   .pipe span { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font: 600 11px var(--body); color: var(--seal); white-space: nowrap; }
-  @keyframes flow { to { background-position: 11px 0; } }
   .z-blue { grid-column: 3; } .walls { grid-column: 1; font-size: 13px; color: var(--muted); }
   @container (max-width: 560px) {
     .map { grid-template-columns: 1fr; gap: 0; }
-    .map .pipe { width: 2px; height: 30px; margin: 6px auto; background: repeating-linear-gradient(180deg, var(--seal) 0 6px, transparent 6px 11px); background-size: 2px 11px; animation-name: flowv; }
+    .map .pipe { width: 0; height: 30px; margin: 6px auto; border-top: 0; border-left: 2px dashed var(--seal); }
     .map .pipe span { top: 50%; left: 12px; transform: translateY(-50%); }
     .z-blue, .walls { grid-column: 1; margin-top: 12px; }
   }
-  @keyframes flowv { to { background-position: 0 11px; } }
   .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
   .zfig { margin: 0; } .zfig svg { display: block; width: 100%; height: auto; color: var(--ink); }
   .zfig figcaption { font-size: 13.5px; margin-top: 6px; }
@@ -639,6 +638,7 @@ function setMenu(open) {
 }
 menuBtn.onclick = () => setMenu(menu.hidden);
 menu.addEventListener("click", (e) => { if (e.target.closest("a")) setMenu(false); });
+menu.addEventListener("focusout", (e) => { if (!menu.contains(e.relatedTarget) && e.relatedTarget !== menuBtn) setMenu(false); });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !menu.hidden) { setMenu(false); menuBtn.focus(); } });
 matchMedia("(min-width: 861px)").addEventListener("change", (e) => e.matches && setMenu(false));
 const bar = document.querySelector(".bar");
@@ -794,7 +794,7 @@ function detection(r) {
   const drills = (r && r.leak_drills) || {}, modes = Object.keys(drills);
   $("bars").replaceChildren(...modes.map((m) => {
     const d = drills[m], fill = h("div", { class: "fill" }); grow(fill, d.total ? d.detected / d.total : 0);
-    return h("div", { class: "barrow" }, h("span", {}, SCANNER[m] || m), h("div", { class: "track", role: "img", tabindex: "0", "aria-label": `${d.detected} of ${d.total}`, "data-tip": `${SCANNER[m] || m}: ${d.detected} of ${d.total} planted leaks caught, ${d.false_positives} false alarms` }, fill), h("span", { class: "num" }, `${d.detected}/${d.total}`));
+    return h("div", { class: "barrow" }, h("span", {}, SCANNER[m] || m), h("div", { class: "track", role: "img", "aria-label": `${d.detected} of ${d.total}`, "data-tip": `${SCANNER[m] || m}: ${d.detected} of ${d.total} planted leaks caught, ${d.false_positives} false alarms` }, fill), h("span", { class: "num" }, `${d.detected}/${d.total}`));
   }));
   const frag = (m) => { const c = drills[m] && Object.entries(drills[m].by_channel_encoding).filter(([k]) => k.endsWith("|partial")); return c && c.length ? c.reduce((a, [, v]) => [a[0] + v[0], a[1] + v[1]], [0, 0]) : null; };
   const before = frag("v2"), after = frag(modes.at(-1));
@@ -810,7 +810,7 @@ function detection(r) {
     h("thead", {}, h("tr", {}, h("th", { class: "rowh" }, "disguise"), chans.map((c) => h("th", { scope: "col" }, nice(c))))),
     h("tbody", {}, encs.map((e) => h("tr", {}, h("th", { class: "rowh", scope: "row" }, e), chans.map((c) => {
       const v = cells[`${c}|${e}`]; if (!v) return h("td", {}, "–");
-      return h("td", { class: v[0] === v[1] ? "lv2" : v[0] === 0 ? "lv0" : "lv1", tabindex: "0", "data-tip": `${nice(c)} · ${e}: ${v[0]} of ${v[1]} caught` }, `${v[0]}/${v[1]}`);
+      return h("td", { class: v[0] === v[1] ? "lv2" : v[0] === 0 ? "lv0" : "lv1", "data-tip": `${nice(c)} · ${e}: ${v[0]} of ${v[1]} caught` }, `${v[0]}/${v[1]}`);
     })))));
 }
 
@@ -819,7 +819,7 @@ function cache(r) {
   if (!c || !c.shared) return;
   const bar = (x, bad, lab) => { const fill = h("div", { class: "fill" + (bad ? " badfill" : "") }); grow(fill, x.correct / x.trials);
     return h("div", {}, h("div", { class: "lab" }, h("strong", {}, lab), h("span", { class: "mono" }, `${x.correct}/${x.trials} secrets guessed`)),
-      h("div", { class: "track", role: "img", tabindex: "0", "aria-label": `${lab}: ${x.correct} of ${x.trials}`, "data-tip": `${lab}: ${x.correct} of ${x.trials} secrets guessed · chance is ${(100 * x.chance).toFixed(1)}%` }, fill, h("div", { class: "chance", style: `left:${100 * x.chance}%` }))); };
+      h("div", { class: "track", role: "img", "aria-label": `${lab}: ${x.correct} of ${x.trials}`, "data-tip": `${lab}: ${x.correct} of ${x.trials} secrets guessed · chance is ${(100 * x.chance).toFixed(1)}%` }, fill, h("div", { class: "chance", style: `left:${100 * x.chance}%` }))); };
   $("duel").replaceChildren(bar(c.shared, true, "Shared cache"), bar(c.salted, false, "Per-tenant salt and slot"),
     h("div", { class: "muted", style: "font-size:13px" }, `The black line marks blind guessing (${(100 * c.shared.chance).toFixed(1)}%).`),
     h("div", {}, stamp(c.pass ? "pass · attacker at chance, no cache reuse" : "fail", c.pass ? "ok" : "bad")));
