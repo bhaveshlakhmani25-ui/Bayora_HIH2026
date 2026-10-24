@@ -70,17 +70,26 @@
   .team { font-weight: 700; } .team.red { color: var(--red); } .team.blue { color: var(--blue); }
 
   /* ------------ site ------------ */
-  .bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 30; background: var(--sheet); border-bottom: 1px solid var(--rule); }
-  .bar .wrap { display: flex; align-items: center; gap: 28px; height: var(--top); }
+  .bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 30; background: color-mix(in srgb, var(--sheet) 92%, transparent); backdrop-filter: saturate(1.4) blur(10px); border-bottom: 1px solid var(--rule); transition: box-shadow .2s, border-color .2s; }
+  .bar.scrolled { border-bottom-color: var(--rule-2); box-shadow: 0 8px 24px -16px color-mix(in srgb, var(--ink) 45%, transparent); }
+  .bar .wrap { display: flex; align-items: center; gap: 32px; height: var(--top); }
   .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font: 800 25px/1 var(--display); letter-spacing: .12em; text-transform: uppercase; }
   .brand svg { width: 30px; height: 30px; flex: none; }
   .site-foot .brand svg { --seal: #45c6ad; }
-  .bar nav { display: flex; gap: 22px; flex: 1; }
-  .bar nav a { color: var(--ink-2); text-decoration: none; font-size: 15px; font-weight: 500; padding: 8px 0; border-bottom: 2px solid transparent; }
-  .bar nav a:hover { color: var(--ink); border-bottom-color: var(--ink); }
-  .bar .act { display: flex; gap: 10px; align-items: center; }
-  @media (max-width: 860px) { .bar nav { display: none; } .bar .wrap { justify-content: space-between; } }
-  @media (max-width: 460px) { .bar .act .btn .long { display: none; } .bar .act .btn { padding: 0 14px; } }
+  .bar nav { display: flex; gap: 4px; flex: 1; }
+  .bar nav a { position: relative; color: var(--ink-2); text-decoration: none; font-size: 15px; font-weight: 500; padding: 8px 12px; border-radius: 6px; transition: color .15s, background .15s; }
+  .bar nav a:hover { color: var(--ink); background: var(--well); }
+  .bar nav a[aria-current="true"] { color: var(--ink); font-weight: 600; }
+  .bar nav a[aria-current="true"]::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: -11px; height: 2px; background: var(--ink); }
+  .bar .act { display: flex; gap: 10px; align-items: center; margin-left: auto; }
+  .menu-btn { display: none; }
+  .menu { position: sticky; top: calc(var(--top) + env(safe-area-inset-top, 0px)); z-index: 29; background: var(--sheet); border-bottom: 1px solid var(--rule-2); box-shadow: 0 18px 30px -20px color-mix(in srgb, var(--ink) 50%, transparent); }
+  .menu .wrap { display: grid; gap: 2px; padding-block: 10px 18px; }
+  .menu a.mlink { display: flex; align-items: center; justify-content: space-between; min-height: 48px; padding: 0 4px; color: var(--ink); text-decoration: none; font: 700 24px/1 var(--display); letter-spacing: .02em; text-transform: uppercase; border-bottom: 1px solid var(--rule); }
+  .menu a.mlink[aria-current="true"] { color: var(--seal); }
+  .menu .btn { margin-top: 14px; }
+  @media (max-width: 860px) { .bar nav { display: none; } .menu-btn { display: grid; } .bar .act .open-console { display: none; } }
+  @media (min-width: 861px) { .menu { display: none !important; } }
 
   .hero { padding-block: 72px 64px; border-bottom: 1px solid var(--rule); background: linear-gradient(var(--rule) 1px, transparent 1px) 0 0 / 100% 32px, var(--paper); }
   .hero .wrap { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr); gap: 56px; align-items: center; }
@@ -320,6 +329,7 @@
   <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
   <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></symbol>
   <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
   <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></symbol>
   <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></symbol>
@@ -334,10 +344,20 @@
       <nav aria-label="Primary"><a href="#why">Why it matters</a><a href="#protocol">Protocol</a><a href="#measured">Measured</a><a href="#team">Team</a></nav>
       <div class="act">
         <button class="icon-btn theme-btn" aria-label="Switch light or dark theme"><svg class="i"><use href="#i-moon"/></svg></button>
-        <a class="btn solid" href="#/app/overview" aria-label="Open the console"><span class="long">Open console</span><svg class="i"><use href="#i-arrow"/></svg></a>
+        <a class="btn solid open-console" href="#/app/overview">Open console <svg class="i"><use href="#i-arrow"/></svg></a>
+        <button class="icon-btn menu-btn" id="menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="menu"><svg class="i"><use href="#i-menu"/></svg></button>
       </div>
     </div>
   </header>
+  <div class="menu" id="menu" hidden>
+    <nav class="wrap" aria-label="Sections">
+      <a class="mlink" href="#why">Why it matters <svg class="i"><use href="#i-arrow"/></svg></a>
+      <a class="mlink" href="#protocol">Protocol <svg class="i"><use href="#i-arrow"/></svg></a>
+      <a class="mlink" href="#measured">Measured <svg class="i"><use href="#i-arrow"/></svg></a>
+      <a class="mlink" href="#team">Team <svg class="i"><use href="#i-arrow"/></svg></a>
+      <a class="btn solid" href="#/app/overview">Open the console <svg class="i"><use href="#i-arrow"/></svg></a>
+    </nav>
+  </div>
 
   <main>
     <section class="hero" id="top">
@@ -590,6 +610,24 @@ function route() {
   }
 }
 window.addEventListener("hashchange", route);
+
+/* site navbar: phone menu, scroll edge, and the section being read */
+const menu = $("menu"), menuBtn = $("menu-btn");
+function setMenu(open) {
+  menu.hidden = !open; menuBtn.setAttribute("aria-expanded", String(open));
+  menuBtn.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+  menuBtn.querySelector("use").setAttribute("href", open ? "#i-x" : "#i-menu");
+}
+menuBtn.onclick = () => setMenu(menu.hidden);
+menu.addEventListener("click", (e) => { if (e.target.closest("a")) setMenu(false); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !menu.hidden) { setMenu(false); menuBtn.focus(); } });
+matchMedia("(min-width: 861px)").addEventListener("change", (e) => e.matches && setMenu(false));
+const bar = document.querySelector(".bar");
+addEventListener("scroll", () => bar.classList.toggle("scrolled", scrollY > 8), { passive: true });
+const spy = new IntersectionObserver((entries) => {
+  for (const en of entries) if (en.isIntersecting) document.querySelectorAll(`.bar nav a, .menu a.mlink`).forEach((a) => a.setAttribute("aria-current", String(a.getAttribute("href") === "#" + en.target.id)));
+}, { rootMargin: "-45% 0px -50% 0px" });
+["top", "why", "protocol", "measured", "team"].forEach((id) => spy.observe($(id)));   // "top" clears the highlight over the hero
 document.querySelectorAll("[data-anchor]").forEach((a) => (a.onclick = (e) => { if (!location.hash.startsWith("#/app")) return; e.preventDefault(); location.hash = "#/"; setTimeout(() => $(a.dataset.anchor).scrollIntoView(), 30); }));
 
 let S = null, mode = null, since = 0, filter = "all", allEvents = [];
