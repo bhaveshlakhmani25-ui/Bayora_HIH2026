@@ -1,6 +1,6 @@
 """Demo dashboard: serves index.html and read-only JSON views of one results directory.
 GET /api/state, GET /api/events?since=N (tails log.jsonl), POST /api/verify (runs bayora.verify)."""
-import base64, glob, json, os, tempfile
+import base64, glob, json, os, socket, tempfile, threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 from ..receipt import read_checkpoint
@@ -98,7 +98,27 @@ def make_server(results_dir, port, trust=None):
     return ThreadingHTTPServer(("127.0.0.1", port), H)
 
 
+class _V6Server(ThreadingHTTPServer):
+    address_family = socket.AF_INET6
+
+
+def listen_v6(httpd):
+    """Also serve on IPv6 loopback: browsers resolve localhost to ::1 first, and Chrome may not fall back to IPv4."""
+    try:
+        v6 = _V6Server(("::1", httpd.server_address[1]), httpd.RequestHandlerClass)
+    except OSError:
+        return None                                  # no IPv6 loopback on this host; 127.0.0.1 still works
+    threading.Thread(target=v6.serve_forever, daemon=True).start()
+    return v6
+
+
 def serve(results_dir, port, trust=None):
+    if not os.path.exists(f"{results_dir}/results.json"):
+        print(f"warning: no results.json in {os.path.abspath(results_dir)}; run from the repo folder or pass --results", flush=True)
     httpd = make_server(results_dir, port, trust)
-    print(f"Bayora dashboard for {os.path.abspath(results_dir)}: http://127.0.0.1:{httpd.server_address[1]}", flush=True)
-    httpd.serve_forever()
+    listen_v6(httpd)
+    print(f"Bayora dashboard for {os.path.abspath(results_dir)}: http://localhost:{httpd.server_address[1]}  (Ctrl-C to stop)", flush=True)
+    try:
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        print("dashboard stopped")

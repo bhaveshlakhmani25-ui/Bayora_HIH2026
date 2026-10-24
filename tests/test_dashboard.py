@@ -1,5 +1,5 @@
 import json, threading, urllib.error, urllib.request
-from bayora.dashboard.server import make_server
+from bayora.dashboard.server import make_server, listen_v6
 from test_receipt import setup_run
 
 
@@ -27,4 +27,8 @@ def test_dashboard_events_state_and_verify(tmp_path):
     for bad in ("/fonts/../server.py", "/fonts/OFL-ibm-plex-sans.txt", "/fonts/%2e%2e%2fserver.py"):
         try: urllib.request.urlopen(base + bad, timeout=5); assert False, bad
         except urllib.error.HTTPError as e: assert e.code == 404
+    v6 = listen_v6(httpd)                                    # http://localhost may resolve to ::1 first
+    if v6:
+        assert get(f"http://[::1]:{httpd.server_address[1]}", "/api/events?since=0")["total"] == 8
+        v6.shutdown()
     httpd.shutdown()
