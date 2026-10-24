@@ -58,6 +58,8 @@ def verify(receipt_path, log_path, trust_path=None, checkpoints_dir=None, quorum
     if reveal_path:
         # blind-test check: what each team revealed after the run must hash to what it committed before
         with open(reveal_path) as f: rv = json.load(f)
+        if missing := {"red", "blue"} - set(p["commitments"]):
+            return False, f"receipt has no commitment for the {' and '.join(sorted(missing))} team, so the blind test cannot be checked"
         for team, c in p["commitments"].items():
             if team not in rv or not verify_reveal(c, bytes.fromhex(rv[team]["nonce"]), base64.b64decode(rv[team]["content"])):
                 return False, f"{team} team's revealed content does not match its commitment (changed after the run)"

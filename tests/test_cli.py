@@ -62,3 +62,12 @@ def test_cache_pass_needs_zero_cross_tenant_hits():
     lucky = {"correct": 9, "trials": 20, "cross_tenant_cache_hits": 0, "p_value_vs_chance": p_at_least(9, 20, 1 / 8)}
     assert leaky["p_value_vs_chance"] >= 0.05 and not passed(leaky)   # chance-looking accuracy, but the cache was reused
     assert passed(clean) and not passed(lucky)
+
+
+def test_run_clears_outputs_of_a_previous_run(tmp_path):
+    from bayora.run import clear_outputs
+    for f in ("results.json", "receipt.json", "keys.json", "reveal.json", "cachetest.json", "log.jsonl", "notes.md"):
+        (tmp_path / f).write_text("old")
+    (tmp_path / "checkpoints").mkdir(); (tmp_path / "checkpoints" / "3").write_text("old")
+    clear_outputs(str(tmp_path))
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["notes.md"]          # only Bayora's own outputs go

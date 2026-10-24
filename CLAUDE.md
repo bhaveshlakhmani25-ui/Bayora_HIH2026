@@ -58,7 +58,7 @@ PoC results (2-vCPU sandbox), which deck v4.1 cites:
    - Add GitHub Actions CI to run the tests.
 2. **Isolation upgrade.**
    - Run rootless Docker, or `dockerd --userns-remap=default` as a step towards it.
-   - Add an eBPF default-deny policy: cgroup v2 `connect4`/`connect6` programs per zone, using libbpf or bcc, with a fall-back to nftables.
+   - Add an eBPF default-deny policy: cgroup v2 `connect4`/`connect6` programs per zone, using libbpf or bcc. Without bcc and root on the docker host it falls back to Docker internal networks only, and `results.json` records which enforcer ran (no nftables fallback was built).
    - Log every blocked connect attempt into the ledger as an event.
 3. **Real model and cache test (Phase 4).**
    - Use a small LLM. The preferred stack is vLLM with `cache_salt`, on a GPU if one is available. On CPU, use llama.cpp or llama-cpp-python with prompt caching.

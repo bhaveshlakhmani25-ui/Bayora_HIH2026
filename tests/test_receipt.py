@@ -91,3 +91,10 @@ def test_reveal_matches_commitments_and_catches_changed_rules(tmp_path):
     assert v(out, "--reveal", str(out / "reveal.json")) == 0
     (out / "reveal.json").write_text(json.dumps(rv(b"defensive rules, tuned after seeing the attacks")))
     assert v(out, "--reveal", str(out / "reveal.json")) == 1
+
+
+def test_reveal_needs_both_teams_commitments(tmp_path):
+    op, ws, cp, out = setup_run(tmp_path)
+    rc = build_receipt(op, cp, ws, cp["cosigs"], "test", {}, {}, None, [cp])     # operator leaves the commitments out
+    (out / "receipt.json").write_text(json.dumps(rc)); (out / "reveal.json").write_text("{}")
+    assert v(out, "--reveal", str(out / "reveal.json")) == 1

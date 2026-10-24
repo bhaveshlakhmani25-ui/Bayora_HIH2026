@@ -20,7 +20,7 @@
     --paper: #eef1f5; --sheet: #ffffff; --well: #f5f7fa; --ink: #13203a; --ink-2: #3b4963; --muted: #5d6a80; --rule: #d3d9e3; --rule-2: #b9c2d0;
     --seal: #0b7563; --seal-wash: #e0f2ee; --deny: #8f5f00; --deny-wash: #fbf0d6; --crit: #b0263a; --crit-wash: #fbe6e8;
     --red: #c4471d; --blue: #2655c9; --model: #6a43b8; --broker: #0b7563;
-    --focus: #2655c9; --on-ink: #ffffff;
+    --focus: #2655c9; --on-ink: #ffffff; --foot: #13203a; --foot-ink: #eef1f5; --foot-rule: #13203a;
     --display: "Big Shoulders Display", "Arial Narrow", "Roboto Condensed", Arial, sans-serif;
     --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -30,11 +30,11 @@
   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
     --paper: #0d1420; --sheet: #131c2b; --well: #0f1724; --ink: #e5eaf2; --ink-2: #c0c9d8; --muted: #8d9ab0; --rule: #243149; --rule-2: #33425e;
     --seal: #45c6ad; --seal-wash: #10302b; --deny: #e4b04f; --deny-wash: #2f2510; --crit: #ff7b86; --crit-wash: #3a1820;
-    --red: #ff8a5c; --blue: #7ea3ff; --model: #b597ff; --broker: #45c6ad; --focus: #7ea3ff; --on-ink: #0d1420; color-scheme: dark; } }
+    --red: #ff8a5c; --blue: #7ea3ff; --model: #b597ff; --broker: #45c6ad; --focus: #7ea3ff; --on-ink: #0d1420; --foot: #090e17; --foot-ink: #c0c9d8; --foot-rule: #243149; color-scheme: dark; } }
   :root[data-theme="dark"] {
     --paper: #0d1420; --sheet: #131c2b; --well: #0f1724; --ink: #e5eaf2; --ink-2: #c0c9d8; --muted: #8d9ab0; --rule: #243149; --rule-2: #33425e;
     --seal: #45c6ad; --seal-wash: #10302b; --deny: #e4b04f; --deny-wash: #2f2510; --crit: #ff7b86; --crit-wash: #3a1820;
-    --red: #ff8a5c; --blue: #7ea3ff; --model: #b597ff; --broker: #45c6ad; --focus: #7ea3ff; --on-ink: #0d1420; color-scheme: dark; }
+    --red: #ff8a5c; --blue: #7ea3ff; --model: #b597ff; --broker: #45c6ad; --focus: #7ea3ff; --on-ink: #0d1420; --foot: #090e17; --foot-ink: #c0c9d8; --foot-rule: #243149; color-scheme: dark; }
 
   * { box-sizing: border-box; }
   ::selection { background: color-mix(in srgb, var(--seal) 28%, transparent); color: var(--ink); }
@@ -174,17 +174,17 @@
   .cta h3 { font-size: clamp(28px, 3.4vw, 40px); font-weight: 800; text-transform: uppercase; }
   .cta p { margin: 6px 0 0; color: var(--ink-2); }
 
-  footer.site-foot { --fl: color-mix(in srgb, var(--paper) 70%, transparent); background: var(--ink); color: var(--paper); padding-block: 44px 28px; }
+  footer.site-foot { --fl: color-mix(in srgb, var(--foot-ink) 70%, transparent); background: var(--foot); color: var(--foot-ink); border-top: 1px solid var(--foot-rule); padding-block: 44px 28px; }
   .site-foot .cols { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 32px; }
   @media (max-width: 860px) { .site-foot .cols { grid-template-columns: 1fr 1fr; } }
   @media (max-width: 460px) { .site-foot .cols { grid-template-columns: 1fr; } }
-  .site-foot .brand { color: var(--paper); }
+  .site-foot .brand { color: var(--foot-ink); }
   .site-foot h4 { margin: 0 0 12px; font: 600 12px var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--fl); }
   .site-foot ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-  .site-foot a { color: var(--paper); text-decoration: none; font-size: 15px; }
+  .site-foot a { color: var(--foot-ink); text-decoration: none; font-size: 15px; }
   .site-foot a:hover { text-decoration: underline; }
   .site-foot .tagline { color: var(--fl); margin: 14px 0 0; max-width: 34ch; font-size: 15px; }
-  .site-foot .base { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; margin-top: 36px; padding-top: 18px; border-top: 1px solid color-mix(in srgb, var(--paper) 22%, transparent); color: var(--fl); font-size: 13.5px; }
+  .site-foot .base { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; margin-top: 36px; padding-top: 18px; border-top: 1px solid color-mix(in srgb, var(--foot-ink) 22%, transparent); color: var(--fl); font-size: 13.5px; }
   .app footer.site-foot { padding-block: 18px; } .app .site-foot .cols { display: none; } .app .site-foot .base { margin: 0; padding: 0; border: 0; }
 
   /* ------------ console ------------ */
@@ -832,8 +832,12 @@ function renderTamperPick() {
 async function poll() {
   try {
     const r = await (await fetch(`/api/events?since=${since}`)).json();
-    if (r.total < since) { since = 0; allEvents = []; return poll(); }   // a new run replaced the log
-    if (r.events.length) { allEvents.push(...r.events); since = r.total; renderFeeds(new Set(r.events.map((e) => e.index))); renderTamperPick(); }
+    if (r.total < since) { since = 0; allEvents = []; load(); return poll(); }   // a new run replaced the log
+    if (r.events.length) {
+      allEvents.push(...r.events); since = r.total; renderFeeds(new Set(r.events.map((e) => e.index))); renderTamperPick();
+      // the log now belongs to another run than the numbers on screen: fetch that run's results again
+      if (S && (!S.results || S.results.run_id !== r.events.at(-1).run)) load();
+    }
   } catch (e) {}
 }
 

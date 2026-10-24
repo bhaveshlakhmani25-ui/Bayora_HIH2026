@@ -27,6 +27,16 @@ def sh(*a, check=True):
 def ip(name): return sh("docker", "inspect", "-f", "{{range .NetworkSettings.Networks}}{{.IPAddress}} {{end}}", name).split()[0]
 
 
+OUTPUTS = ("results.json", "receipt.json", "keys.json", "reveal.json", "cachetest.json", "log.jsonl")
+
+
+def clear_outputs(out):
+    """Remove an earlier run's outputs from `out` (only Bayora's own files), so a reused folder never mixes two runs."""
+    shutil.rmtree(f"{out}/checkpoints", ignore_errors=True)
+    for f in OUTPUTS:
+        if os.path.exists(f"{out}/{f}"): os.remove(f"{out}/{f}")
+
+
 def cleanup(zones):
     for c in ["bz-model", "bz-broker", "bz-blue"]: sh("docker", "rm", "-f", c, check=False)
     for n in zones.values(): sh("docker", "network", "rm", n, check=False)
@@ -46,7 +56,7 @@ def main(cfg, out="results"):
     cleanup(Z); shutil.rmtree(WORK, ignore_errors=True)
     for d in ["red", "blue", "broker"]: os.makedirs(f"{WORK}/{d}"); os.chmod(f"{WORK}/{d}", 0o777)
     op = LogOperator(f"bayora.dev/run/{RUN}", load_key(f"{HOME}/operator.key"))
-    shutil.rmtree(f"{out}/checkpoints", ignore_errors=True); os.makedirs(out, exist_ok=True)
+    os.makedirs(out, exist_ok=True); clear_outputs(out)
     # witnesses are separate processes with their own persistent keys; config `witnesses` lists external ones instead
     urls, wprocs = list(cfg["witnesses"]), []
     for name in ([] if urls else ["witness-A", "witness-B"]):
