@@ -54,21 +54,30 @@ def tampered_copy(log_path, index, tmpdir):
     return path, f"event #{index}: {change}"
 
 
+def page(results_dir):
+    """index.html with the run already in it, so the first paint is complete and nothing shifts while data loads."""
+    boot = json.dumps({"state": state(results_dir), "events": events(results_dir, 0)}, default=str)
+    # log text can contain "</script>": escape the characters that could end the script block or start markup
+    boot = boot.replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
+    with open(HTML, encoding="utf-8") as f: html = f.read()
+    return html.replace("window.__BOOT__ = null;", f"window.__BOOT__ = {boot};", 1).encode()
+
+
 def make_server(results_dir, port, trust=None):
     class H(BaseHTTPRequestHandler):
-        def _send(self, code, body, ctype="application/json"):
+        def _send(self, code, body, ctype="application/json", cache="no-store"):
             b = body if isinstance(body, bytes) else json.dumps(body, default=str).encode()
             self.send_response(code); self.send_header("Content-Type", ctype); self.send_header("Content-Length", str(len(b)))
-            self.send_header("Cache-Control", "no-store"); self.end_headers(); self.wfile.write(b)
+            self.send_header("Cache-Control", cache); self.end_headers(); self.wfile.write(b)
 
         def do_GET(self):
             u = urlparse(self.path)
-            if u.path == "/": return self._send(200, open(HTML, "rb").read(), "text/html; charset=utf-8")
+            if u.path == "/": return self._send(200, page(results_dir), "text/html; charset=utf-8")
             if u.path.startswith("/fonts/"):
                 name = u.path[len("/fonts/"):]
                 # only files that ship in the fonts folder; no paths, so nothing outside it can be read
                 if name.endswith(".woff2") and name in os.listdir(FONTS):
-                    with open(os.path.join(FONTS, name), "rb") as f: return self._send(200, f.read(), "font/woff2")
+                    with open(os.path.join(FONTS, name), "rb") as f: return self._send(200, f.read(), "font/woff2", "public, max-age=31536000, immutable")
                 return self._send(404, {"error": "not found"})
             if u.path == "/api/state": return self._send(200, state(results_dir))
             if u.path == "/api/events":

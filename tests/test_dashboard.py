@@ -23,12 +23,16 @@ def test_dashboard_events_state_and_verify(tmp_path):
     r = get(base, "/api/verify", b"")
     assert r["ok"] is False and "root does not match" in r["message"]
     f = urllib.request.urlopen(base + "/fonts/ibm-plex-sans.woff2", timeout=5)
-    assert f.headers["Content-Type"] == "font/woff2" and f.read(4) == b"wOF2"
+    assert f.headers["Content-Type"] == "font/woff2" and f.read(4) == b"wOF2" and "immutable" in f.headers["Cache-Control"]
+    # the page ships with the run inlined; log text cannot break out of that script block
+    with open(out / "log.jsonl", "ab") as lf: lf.write(b'{"kind":"note","x":"</script><img src=x onerror=alert(1)>"}\n')
+    html = urllib.request.urlopen(base + "/", timeout=5).read().decode()
+    assert "window.__BOOT__ = {" in html and "</script><img" not in html and "\\u003c/script\\u003e" in html
     for bad in ("/fonts/../server.py", "/fonts/OFL-ibm-plex-sans.txt", "/fonts/%2e%2e%2fserver.py"):
         try: urllib.request.urlopen(base + bad, timeout=5); assert False, bad
         except urllib.error.HTTPError as e: assert e.code == 404
     v6 = listen_v6(httpd)                                    # http://localhost may resolve to ::1 first
     if v6:
-        assert get(f"http://[::1]:{httpd.server_address[1]}", "/api/events?since=0")["total"] == 8
+        assert get(f"http://[::1]:{httpd.server_address[1]}", "/api/events?since=0")["total"] == get(base, "/api/events?since=0")["total"]
         v6.shutdown()
     httpd.shutdown()

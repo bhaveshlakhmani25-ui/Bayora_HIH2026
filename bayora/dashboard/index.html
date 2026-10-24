@@ -5,14 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Bayora</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cstyle%3E.t%7Bfill:%2313203a%7D.c%7Bstroke:%2345c6ad%7D%40media (prefers-color-scheme:dark)%7B.t%7Bfill:%23e5eaf2%7D.c%7Bstroke:%230b7563%7D%7D%3C/style%3E%3Cpath class='t' fill-rule='evenodd' d='M11.2 4.5h15.3a3 3 0 0 1 3 3v17a3 3 0 0 1-3 3H11.2a2 2 0 0 1-1.56-.75L3 18.5a4 4 0 0 1 0-5L9.64 5.25A2 2 0 0 1 11.2 4.5Z M12.3 16a2.3 2.3 0 1 1-4.6 0 2.3 2.3 0 0 1 4.6 0Z'/%3E%3Cpath class='c' d='M15.4 16.3l3.3 3.3 6.3-6.9' fill='none' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preload" href="/fonts/big-shoulders-display.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/ibm-plex-sans.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/ibm-plex-mono-400.woff2" as="font" type="font/woff2" crossorigin>
+<script>
+  // before the first paint: the viewer's theme and the view (site or console), so a refresh never flashes the wrong one
+  try { const t = localStorage.getItem("bayora-theme-v3"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+  document.documentElement.dataset.view = location.hash.startsWith("#/app/") ? "app" : "site";
+</script>
 <style>
   /* Fonts ship with the package (SIL OFL, licences in fonts/) so the page renders offline. Latin subset; other glyphs fall back. */
-  @font-face { font-family: 'Big Shoulders Display'; font-style: normal; font-weight: 700 900; font-display: swap; src: url(/fonts/big-shoulders-display.woff2) format('woff2'); }
-  @font-face { font-family: 'IBM Plex Mono'; font-style: normal; font-weight: 400; font-display: swap; src: url(/fonts/ibm-plex-mono-400.woff2) format('woff2'); }
-  @font-face { font-family: 'IBM Plex Mono'; font-style: normal; font-weight: 500; font-display: swap; src: url(/fonts/ibm-plex-mono-500.woff2) format('woff2'); }
-  @font-face { font-family: 'IBM Plex Mono'; font-style: normal; font-weight: 600; font-display: swap; src: url(/fonts/ibm-plex-mono-600.woff2) format('woff2'); }
-  @font-face { font-family: 'IBM Plex Sans'; font-style: italic; font-weight: 400; font-display: swap; src: url(/fonts/ibm-plex-sans-400-italic.woff2) format('woff2'); }
-  @font-face { font-family: 'IBM Plex Sans'; font-style: normal; font-weight: 400 700; font-display: swap; src: url(/fonts/ibm-plex-sans.woff2) format('woff2'); }
+  @font-face { font-family: 'Big Shoulders Display'; font-style: normal; font-weight: 700 900; font-display: block; src: url(/fonts/big-shoulders-display.woff2) format('woff2'); }
+  @font-face { font-family: 'IBM Plex Mono'; font-style: normal; font-weight: 400; font-display: block; src: url(/fonts/ibm-plex-mono-400.woff2) format('woff2'); }
+  @font-face { font-family: 'IBM Plex Mono'; font-style: normal; font-weight: 500; font-display: block; src: url(/fonts/ibm-plex-mono-500.woff2) format('woff2'); }
+  @font-face { font-family: 'IBM Plex Mono'; font-style: normal; font-weight: 600; font-display: block; src: url(/fonts/ibm-plex-mono-600.woff2) format('woff2'); }
+  @font-face { font-family: 'IBM Plex Sans'; font-style: italic; font-weight: 400; font-display: block; src: url(/fonts/ibm-plex-sans-400-italic.woff2) format('woff2'); }
+  @font-face { font-family: 'IBM Plex Sans'; font-style: normal; font-weight: 400 700; font-display: block; src: url(/fonts/ibm-plex-sans.woff2) format('woff2'); }
   /* Layout: an evidence case file. The site reads like a chain-of-custody record; the console is a clerk's ledger:
      a case index on the left, ruled registers instead of card grids, and ink stamps for state.
      Type: Big Shoulders Display (stencilled civic labelling) for headings, IBM Plex Sans + Plex Mono as one document voice. */
@@ -189,6 +197,7 @@
 
   /* ------------ console ------------ */
   .app { display: grid; grid-template-columns: var(--side) minmax(0, 1fr); min-height: 100vh; }
+  html[data-view="app"] #landing, html[data-view="site"] #app { display: none !important; }
   .side { position: sticky; top: 0; height: 100vh; background: var(--sheet); border-right: 1px solid var(--rule); display: flex; flex-direction: column; padding: 18px 14px; gap: 2px; }
   .side .brand { padding: 4px 8px 22px; }
   .side > .label { padding: 0 10px 8px; }
@@ -263,7 +272,7 @@
   .barrow { display: grid; grid-template-columns: 130px minmax(0, 1fr) 72px; gap: 12px; align-items: center; font-size: 14px; }
   @container (max-width: 420px) { .barrow { grid-template-columns: 1fr 70px; } .barrow .track { grid-column: 1 / -1; grid-row: 2; } }
   .track { height: 10px; background: var(--well); border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; position: relative; }
-  .fill { height: 100%; width: 100%; background: var(--seal); transform-origin: left; transform: scaleX(0); transition: transform .7s ease-out; }
+  .fill { height: 100%; width: 100%; background: var(--seal); transform-origin: left; transform: scaleX(0); }
   .fill.badfill { background: var(--crit); }
   .barrow .num { text-align: right; font: 600 14px var(--mono); }
   .callout { margin-top: 18px; padding: 14px 16px; border: 1px solid color-mix(in srgb, var(--seal) 35%, transparent); border-radius: 8px; background: var(--seal-wash); display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
@@ -433,7 +442,7 @@
 </div>
 
 <!-- ================= CONSOLE ================= -->
-<div id="app" class="app" hidden>
+<div id="app" class="app">
   <aside class="side" aria-label="Case index">
     <a class="brand" href="#/"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-mark"/></svg>Bayora</a>
     <div class="label">Case index</div>
@@ -544,6 +553,7 @@
   </div>
 </footer>
 
+<script>window.__BOOT__ = null;</script>
 <script>
 "use strict";
 // Values from results and log files are inserted with textContent only, never parsed as HTML.
@@ -561,7 +571,7 @@ const stamp = (text, cls) => h("span", { class: "stamp-ink " + cls }, text);
 const blocked = (v) => typeof v === "string" && /BLOCKED|NOT MOUNTED|READ-ONLY/.test(v);
 const short = (x, n = 12) => (x ? String(x).slice(0, n) + "…" : "–");
 const hexgroups = (x, n = 32) => (x ? String(x).slice(0, n).match(/.{1,4}/g).join(" ") + " …" : "–");
-const grow = (fill, frac) => requestAnimationFrame(() => requestAnimationFrame(() => (fill.style.transform = `scaleX(${frac})`)));
+const grow = (fill, frac) => (fill.style.transform = `scaleX(${frac})`);
 const team = (t) => h("span", { class: "team " + t }, t);
 const SCANNER = { v1: "v1 exact", v2: "v2 decoded", v3: "v3 fragments" };
 const PROBE = {
@@ -578,7 +588,6 @@ const PAGES = [["overview", "Overview", "grid"], ["isolation", "Isolation", "lay
 /* theme: follows the system until the viewer picks one */
 function isDark() { const t = document.documentElement.dataset.theme; return t ? t === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; }
 function applyThemeIcon() { document.querySelectorAll(".theme-btn use").forEach((u) => u.setAttribute("href", isDark() ? "#i-sun" : "#i-moon")); }
-try { const t = localStorage.getItem("bayora-theme-v3"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
 applyThemeIcon();
 document.querySelectorAll(".theme-btn").forEach((b) => (b.onclick = () => {
   document.documentElement.dataset.theme = isDark() ? "light" : "dark";
@@ -592,7 +601,7 @@ navLinks($("side-nav"), "item"); navLinks($("tabs-m"), "");
 function route() {
   const m = location.hash.match(/^#\/app\/(\w+)/);
   const inApp = !!m, page = m && PAGES.some(([id]) => id === m[1]) ? m[1] : "overview";
-  $("landing").hidden = inApp; $("app").hidden = !inApp;
+  document.documentElement.dataset.view = inApp ? "app" : "site";
   if (inApp) {
     $("app").querySelector(".main").append($("footer"));
     document.querySelectorAll("[data-page]").forEach((el) => {
@@ -834,7 +843,8 @@ async function poll() {
     const r = await (await fetch(`/api/events?since=${since}`)).json();
     if (r.total < since) { since = 0; allEvents = []; load(); return poll(); }   // a new run replaced the log
     if (r.events.length) {
-      allEvents.push(...r.events); since = r.total; renderFeeds(new Set(r.events.map((e) => e.index))); renderTamperPick();
+      const first = !allEvents.length;                                    // the first fill is the page itself, not news
+      allEvents.push(...r.events); since = r.total; renderFeeds(first ? new Set() : new Set(r.events.map((e) => e.index))); renderTamperPick();
       // the log now belongs to another run than the numbers on screen: fetch that run's results again
       if (S && (!S.results || S.results.run_id !== r.events.at(-1).run)) load();
     }
@@ -860,15 +870,19 @@ async function doVerify(tamper) {
 $("verify").onclick = () => doVerify(null);
 $("tamper").onclick = () => doVerify($("tamper-pick").value);
 
+let boot = window.__BOOT__;   // the run the server wrote into the page, so the first frame is already complete
 async function load() {
-  try { S = await (await fetch("/api/state")).json(); } catch (e) { $("l-env").textContent = "Could not load the run. Is bayora dashboard running?"; return; }
+  const b = boot; boot = null;
+  try { S = b ? b.state : await (await fetch("/api/state")).json(); } catch (e) { $("l-env").textContent = "Could not load the run. Is bayora dashboard running?"; return; }
   const r = S.results, p = S.statement && S.statement.predicate;
   site(r, p); overview(r, p); receiptDl($("rc"), p, false); isolation(r); detection(r); cache(r); chain(r); limits(r);
   $("rc-fmt").textContent = p ? "in-toto · DSSE" : (S.receipt ? "PoC format" : "none");
   $("side-run").replaceChildren(h("span", { class: "label" }, "Open case"), h("b", {}, r ? r.run_id : "no run"), r && r.host && r.host.docker ? `${r.host.docker.context}${r.host.docker.userns_remap ? " · userns-remap" : ""} · ${r.isolation ? r.isolation.enforcer : ""}` : S.dir);
   if (r && r.host) $("foot-env").textContent = `Latest case measured on ${r.host.platform}. Numbers apply to that environment only.`;
 }
-route(); load(); poll(); setInterval(poll, 1500);
+route();
+if (boot && boot.events) { allEvents = boot.events.events; since = boot.events.total; renderFeeds(); renderTamperPick(); }
+load(); poll(); setInterval(poll, 1500);
 </script>
 </body>
 </html>
