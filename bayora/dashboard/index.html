@@ -211,12 +211,16 @@
   }
   .envline { margin-top: 18px; font-size: 14px; color: var(--muted); max-width: 90ch; }
 
-  .team-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1.5px solid var(--ink); }
-  .team-row div { padding: 20px 20px 20px 0; border-right: 1px solid var(--rule); }
-  .team-row div + div { padding-left: 20px; } .team-row div:last-child { border-right: 0; }
-  .team-row h3 { font-size: 30px; font-weight: 700; }
-  .team-row p { margin: 4px 0 0; color: var(--muted); }
-  @media (max-width: 760px) { .team-row { grid-template-columns: 1fr; } .team-row div, .team-row div + div { padding: 16px 0; border-right: 0; border-bottom: 1px solid var(--rule); } }
+  .checks { list-style: none; margin: 0; padding: 0; border-top: 1.5px solid var(--ink); counter-reset: c; }
+  .checks li { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 12px 32px; align-items: center; padding: 20px 0; border-bottom: 1px solid var(--rule); counter-increment: c; }
+  .checks h3 { font-size: 24px; font-weight: 800; text-transform: uppercase; }
+  .checks h3::before { content: counter(c) ". "; color: var(--muted); }
+  .checks p { margin: 4px 0 0; color: var(--ink-2); font-size: 15px; max-width: 46ch; }
+  .cmd { display: flex; align-items: stretch; min-width: 0; border: 1px solid var(--rule-2); border-radius: 8px; background: var(--well); }
+  .cmd code { flex: 1; min-width: 0; padding: 12px 14px; font: 13px/1.5 var(--mono); color: var(--ink); overflow-x: auto; white-space: nowrap; }
+  .cmd .copy { min-height: 0; border: 0; border-left: 1px solid var(--rule-2); border-radius: 0 8px 8px 0; padding: 0 16px; font-size: 14px; }
+  .envline code { font: 13px var(--mono); color: var(--ink); }
+  @media (max-width: 860px) { .checks li { grid-template-columns: 1fr; } }
   .cta { margin-top: 48px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 20px; padding: 28px; border: 1.5px solid var(--ink); border-radius: var(--r); background: var(--sheet); }
   .cta h3 { font-size: clamp(28px, 3.4vw, 40px); font-weight: 800; text-transform: uppercase; }
   .cta p { margin: 6px 0 0; color: var(--ink-2); }
@@ -385,7 +389,7 @@
   <header class="bar">
     <div class="wrap">
       <a class="brand" href="#/" aria-label="Bayora home"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-mark"/></svg>Bayora</a>
-      <nav aria-label="Primary"><a href="#story">How it works</a><a href="#measured">Measured</a><a href="#team">Team</a></nav>
+      <nav aria-label="Primary"><a href="#story">How it works</a><a href="#measured">Measured</a><a href="#check">Check it yourself</a></nav>
       <div class="act">
         <button class="icon-btn theme-btn" aria-label="Switch light or dark theme"><svg class="i"><use href="#i-moon"/></svg></button>
         <a class="btn solid open-console" href="#/app/overview">Open console <svg class="i"><use href="#i-arrow"/></svg></a>
@@ -397,7 +401,7 @@
     <nav class="wrap" aria-label="Sections">
       <a class="mlink" href="#story">How it works <svg class="i"><use href="#i-arrow"/></svg></a>
       <a class="mlink" href="#measured">Measured <svg class="i"><use href="#i-arrow"/></svg></a>
-      <a class="mlink" href="#team">Team <svg class="i"><use href="#i-arrow"/></svg></a>
+      <a class="mlink" href="#check">Check it yourself <svg class="i"><use href="#i-arrow"/></svg></a>
       <a class="btn solid" href="#/app/overview">Open the console <svg class="i"><use href="#i-arrow"/></svg></a>
     </nav>
   </div>
@@ -467,14 +471,16 @@
       </div>
     </section>
 
-    <section class="sec" id="team">
+    <section class="sec" id="check">
       <div class="wrap">
-        <div class="sec-head"><h2>Claude's Clan</h2><p>Building verifiable infrastructure for AI safety evaluation.</p></div>
-        <div class="team-row">
-          <div><h3>Bhavesh Lakhmani</h3><p>Team lead</p></div>
-          <div><h3>Tashvi Adhlakha</h3><p>Team member</p></div>
-          <div><h3>Ovneet Kour</h3><p>Team member</p></div>
-        </div>
+        <div class="sec-head"><h2>Check it yourself</h2><p>Bayora's claim is that nobody has to take an evaluator's word for it. These commands check the run behind this page on your own machine.</p></div>
+        <ol class="checks">
+          <li><div><h3>Get the code</h3><p>Python 3.10 or newer. No Docker needed for the first three steps.</p></div><div class="cmd"><code id="cmd0">git clone https://github.com/bhaveshlakhmani25-ui/Bayora_HIH2026 &amp;&amp; cd Bayora_HIH2026 &amp;&amp; pip install -e .</code><button class="btn copy" type="button" data-copy="cmd0">Copy</button></div></li>
+          <li><div><h3>Verify this page's receipt</h3><p>Checks the signatures, the witness quorum, every published checkpoint and the teams&#x27; reveal, without contacting us.</p></div><div class="cmd"><code id="cmd1">bayora verify results_final/demo/receipt.json results_final/demo/log.jsonl --trust results_final/demo/keys.json --checkpoints results_final/demo/checkpoints --reveal results_final/demo/reveal.json</code><button class="btn copy" type="button" data-copy="cmd1">Copy</button></div></li>
+          <li><div><h3>Try to break it</h3><p>Change one event in your copy of the log, run step 2 again, and it fails and says why. The original is kept as log.jsonl.bak.</p></div><div class="cmd"><code id="cmd2">sed -i.bak &#x27;s/BLOCKED/CONNECTED/&#x27; results_final/demo/log.jsonl</code><button class="btn copy" type="button" data-copy="cmd2">Copy</button></div></li>
+          <li><div><h3>Measure the leak scanners</h3><p>The 180 planted leaks and 10,000 noise lines, in a few seconds on a laptop.</p></div><div class="cmd"><code id="cmd3">bayora drill</code><button class="btn copy" type="button" data-copy="cmd3">Copy</button></div></li>
+        </ol>
+        <p class="envline">Steps 2 and 3 use the demo run shipped in the repository. A full run of your own needs Docker on Linux, or Colima on a Mac: <code>bayora run</code>. See the README.</p>
         <div class="cta"><div><h3>Inspect a live case</h3><p>Isolation, detection, the side-channel test and the witnessed log, with the receipt you can break.</p></div><a class="btn solid" href="#/app/overview">Open the console <svg class="i"><use href="#i-arrow"/></svg></a></div>
       </div>
     </section>
@@ -576,11 +582,11 @@
   <div class="wrap">
     <div class="cols">
       <div><a class="brand" href="#/"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-mark"/></svg>Bayora</a><p class="tagline">Blind, leak-audited red-vs-blue evaluation, ending in a receipt anyone can check.</p></div>
-      <div><h4>Site</h4><ul><li><a href="#story" data-anchor="story">How it works</a></li><li><a href="#measured" data-anchor="measured">Measured</a></li><li><a href="#team" data-anchor="team">Team</a></li></ul></div>
+      <div><h4>Site</h4><ul><li><a href="#story" data-anchor="story">How it works</a></li><li><a href="#measured" data-anchor="measured">Measured</a></li><li><a href="#check" data-anchor="check">Check it yourself</a></li></ul></div>
       <div><h4>Console</h4><ul><li><a href="#/app/overview">Overview</a></li><li><a href="#/app/isolation">Isolation</a></li><li><a href="#/app/detection">Detection</a></li><li><a href="#/app/verify">Verify a receipt</a></li></ul></div>
       <div><h4>Project</h4><ul><li><a href="https://github.com/bhaveshlakhmani25-ui/Bayora_HIH2026" target="_blank" rel="noopener">Source on GitHub</a></li><li><a href="#/app/limits">Limits</a></li></ul></div>
     </div>
-    <div class="base"><span>© 2026 Claude's Clan · Hack in Hills '26 · Track 04</span><span id="foot-env">Numbers apply to the environment they were measured in.</span></div>
+    <div class="base"><span>Built by Claude's Clan (Bhavesh Lakhmani, Tashvi Adhlakha, Ovneet Kour) · Hack in Hills '26 · Track 04</span><span id="foot-env">Numbers apply to the environment they were measured in.</span></div>
   </div>
 </footer>
 
@@ -669,7 +675,7 @@ addEventListener("scroll", onScroll, { passive: true });
 const spy = new IntersectionObserver((entries) => {
   for (const en of entries) if (en.isIntersecting) document.querySelectorAll(`.bar nav a, .menu a.mlink`).forEach((a) => a.setAttribute("aria-current", String(a.getAttribute("href") === "#" + en.target.id)));
 }, { rootMargin: "-45% 0px -50% 0px" });
-["top", "story", "measured", "team"].forEach((id) => spy.observe($(id)));   // "top" clears the highlight over the hero
+["top", "story", "measured", "check"].forEach((id) => spy.observe($(id)));   // "top" clears the highlight over the hero
 document.querySelectorAll("[data-anchor]").forEach((a) => (a.onclick = (e) => { if (!location.hash.startsWith("#/app")) return; e.preventDefault(); location.hash = "#/"; setTimeout(() => $(a.dataset.anchor).scrollIntoView(), 30); }));
 
 let S = null, mode = null, since = 0, filter = "all", allEvents = [];
@@ -1008,6 +1014,14 @@ async function poll() {
     }
   } catch (e) {}
 }
+
+/* copy buttons for the commands */
+document.querySelectorAll("[data-copy]").forEach((b) => (b.onclick = async () => {
+  const code = $(b.dataset.copy);
+  try { await navigator.clipboard.writeText(code.textContent); b.textContent = "Copied"; }
+  catch (e) { getSelection().selectAllChildren(code); b.textContent = /Mac|iP/.test(navigator.platform) ? "Press ⌘C" : "Press Ctrl+C"; }
+  setTimeout(() => (b.textContent = "Copy"), 1800);
+}));
 
 /* verify */
 async function apiVerify(tamper) {
