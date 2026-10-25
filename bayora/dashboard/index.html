@@ -26,7 +26,7 @@
      Type: Big Shoulders Display (stencilled civic labelling) for headings, IBM Plex Sans + Plex Mono as one document voice. */
   :root {
     --paper: #eef1f5; --sheet: #ffffff; --well: #f5f7fa; --ink: #13203a; --ink-2: #3b4963; --muted: #5d6a80; --rule: #d3d9e3; --rule-2: #b9c2d0;
-    --seal: #087f5b; --seal-text: #087f5b; --seal-wash: #e1f3ec; --deny: #9a6700; --deny-wash: #fbf1d8; --crit: #c2185b; --crit-wash: #fce7ef;
+    --seal: #087f5b; --seal-text: #06704f; --seal-wash: #e1f3ec; --deny: #8a5c00; --deny-wash: #fbf1d8; --crit: #c2185b; --crit-wash: #fce7ef;
     --red: #c4471d; --blue: #2655c9; --model: #6a43b8; --broker: #087f5b;
     --focus: #2655c9; --on-ink: #ffffff; --foot: #13203a; --foot-ink: #eef1f5; --foot-rule: #13203a;
     --display: "Big Shoulders Display", "Arial Narrow", "Roboto Condensed", Arial, sans-serif;
@@ -746,7 +746,7 @@ function site(r, p) {
   add("Forbidden paths blocked", "Red-zone probes; denied in the kernel by eBPF and logged.", `${forb.filter(([, v]) => blocked(v)).length}`, `/${forb.length}`, "3/3");
   if (best) add("Planted leaks caught", `Scanner v3 over ${(r.noise_lines_scanned ?? "?").toLocaleString("en-US")} noise lines with forged look-alikes; ${best.false_positives} false alarms.`, `${best.detected}`, `/${best.total}`, "100/120");
   if (frag && frag[1]) add("Fragment leaks caught", "14-character pieces of a canary, matched by 10-character windows.", `${frag[0]}`, `/${frag[1]}`, "0/20");
-  if (c && c.shared) add("Side-channel guesses with salt", `Tenant B guessing A's secret from 8 candidates. Shared cache: ${c.shared.correct}/${c.shared.trials}. Cross-tenant cache hits with salt: ${c.salted.cross_tenant_cache_hits ?? "?"}.`, `${c.salted.correct}`, `/${c.salted.trials}`, "not run");
+  if (c && c.shared) add("Side-channel guesses with salt", `Lower is better: blind guessing gets about ${(c.salted.trials * c.shared.chance).toFixed(1)}/${c.salted.trials}. Tenant B guessing A's secret from 8 candidates. Shared cache: ${c.shared.correct}/${c.shared.trials}. Cross-tenant cache hits with salt: ${c.salted.cross_tenant_cache_hits ?? "?"}.`, `${c.salted.correct}`, `/${c.salted.trials}`, "not run");
   if (tam != null) add("Tamper tests rejected", "Edited event, mismatched reveal, split view to a witness.", `${tam}`, "/3", "3/3");
   const env = r.host, dk = env && env.docker;
   $("l-env").textContent = `Case ${r.run_id}. ${env.platform}, ${env.cpus} CPUs${dk ? `, Docker via ${dk.context}${dk.userns_remap ? " with userns-remap" : ""}` : ""}. Side-channel model: ${c ? c.engine + " on CPU" : "not run"}. Round 1 was a 2-vCPU cloud sandbox with a mock model. Numbers apply to their environment only.`;
@@ -896,9 +896,9 @@ function overview(r, p) {
   const tam = r.tamper ? [r.tamper.edited_event_rejected, r.reveal && r.reveal.tampered_payload_rejected, r.tamper.split_view_refused_by_witness].filter(Boolean).length : 0;
   const cps = (r.ledger && r.ledger.checkpoints) || [];
   cell("#/app/isolation", "Isolation", `${nb}/${forb.length}`, `forbidden paths blocked · ${r.isolation ? r.isolation.enforcer : "docker"}`, stamp(nb === forb.length ? "held" : "breach", nb === forb.length ? "ok" : "bad"));
-  if (best) cell("#/app/detection", "Detection", `${best.detected}/${best.total}`, `planted leaks caught · ${best.false_positives} unexplained`, stamp(best.false_positives ? "review" : "clean", best.false_positives ? "warn" : "ok"));
-  cell("#/app/cache", "Side channel", c && c.shared ? `${c.salted.correct}/${c.salted.trials}` : "–", c && c.shared ? `salted guesses · shared ${c.shared.correct}/${c.shared.trials}` : "no cache audit in this run", c && c.shared ? stamp(c.pass ? "pass" : "fail", c.pass ? "ok" : "bad") : stamp("not run", "neutral"));
-  cell("#/app/ledger", "Tamper tests", `${tam}/3`, "edited event, bad reveal, split view", stamp(tam === 3 ? "rejected" : "check", tam === 3 ? "ok" : "bad"));
+  if (best) cell("#/app/detection", "Detection", `${best.detected}/${best.total}`, `planted leaks caught · ${best.total - best.detected} missed, listed as residual risk`, stamp(best.false_positives ? `${best.false_positives} unexplained` : "0 false alarms", best.false_positives ? "warn" : "ok"));
+  cell("#/app/cache", "Side channel", c && c.shared ? `${c.salted.correct}/${c.salted.trials}` : "–", c && c.shared ? `salted guesses, lower is better · blind guessing ≈ ${(c.salted.trials * c.shared.chance).toFixed(1)} · shared ${c.shared.correct}/${c.shared.trials}` : "no cache audit in this run", c && c.shared ? stamp(c.pass ? "pass" : "fail", c.pass ? "ok" : "bad") : stamp("not run", "neutral"));
+  cell("#/app/ledger", "Tamper tests", `${tam}/3`, "edited event, bad reveal, split view", stamp(tam === 3 ? "all caught" : "check", tam === 3 ? "ok" : "bad"));
   cell("#/app/ledger", "Checkpoints", `${cps.length}`, `co-signed by ${p ? p.witnesses.length : "?"} witness processes`);
   cell("#/app/isolation", "Latency", r.function ? `${r.function.containers_p50_ms.toFixed(2)} ms` : "–", "p50 per request through containers");
   receiptDl($("rc-mini"), p, true);
@@ -1190,7 +1190,7 @@ async function doVerify(tamper) {
     !r.pinned && r.ok && h("p", {}, "The keys came from the receipt itself, so a self-made receipt would also pass. Start the dashboard with --trust to pin keys."),
     r.trust && h("p", { class: "muted", style: "font-size:13px" }, "Trust: " + r.trust)].filter(Boolean));
   st.className = "verdict " + cls; st.hidden = false;
-  if (tamper == null) { const ts = $("top-status"); ts.hidden = false; ts.className = "stamp-ink " + cls; ts.textContent = word; }   // an edit demo says nothing about the real receipt
+  if (tamper == null) { const ts = $("top-status"); ts.hidden = false; ts.className = "stamp-ink " + cls; ts.textContent = `Real receipt · ${word}`; }   // an edit demo says nothing about the real receipt
   btns.forEach((b) => (b.disabled = false));
 }
 $("verify").onclick = () => doVerify(null);
