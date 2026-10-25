@@ -100,12 +100,14 @@
   @media (min-width: 861px) { .menu { display: none !important; } }
 
   .hero { padding-block: 72px 64px; border-bottom: 1px solid var(--rule); background: linear-gradient(var(--rule) 1px, transparent 1px) 0 0 / 100% 32px, var(--paper); }
-  .hero .wrap { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr); gap: 56px; align-items: center; }
+  .hero .wrap { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr); gap: 56px; align-items: start; }
   @media (max-width: 1000px) { .hero { padding-block: 40px; } .hero .wrap { grid-template-columns: 1fr; gap: 36px; } }
   .hero h1 { font-size: clamp(46px, 7.2vw, 92px); font-weight: 900; text-transform: uppercase; line-height: .9; letter-spacing: .005em; }
   .hero h1 .fair { color: var(--seal-text); } .hero h1 .nw, .step h3 .nw { white-space: nowrap; }
   .hero .lede { font-size: clamp(17px, 1.5vw, 19px); color: var(--ink-2); max-width: 54ch; margin: 24px 0 32px; }
   .hero .ctas { display: flex; flex-wrap: wrap; gap: 12px; }
+  .hero-check { display: grid; gap: 8px; max-width: 54ch; margin-top: 22px; }
+  .hero-check .label a { color: var(--blue); }
   @media (max-width: 460px) { .hero .ctas .btn, .tag-actions .btn { flex: 1 1 100%; } }
 
   /* the custody tag: receipt + tamper seal */
@@ -442,6 +444,10 @@
           <div class="ctas">
             <a class="btn solid" href="#/app/overview">Open the console <svg class="i"><use href="#i-arrow"/></svg></a>
           </div>
+          <div class="hero-check">
+            <span class="label" id="hero-check-l">Or check it offline, without us · <a href="#check">from a clone, steps below</a></span>
+            <div class="cmd"><code id="cmdh" aria-labelledby="hero-check-l">bayora verify results_final/demo/receipt.json results_final/demo/log.jsonl --trust results_final/demo/keys.json</code><button class="btn copy" type="button" data-copy="cmdh">Copy</button></div>
+          </div>
         </div>
 
         <div class="tag3d"><div class="tag-turn" id="tag-turn">
@@ -470,7 +476,7 @@
 
     <section class="story" id="story">
       <div class="wrap">
-        <div class="sec-head"><h2>One run, step by step</h2><p id="story-sub">A replay of a real Bayora run. Every frame below is that run's own data, not an illustration.</p></div>
+        <div class="sec-head"><h2 id="story-h">One run, step by step</h2><p id="story-sub">A replay of a real Bayora run. Every frame below is that run's own data, not an illustration.</p></div>
       </div>
       <div class="story-track" id="story-track">
         <div class="story-pin">
@@ -499,7 +505,7 @@
 
     <section class="sec" id="measured">
       <div class="wrap">
-        <div class="sec-head"><h2>Measured, not promised</h2><p>Read from the run behind this page. Bayora never claims zero leakage; what it cannot see is listed as residual risk in the console.</p></div>
+        <div class="sec-head"><h2 id="measured-h">Measured, not promised</h2><p>Read from the run behind this page. Bayora never claims zero leakage; what it cannot see is listed as residual risk in the console.</p></div>
         <div class="report-wrap"><table class="report" id="report"><thead><tr><th>Measure</th><th>Result</th><th>Round 1</th><th>How it was measured</th></tr></thead><tbody></tbody></table></div>
         <p class="envline" id="l-env">Loading run…</p>
       </div>
@@ -507,7 +513,7 @@
 
     <section class="sec" id="check">
       <div class="wrap">
-        <div class="sec-head"><h2>Check it yourself</h2><p>Don't take our word for it. These commands check the run behind this page on your own machine.</p></div>
+        <div class="sec-head"><h2>Four commands, on your machine</h2><p>Don't take our word for it. These commands check the run behind this page on your own machine.</p></div>
         <ol class="checks">
           <li><div><h3>Get the code</h3><p>Python 3.10 or newer, in a fresh virtual environment. Run the next steps in the same terminal. No Docker needed.</p></div><div class="cmd"><code id="cmd0">git clone https://github.com/bhaveshlakhmani25-ui/Bayora_HIH2026 &amp;&amp; cd Bayora_HIH2026 &amp;&amp; python3 -m venv .venv &amp;&amp; . .venv/bin/activate &amp;&amp; pip install -e .</code><button class="btn copy" type="button" data-copy="cmd0">Copy</button></div></li>
           <li><div><h3>Verify this page's receipt</h3><p>Checks the signatures, the witness quorum, every published checkpoint and the teams&#x27; reveal, without contacting us.</p></div><div class="cmd"><code id="cmd1">bayora verify results_final/demo/receipt.json results_final/demo/log.jsonl --trust results_final/demo/keys.json --checkpoints results_final/demo/checkpoints --reveal results_final/demo/reveal.json</code><button class="btn copy" type="button" data-copy="cmd1">Copy</button></div></li>
@@ -745,6 +751,8 @@ function site(r, p) {
   const tam = r.tamper ? [r.tamper.edited_event_rejected, r.reveal && r.reveal.tampered_payload_rejected, r.tamper.split_view_refused_by_witness].filter(Boolean).length : null;
   add("Forbidden paths blocked", "Red-zone probes; denied in the kernel by eBPF and logged.", `${forb.filter(([, v]) => blocked(v)).length}`, `/${forb.length}`, "3/3");
   if (best) add("Planted leaks caught", `Scanner v3 over ${(r.noise_lines_scanned ?? "?").toLocaleString("en-US")} noise lines with forged look-alikes; ${best.false_positives} false alarms.`, `${best.detected}`, `/${best.total}`, "100/120");
+  if (best) $("measured-h").textContent = `${best.detected} of ${best.total} planted leaks caught. The other ${best.total - best.detected} are listed as risk.`;
+  if (p) $("story-h").textContent = `${p.log_size} events, one receipt`;
   if (frag && frag[1]) add("Fragment leaks caught", "14-character pieces of a canary, matched by 10-character windows.", `${frag[0]}`, `/${frag[1]}`, "0/20");
   if (c && c.shared) add("Side-channel guesses with salt", `Lower is better: blind guessing gets about ${(c.salted.trials * c.shared.chance).toFixed(1)}/${c.salted.trials}. Tenant B guessing A's secret from 8 candidates. Shared cache: ${c.shared.correct}/${c.shared.trials}. Cross-tenant cache hits with salt: ${c.salted.cross_tenant_cache_hits ?? "?"}.`, `${c.salted.correct}`, `/${c.salted.trials}`, "not run");
   if (tam != null) add("Tamper tests rejected", "Edited event, mismatched reveal, split view to a witness.", `${tam}`, "/3", "3/3");
