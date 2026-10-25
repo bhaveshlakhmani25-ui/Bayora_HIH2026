@@ -102,7 +102,6 @@
   .hero { padding-block: 72px 64px; border-bottom: 1px solid var(--rule); background: linear-gradient(var(--rule) 1px, transparent 1px) 0 0 / 100% 32px, var(--paper); }
   .hero .wrap { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr); gap: 56px; align-items: center; }
   @media (max-width: 1000px) { .hero { padding-block: 40px; } .hero .wrap { grid-template-columns: 1fr; gap: 36px; } }
-  .event { margin: 24px 0 0; font-size: 14px; color: var(--muted); }
   .hero h1 { font-size: clamp(46px, 7.2vw, 92px); font-weight: 900; text-transform: uppercase; line-height: .9; letter-spacing: .005em; }
   .hero h1 .fair { color: var(--seal-text); } .hero h1 .nw, .step h3 .nw { white-space: nowrap; }
   .hero .lede { font-size: clamp(17px, 1.5vw, 19px); color: var(--ink-2); max-width: 54ch; margin: 24px 0 32px; }
@@ -221,9 +220,6 @@
   .cmd .copy { min-height: 0; border: 0; border-left: 1px solid var(--rule-2); border-radius: 0 8px 8px 0; padding: 0 16px; font-size: 14px; }
   .envline code { font: 13px var(--mono); color: var(--ink); }
   @media (max-width: 860px) { .checks li { grid-template-columns: 1fr; } }
-  .cta { margin-top: 48px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 20px; padding: 28px; border: 1.5px solid var(--ink); border-radius: var(--r); background: var(--sheet); }
-  .cta h3 { font-size: clamp(28px, 3.4vw, 40px); font-weight: 800; text-transform: uppercase; }
-  .cta p { margin: 6px 0 0; color: var(--ink-2); }
 
   footer.site-foot { --fl: color-mix(in srgb, var(--foot-ink) 70%, transparent); background: var(--foot); color: var(--foot-ink); border-top: 1px solid var(--foot-rule); padding-block: 44px 28px; }
   .site-foot .cols { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 32px; }
@@ -414,9 +410,7 @@
           <p class="lede">Bayora walls off the attacking team, the defending team and the model, catches leaks with canaries that name the leaker, and seals every event in a log that witnesses co-sign. The run ends in a receipt anyone can check.</p>
           <div class="ctas">
             <a class="btn solid" href="#/app/overview">Open the console <svg class="i"><use href="#i-arrow"/></svg></a>
-            <a class="btn" href="#story">Watch a run</a>
           </div>
-          <p class="event">Built for Hack in Hills '26, Track 04: securing adversarial AI safety testing.</p>
         </div>
 
         <article class="tag" aria-labelledby="tag-title">
@@ -481,7 +475,6 @@
           <li><div><h3>Measure the leak scanners</h3><p>The 180 planted leaks and 10,000 noise lines, in a few seconds on a laptop.</p></div><div class="cmd"><code id="cmd3">bayora drill</code><button class="btn copy" type="button" data-copy="cmd3">Copy</button></div></li>
         </ol>
         <p class="envline">Steps 2 and 3 use the demo run shipped in the repository. A full run of your own needs Docker on Linux, or Colima on a Mac: <code>bayora run</code>. See the README.</p>
-        <div class="cta"><div><h3>Inspect a live case</h3><p>Isolation, detection, the side-channel test and the witnessed log, with the receipt you can break.</p></div><a class="btn solid" href="#/app/overview">Open the console <svg class="i"><use href="#i-arrow"/></svg></a></div>
       </div>
     </section>
   </main>
