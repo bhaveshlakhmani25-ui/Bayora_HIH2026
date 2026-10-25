@@ -130,7 +130,7 @@
   .tag-actions { display: flex; flex-wrap: wrap; gap: 10px; padding: 16px 0 6px; }
   /* the receipt as an object: tilt it, drag or turn it over, and the Merkle tree behind its root is on the back */
   .tag3d { perspective: 1600px; }
-  .tag-turn { display: grid; transform-style: preserve-3d; transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .9s cubic-bezier(.18, 1.22, .32, 1); touch-action: pan-y; }
+  .tag-turn { display: grid; transform-style: preserve-3d; transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .9s cubic-bezier(.18, 1.22, .32, 1); touch-action: pan-y pinch-zoom; }
   .tag-turn.hovering { transition: transform .35s cubic-bezier(.2, .8, .3, 1); }
   .tag-turn.dragging { transition: none; cursor: grabbing; user-select: none; }
   @media (hover: hover) and (pointer: fine) { .tag-turn { cursor: grab; } }
@@ -766,15 +766,18 @@ $("t-tamper").onclick = () => { const e = allEvents.find((x) => x.probe === "red
 
 /* ---------- the receipt's other side: its Merkle tree, hashed again in this browser ---------- */
 const turn = $("tag-turn"), still = matchMedia("(prefers-reduced-motion: reduce)"), fine = matchMedia("(hover: hover) and (pointer: fine)");
-let angle = 0, drag = null;   // angle settles on multiples of 180; an odd multiple shows the back
+let angle = 0, drag = null, turning = 0;   // angle settles on multiples of 180; an odd multiple shows the back
 const backShown = () => Math.round(angle / 180) % 2 !== 0;
 function setTurn(dy = 0, rx = 0) { turn.style.setProperty("--ry", `${angle + dy}deg`); turn.style.setProperty("--rx", `${rx}deg`); }
-function settle() { $("tag-front").inert = backShown(); $("tag-back").inert = !backShown(); setTurn(); }
+function settle() {   // hover tilt waits until the turn lands, or it would swap the slow spring for its quick ease mid-flip
+  clearTimeout(turning); turning = setTimeout(() => (turning = 0), still.matches ? 0 : 950);
+  turn.classList.remove("hovering"); $("tag-front").inert = backShown(); $("tag-back").inert = !backShown(); setTurn();
+}
 function showFace(back) { if (backShown() !== back) angle += 180; settle(); }
 $("t-turn").onclick = () => { showFace(true); $("t-back").focus({ preventScroll: true }); };
 $("t-back").onclick = () => { showFace(false); $("t-turn").focus({ preventScroll: true }); };
 turn.addEventListener("pointermove", (e) => {   // a slight tilt toward the pointer, so it reads as a held object
-  if (drag || still.matches || !fine.matches) return;
+  if (drag || turning || still.matches || !fine.matches) return;
   const b = turn.getBoundingClientRect();
   turn.classList.add("hovering"); setTurn(((e.clientX - b.left) / b.width - .5) * 10, -((e.clientY - b.top) / b.height - .5) * 7);
 });
@@ -843,7 +846,7 @@ function rootState(hash, edited) {
   $("tree-seal").className = "seal-strip" + (ok ? "" : " broken");
   $("tree-word").textContent = ok ? "Root matches" : "Root differs";
   if (!edited) $("tree-note").textContent = ok
-    ? `All ${tree.lines.length} events were hashed again in this browser, leaf by leaf, up to the root. It matches the root the operator and the witnesses signed.`
+    ? `All ${tree.lines.length} events were hashed again in this browser, leaf by leaf, up to the root. It matches the root in the receipt; Verify seal checks the operator's and witnesses' signatures on it.`
     : `Hashing these ${tree.lines.length} events here gives a different root from the one the receipt signed${tree.lines.length !== tree.size ? ` (the log has ${tree.lines.length} events, the receipt ${tree.size})` : ""}.`;
 }
 function treeReset() {
@@ -859,7 +862,9 @@ async function treeTamper(i) {
   const run = tree.ripple, [line, change] = tamperLine(tree.lines[i]), wait = (ms) => new Promise((r) => setTimeout(r, still.matches ? 0 : ms));
   const path = tree.nodes.filter((n) => n.lo <= i && i < n.hi).sort((a, b) => b.d - a.d), fresh = new Map([[path[0], await leafOf(line)]]);
   for (const n of path.slice(1)) fresh.set(n, await nodeOf(fresh.get(n.kids[0]) || n.kids[0].hash, fresh.get(n.kids[1]) || n.kids[1].hash));
+  const hadFocus = $("tag-front").contains(document.activeElement);
   showFace(true);
+  if (hadFocus) $("t-back").focus({ preventScroll: true });   // the front just went inert under the focused button
   tree.ends.style.visibility = "hidden";   // the edited leaf's label takes the bottom line
   tree.leafLabel.setAttribute("x", Math.min(Math.max(path[0].x, 34), 366)); tree.leafLabel.textContent = `#${i} edited`;
   $("tree-note").textContent = `Event #${i} edited in a copy of the log: ${change}. Hashing it again, then every node above it…`;

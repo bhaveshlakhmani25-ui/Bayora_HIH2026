@@ -29,7 +29,7 @@ Bayora runs a blind, leak-audited red-vs-blue evaluation:
 | `bayora/cachetest.py` (`bayora cachetest`) | Tenant B times prompts to infer tenant A's secret from K=8 candidates, shared versus salted. The probe is the `cacheprobe` role in `containers/agent.py`. |
 | `bayora/dashboard/` (`bayora dashboard`) | `server.py` serves one `index.html` with the run inlined (no layout shift), bundled OFL fonts, `/api/verify` (incl. a non-destructive tamper demo) and `/api/events`. The page has a landing site with a pinned six-scene story replaying the run, and a console with Overview, Isolation, Detection, Side channel, Ledger, Verify and Limits. |
 | `Dockerfile` | Zone image `bayora/py:poc` (`python:3.12-slim`). |
-| `tests/` | 24 tests. Run with `pip install -e ".[dev]" && python -m pytest -q tests`. CI: `.github/workflows/ci.yml`. |
+| `tests/` | 25 tests. Run with `pip install -e ".[dev]" && python -m pytest -q tests`. CI: `.github/workflows/ci.yml`. |
 
 Full-build results are in `results_final/`, `docs/test-plan.md` and `docs/deck-numbers.md` (Colima vz, Apple M5, 3 runs). The PoC results below are archived in `results_poc/`.
 
