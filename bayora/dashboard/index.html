@@ -411,7 +411,7 @@
       <div class="wrap">
         <div>
           <h1>Evidence that an AI <span class="nw">red-team</span> test was <span class="fair">fair</span>.</h1>
-          <p class="lede">Bayora keeps the attacking team, the defending team and the model behind enforced walls, catches leaks with canaries that name the leaker, and seals every event in a log that witnesses co-sign. The run ends with a custody receipt that anyone can check.</p>
+          <p class="lede">Bayora walls off the attacking team, the defending team and the model, catches leaks with canaries that name the leaker, and seals every event in a log that witnesses co-sign. The run ends in a receipt anyone can check.</p>
           <div class="ctas">
             <a class="btn solid" href="#/app/overview">Open the console <svg class="i"><use href="#i-arrow"/></svg></a>
             <a class="btn" href="#story">Watch a run</a>
@@ -425,9 +425,9 @@
           <div class="sig" id="tag-sig"></div>
           <div class="tag-actions">
             <button class="btn solid" id="t-verify"><svg class="i"><use href="#i-check"/></svg>Verify seal</button>
-            <button class="btn break" id="t-tamper"><svg class="i"><use href="#i-edit"/></svg>Edit one event</button>
+            <button class="btn break" id="t-tamper"><svg class="i"><use href="#i-edit"/></svg>Tamper, then verify</button>
           </div>
-          <div class="tag-out" id="tag-out" aria-live="polite">Check the seal, then edit one logged event and check again.</div>
+          <div class="tag-out" id="tag-out" aria-live="polite">Verify the seal, then tamper with one event in a copy of the log and verify again.</div>
           <div class="seal-strip" id="seal"><strong id="seal-word">Seal not checked</strong><span class="mono" id="seal-root"></span></div>
         </article>
       </div>
@@ -443,12 +443,12 @@
           <div class="wrap story-grid">
             <div class="tl">
               <div class="steps" id="steps">
-            <article class="step" data-scene="0"><span class="label">Scene 1 · The problem</span><h3><button class="go" type="button">A safety test is only as good as its walls</button></h3><p>An AI lab has to show regulators that its model was red-teamed (EU AI Act, Art. 55). The attackers, the defenders and the model share one machine. If the defenders glimpse the attacks, or one tenant reads another's prompt from a shared cache (NDSS 2025), the finding is void, and nobody outside could tell.</p><div class="step-frame" data-frame="0"></div></article>
+            <article class="step" data-scene="0"><span class="label">Scene 1 · The problem</span><h3><button class="go" type="button">A safety test is only as good as its walls</button></h3><p>An AI lab must show regulators its model was red-teamed (EU AI Act, Art. 55), but attackers, defenders and the model share one machine. If the defenders glimpse the attacks, or one tenant reads another's prompt from a shared cache (NDSS 2025), the finding is void, and nobody outside could tell.</p><div class="step-frame" data-frame="0"></div></article>
             <article class="step" data-scene="1"><span class="label">Scene 2 · Before the run</span><h3><button class="go" type="button">Both teams seal their work</button></h3><p>Before anything runs, each team publishes a fingerprint (a hash) of its attacks and its rules. Neither can change them later without breaking the match.</p><div class="step-frame" data-frame="1"></div></article>
             <article class="step" data-scene="2"><span class="label">Scene 3 · Setup</span><h3><button class="go" type="button">The walls go up</button></h3><p>Each team gets its own container and network, and the broker is the only way through. When the red team tries to reach blue, the model directly or the internet, <span data-fill="refuser">the kernel refuses before a packet leaves</span>, and the attempt goes into the log.</p><div class="step-frame" data-frame="2"></div></article>
-            <article class="step" data-scene="3"><span class="label">Scene 4 · During the run</span><h3><button class="go" type="button">A leak is caught, and named</button></h3><p>Every secret carries canaries only Bayora can mint. During the run Bayora leaks fake ones on purpose, in <span data-fill="disguises">nine</span> disguises, to measure what it catches. When one surfaces, the alert says whose secret it is and where it escaped. Pieces shorter than 10 characters still slip past, and the console lists them as residual risk.</p><div class="step-frame" data-frame="3"></div></article>
-            <article class="step" data-scene="4"><span class="label">Scene 5 · Against the real model</span><h3><button class="go" type="button">The <span class="nw">shared-cache</span> trick fails</button></h3><p>Before the evaluation, Bayora attacks the real model itself: tenant B times its own prompts to guess which of 8 secrets tenant A's prompt holds. Bayora gives each tenant its own salt and slot, and checks that the attack no longer works.</p><div class="step-frame" data-frame="4"></div></article>
-            <article class="step" data-scene="5"><span class="label">Scene 6 · After the run</span><h3><button class="go" type="button">Sealed, witnessed, checkable</button></h3><p>Every event is chained into a log that <span data-fill="witnesses">two</span> witness processes co-sign. The run ends in a receipt anyone can check without trusting the operator. Try it: verify, then edit one event.</p><div class="step-frame" data-frame="5"></div></article>
+            <article class="step" data-scene="3"><span class="label">Scene 4 · During the run</span><h3><button class="go" type="button">A leak is caught, and named</button></h3><p>Every secret is tagged with canaries: unique tokens only Bayora can mint. During the run Bayora leaks fake ones on purpose, in <span data-fill="disguises">nine</span> disguises, to measure what it catches. When one surfaces, the alert says whose secret it is and where it escaped. Pieces shorter than 10 characters still slip past, and the console lists them as residual risk.</p><div class="step-frame" data-frame="3"></div></article>
+            <article class="step" data-scene="4"><span class="label">Scene 5 · Against the real model</span><h3><button class="go" type="button">The <span class="nw">shared-cache</span> trick fails</button></h3><p>Before the evaluation, Bayora attacks the real model itself: tenant B times its own prompts to guess which of 8 secrets tenant A's prompt holds. Bayora gives each tenant a private cache (its own salt and slot), then checks that the attack stops working.</p><div class="step-frame" data-frame="4"></div></article>
+            <article class="step" data-scene="5"><span class="label">Scene 6 · After the run</span><h3><button class="go" type="button">Sealed, witnessed, checkable</button></h3><p>Every event is chained into a log that <span data-fill="witnesses">two</span> witness processes co-sign. The run ends in a receipt anyone can check without trusting the operator. Try it: verify, then tamper with one event.</p><div class="step-frame" data-frame="5"></div></article>
               </div>
               <p class="story-cap" id="story-cap" aria-live="polite"></p>
             </div>
@@ -465,7 +465,7 @@
 
     <section class="sec" id="measured">
       <div class="wrap">
-        <div class="sec-head"><h2>Measured, not promised</h2><p>Read live from the latest run on this machine. Bayora never claims zero leakage; what it cannot see is listed as residual risk in the console.</p></div>
+        <div class="sec-head"><h2>Measured, not promised</h2><p>Read from the run behind this page. Bayora never claims zero leakage; what it cannot see is listed as residual risk in the console.</p></div>
         <div class="report-wrap"><table class="report" id="report"><thead><tr><th>Measure</th><th>Result</th><th>Round 1</th><th>How it was measured</th></tr></thead><tbody></tbody></table></div>
         <p class="envline" id="l-env">Loading run…</p>
       </div>
@@ -473,9 +473,9 @@
 
     <section class="sec" id="check">
       <div class="wrap">
-        <div class="sec-head"><h2>Check it yourself</h2><p>Bayora's claim is that nobody has to take an evaluator's word for it. These commands check the run behind this page on your own machine.</p></div>
+        <div class="sec-head"><h2>Check it yourself</h2><p>Don't take our word for it. These commands check the run behind this page on your own machine.</p></div>
         <ol class="checks">
-          <li><div><h3>Get the code</h3><p>Python 3.10 or newer. No Docker needed for the first three steps.</p></div><div class="cmd"><code id="cmd0">git clone https://github.com/bhaveshlakhmani25-ui/Bayora_HIH2026 &amp;&amp; cd Bayora_HIH2026 &amp;&amp; pip install -e .</code><button class="btn copy" type="button" data-copy="cmd0">Copy</button></div></li>
+          <li><div><h3>Get the code</h3><p>Python 3.10 or newer, in a fresh virtual environment. Run the next steps in the same terminal. No Docker needed.</p></div><div class="cmd"><code id="cmd0">git clone https://github.com/bhaveshlakhmani25-ui/Bayora_HIH2026 &amp;&amp; cd Bayora_HIH2026 &amp;&amp; python3 -m venv .venv &amp;&amp; . .venv/bin/activate &amp;&amp; pip install -e .</code><button class="btn copy" type="button" data-copy="cmd0">Copy</button></div></li>
           <li><div><h3>Verify this page's receipt</h3><p>Checks the signatures, the witness quorum, every published checkpoint and the teams&#x27; reveal, without contacting us.</p></div><div class="cmd"><code id="cmd1">bayora verify results_final/demo/receipt.json results_final/demo/log.jsonl --trust results_final/demo/keys.json --checkpoints results_final/demo/checkpoints --reveal results_final/demo/reveal.json</code><button class="btn copy" type="button" data-copy="cmd1">Copy</button></div></li>
           <li><div><h3>Try to break it</h3><p>Change one event in your copy of the log, run step 2 again, and it fails and says why. The original is kept as log.jsonl.bak.</p></div><div class="cmd"><code id="cmd2">sed -i.bak &#x27;s/BLOCKED/CONNECTED/&#x27; results_final/demo/log.jsonl</code><button class="btn copy" type="button" data-copy="cmd2">Copy</button></div></li>
           <li><div><h3>Measure the leak scanners</h3><p>The 180 planted leaks and 10,000 noise lines, in a few seconds on a laptop.</p></div><div class="cmd"><code id="cmd3">bayora drill</code><button class="btn copy" type="button" data-copy="cmd3">Copy</button></div></li>
@@ -525,14 +525,14 @@
       </section>
 
       <section data-page="detection" hidden>
-        <p class="intro">Every secret carries canaries only Bayora can mint. Bayora leaks fake ones on purpose through every monitored channel, in many disguises, and counts how many each scanner catches. A canary that turns up without being planted is raised as a possible real leak.</p>
+        <p class="intro">Every secret is tagged with canaries: unique tokens only Bayora can mint. Bayora leaks fake ones on purpose through every monitored channel, in many disguises, and counts how many each scanner catches. A canary that turns up without being planted is raised as a possible real leak.</p>
         <div class="cols2">
           <div class="panel"><header><h2>Catches by disguise and channel</h2></header><div class="body">
             <div class="seg" id="modes" role="tablist" aria-label="Scanner"></div>
             <div class="scroll"><table class="matrix" id="matrix"></table></div>
             <div class="legend"><span class="lv2"><i></i>all caught</span><span class="lv1"><i></i>some caught</span><span class="lv0"><i></i>none caught: residual risk</span></div>
           </div></div>
-          <div class="panel"><header><h2>Recall per scanner</h2></header><div class="body">
+          <div class="panel"><header><h2>Leaks caught, per scanner</h2></header><div class="body">
             <div class="bars" id="bars"></div>
             <div class="callout" id="frag" hidden></div>
             <p class="muted" id="fp" style="font-size:14px;margin:14px 0 0"></p>
@@ -549,20 +549,20 @@
       </section>
 
       <section data-page="ledger" hidden>
-        <p class="intro">Every event is appended to a Merkle log. Checkpoints are signed by the operator and co-signed by witness processes, which refuse to sign two different histories. In this build both witnesses run on the operator's machine.</p>
+        <p class="intro">Every event is appended to a tamper-evident Merkle log: change one event and every later fingerprint changes. Checkpoints are signed by the operator and co-signed by witness processes, which refuse to sign two different histories. In this build both witnesses run on the operator's machine.</p>
         <div class="panel" style="margin-top:20px"><header><h2>Checkpoints and signatures</h2></header><div class="body"><div class="chain" id="chain"></div><p class="muted" id="alarms" style="font-size:14px;margin:10px 0 0"></p></div></div>
         <div class="panel" style="margin-top:20px"><header><span class="live"></span><h2>Event log</h2><span class="seg" id="filters" role="group" aria-label="Filter events" style="margin:0"></span></header><div class="body"><ul class="feed" id="feed"></ul></div></div>
       </section>
 
       <section data-page="verify" hidden>
-        <p class="intro">Check the receipt yourself, then edit any single event and check again. The edit is made to a temporary copy of the log; the real log is never changed.</p>
+        <p class="intro">Verify the receipt, then tamper with any one event and verify again. The edit goes to a temporary copy; the real log never changes.</p>
         <div class="cols2">
           <div class="panel"><header><h2>Custody receipt</h2><span class="label" id="rc-fmt"></span></header><div class="body"><dl class="kv" id="rc"></dl></div></div>
           <div style="display:grid;gap:20px;align-content:start">
             <div class="panel"><header><h2>Verify</h2></header><div class="body" style="display:grid;gap:12px">
               <button class="btn solid" id="verify"><svg class="i"><use href="#i-check"/></svg>Verify receipt</button>
-              <div class="field"><label for="tamper-pick">Event to edit</label><select class="input" id="tamper-pick"><option>Loading events…</option></select></div>
-              <button class="btn break" id="tamper"><svg class="i"><use href="#i-edit"/></svg>Edit and verify</button>
+              <div class="field"><label for="tamper-pick">Event to tamper with</label><select class="input" id="tamper-pick"><option>Loading events…</option></select></div>
+              <button class="btn break" id="tamper"><svg class="i"><use href="#i-edit"/></svg>Tamper, then verify</button>
             </div></div>
             <div class="verdict" id="stamp" role="status" aria-live="polite" hidden></div>
           </div>
@@ -735,7 +735,7 @@ $("t-tamper").onclick = () => { const e = allEvents.find((x) => x.probe === "red
 function overview(r, p) {
   const k = $("kpis"); k.replaceChildren();
   const cell = (href, label, v, d, st) => k.append(h("a", { href }, h("div", { class: "top" }, h("span", { class: "label" }, label), st || null), h("div", { class: "v" }, v), h("div", { class: "d" }, d)));
-  if (!r) { cell("#/app/limits", "Run", "–", "No results.json in this folder yet."); return; }
+  if (!r) { cell("#/app/limits", "Run", "–", "No run in this folder. Run bayora run, or start the dashboard with --results results_final/demo."); return; }
   const probes = r.isolation_probes || {}, forb = Object.entries(probes).filter(([n]) => n.startsWith("red->") && n !== "red->broker");
   const nb = forb.filter(([, v]) => blocked(v)).length;
   const best = r.leak_drills ? Object.values(r.leak_drills).at(-1) : null, c = S.cachetest || r.cache_audit;
@@ -760,7 +760,7 @@ function receiptDl(dl, p, compact) {
     if (!compact) row("Commitments", h("span", {}, team("red"), " ", h("span", { class: "hex" }, short(p.commitments.red, 10)), "  ", team("blue"), " ", h("span", { class: "hex" }, short(p.commitments.blue, 10))));
     row("Model", p.model_sha256 ? h("span", { class: "hex" }, "sha256 " + short(p.model_sha256, 14)) : h("span", { class: "muted" }, "stand-in model"));
     row("Witnesses", h("span", { style: "display:flex;gap:6px;flex-wrap:wrap" }, p.witnesses.map((w) => stamp(w.name, w.cosig ? "ok" : "bad"))));
-    if (!compact) row("Drill recall", h("span", { class: "mono" }, Object.entries(p.drills || {}).map(([m, d]) => `${m} ${d.recall}`).join(" · ")));
+    if (!compact) row("Planted leaks caught", h("span", { class: "mono" }, Object.entries(p.drills || {}).map(([m, d]) => `${m} ${d.recall}`).join(" · ")));
   } else if (S.receipt) { row("Case", S.receipt.run_id); row("Format", "PoC receipt"); }
   else row("Receipt", h("span", { class: "muted" }, "none in this folder"));
 }
@@ -922,7 +922,7 @@ function scene(i, r, p, pfx) {
   const run = async (tamper) => { out.textContent = "Checking…"; const v = await apiVerify(tamper), [cls, word] = verdictOf(v); out.replaceChildren(stamp(word, cls), "  ", (v.tampered ? v.tampered + ". " : "") + v.message); };
   const ed = () => { const e = allEvents.find((x) => x.probe === "red->internet") || allEvents[2]; run(e ? e.index : 0); };
   return [title("Checkpoints co-signed by the witnesses"), chainEl,
-    h("div", { class: "scene-actions" }, h("button", { class: "btn solid", onclick: () => run(null) }, icon("check"), "Verify this run"), h("button", { class: "btn break", onclick: ed }, icon("edit"), "Edit one event")), out];
+    h("div", { class: "scene-actions" }, h("button", { class: "btn solid", onclick: () => run(null) }, icon("check"), "Verify this run"), h("button", { class: "btn break", onclick: ed }, icon("edit"), "Tamper, then verify")), out];
 }
 function story(r, p) {
   if (r) $("story-sub").textContent = `A replay of case ${r.run_id}, measured on ${r.host && r.host.docker ? `Docker via ${r.host.docker.context}` : r.host.platform}. Every frame below is that run's own data, not an illustration.`;
@@ -1027,7 +1027,7 @@ document.querySelectorAll("[data-copy]").forEach((b) => (b.onclick = async () =>
 async function apiVerify(tamper) {
   try {
     return await (await fetch("/api/verify", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(tamper == null ? {} : { tamper: Number(tamper) }) })).json();
-  } catch (e) { return { ok: false, pinned: false, message: "The verifier did not answer. Is bayora dashboard still running?", trust: "" }; }
+  } catch (e) { return { ok: false, pinned: false, message: "The verifier did not answer. Start it again with bayora dashboard, then retry.", trust: "" }; }
 }
 async function doVerify(tamper) {
   const btns = [$("verify"), $("tamper")]; btns.forEach((b) => (b.disabled = true));
@@ -1045,7 +1045,7 @@ $("tamper").onclick = () => doVerify($("tamper-pick").value);
 let boot = window.__BOOT__;   // the run the server wrote into the page, so the first frame is already complete
 async function load() {
   const b = boot; boot = null;
-  try { S = b ? b.state : await (await fetch("/api/state")).json(); } catch (e) { $("l-env").textContent = "Could not load the run. Is bayora dashboard running?"; return; }
+  try { S = b ? b.state : await (await fetch("/api/state")).json(); } catch (e) { $("l-env").textContent = "Could not load the run. Start it with bayora dashboard, then reload this page."; return; }
   const r = S.results, p = S.statement && S.statement.predicate;
   site(r, p); story(r, p); overview(r, p); receiptDl($("rc"), p, false); isolation(r); detection(r); cache(r); chain(r); limits(r);
   $("rc-fmt").textContent = p ? "in-toto · DSSE" : (S.receipt ? "PoC format" : "none");
