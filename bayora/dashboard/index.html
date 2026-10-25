@@ -128,6 +128,36 @@
   .seal-strip.warned strong { color: var(--deny); }
   @keyframes tear { 0% { clip-path: inset(0); } 40% { clip-path: polygon(0 0, 100% 0, 100% 100%, 62% 100%, 55% 40%, 48% 100%, 0 100%); } 100% { clip-path: inset(0); } }
   .tag-actions { display: flex; flex-wrap: wrap; gap: 10px; padding: 16px 0 6px; }
+  /* the receipt as an object: tilt it, drag or turn it over, and the Merkle tree behind its root is on the back */
+  .tag3d { perspective: 1600px; }
+  .tag-turn { display: grid; transform-style: preserve-3d; transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .9s cubic-bezier(.18, 1.22, .32, 1); touch-action: pan-y; }
+  .tag-turn.hovering { transition: transform .35s cubic-bezier(.2, .8, .3, 1); }
+  .tag-turn.dragging { transition: none; cursor: grabbing; user-select: none; }
+  @media (hover: hover) and (pointer: fine) { .tag-turn { cursor: grab; } }
+  .tag-turn > .tag { grid-area: 1 / 1; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+  .tag.back { transform: rotateY(180deg); padding: 24px 48px 0 24px; display: flex; flex-direction: column; }
+  .tag.back::before { left: auto; right: 18px; }   /* the same punched hole, seen from behind */
+  .tag.back .seal-strip { margin: auto -48px 0 -24px; padding: 16px 48px 16px 24px; }
+  .tag-head .end { display: flex; align-items: center; gap: 10px; }
+  .turn { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; margin: -12px -10px -12px 0; padding: 0 10px; border: 0; border-radius: 8px; background: none; color: var(--ink-2); font: 600 13px/1 var(--body); cursor: pointer; white-space: nowrap; }
+  .turn:hover { color: var(--ink); background: var(--well); }
+  .turn svg.i { width: 16px; height: 16px; }
+  .tree-note { margin: 12px 0 0; font-size: 14px; line-height: 1.5; color: var(--ink-2); min-height: 4.5em; }
+  .tree { margin: 10px 0 6px; flex: 1; display: grid; align-content: center; }   /* the back is as tall as the front: the tree takes the spare height */
+  .tree svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .t-edge { stroke: var(--rule-2); stroke-width: 1; transition: stroke .25s, stroke-width .25s; }
+  .t-node { fill: var(--ink-2); transition: fill .25s; }
+  .t-root { fill: var(--seal); }
+  .t-leaf { fill: var(--ink-2); opacity: .5; transition: fill .25s, opacity .25s; }
+  .t-leaf:hover { opacity: 1; }
+  .tree text { font: 11px var(--mono); fill: var(--muted); }
+  .t-edge.hot { stroke: var(--crit); stroke-width: 2; }
+  .t-node.hot, .t-leaf.hot { fill: var(--crit); opacity: 1; }
+  .tree text.hot { fill: var(--crit); }
+  .tag.back dd .bad { color: var(--crit); }
+  @media (max-width: 460px) { #tag-fmt { display: none; } }
+  @media (max-width: 420px) { .tag.back { padding-left: 24px; padding-right: 36px; } .tag.back::before { left: auto; right: 12px; }
+    .tag.back .seal-strip { margin-left: -24px !important; padding-left: 24px !important; margin-right: -36px; padding-right: 36px; } }
   .tag-out { font: 13px/1.55 var(--mono); color: var(--ink-2); padding: 4px 0 18px; min-height: calc(6 * 1.55em + 22px); word-break: break-word; }   /* room for the longest verdict, so the seal never jumps */
 
   .sec { padding-block: 88px; border-bottom: 1px solid var(--rule); }
@@ -376,6 +406,7 @@
   <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></symbol>
   <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
   <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></symbol>
+  <symbol id="i-turn" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15.4-6.4L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.4 6.4L3 16"/><path d="M3 21v-5h5"/></symbol>
   <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></symbol>
   <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
 </svg>
@@ -413,8 +444,9 @@
           </div>
         </div>
 
-        <article class="tag" aria-labelledby="tag-title">
-          <div class="tag-head"><h2 id="tag-title">Custody receipt</h2><span class="label" id="tag-fmt">in-toto · DSSE</span></div>
+        <div class="tag3d"><div class="tag-turn" id="tag-turn">
+        <article class="tag" id="tag-front" aria-labelledby="tag-title">
+          <div class="tag-head"><h2 id="tag-title">Custody receipt</h2><div class="end"><span class="label" id="tag-fmt">in-toto · DSSE</span><button class="turn" id="t-turn" type="button"><svg class="i"><use href="#i-turn"/></svg>Turn over</button></div></div>
           <dl id="tag-dl"><dt>Receipt</dt><dd class="muted">Loading the latest case…</dd></dl>
           <div class="sig" id="tag-sig"></div>
           <div class="tag-actions">
@@ -424,6 +456,14 @@
           <div class="tag-out" id="tag-out" aria-live="polite">Verify the seal, then tamper with one event in a copy of the log and verify again.</div>
           <div class="seal-strip" id="seal"><strong id="seal-word">Seal not checked</strong><span class="mono" id="seal-root"></span></div>
         </article>
+        <article class="tag back" id="tag-back" aria-labelledby="tree-title" inert>
+          <div class="tag-head"><h2 id="tree-title">The log behind it</h2><button class="turn" id="t-back" type="button"><svg class="i"><use href="#i-turn"/></svg>Turn back</button></div>
+          <p class="tree-note" id="tree-note" aria-live="polite">Hashing the log in this browser…</p>
+          <figure class="tree"><svg id="tree-svg" viewBox="0 0 400 240" role="img" aria-label="Merkle tree of the log"></svg></figure>
+          <dl><dt>Recomputed here</dt><dd id="tree-root">–</dd><dt>Signed in receipt</dt><dd id="tree-signed">–</dd></dl>
+          <div class="seal-strip" id="tree-seal"><strong id="tree-word">Not hashed yet</strong><span class="mono">RFC 9162 · SHA-256</span></div>
+        </article>
+        </div></div>
       </div>
       <a class="cue" href="#story" id="cue">See a real run, step by step <svg class="i"><use href="#i-down"/></svg></a>
     </section>
@@ -721,8 +761,124 @@ async function sealRun(tamper) {
   $("tag-out").textContent = (r.tampered ? r.tampered + ". " : "") + r.message;
   ["t-verify", "t-tamper"].forEach((id) => ($(id).disabled = false));
 }
-$("t-verify").onclick = () => sealRun(null);
-$("t-tamper").onclick = () => { const e = allEvents.find((x) => x.probe === "red->internet") || allEvents[2]; sealRun(e ? e.index : 0); };
+$("t-verify").onclick = () => { treeReset(); sealRun(null); };
+$("t-tamper").onclick = () => { const e = allEvents.find((x) => x.probe === "red->internet") || allEvents[2], i = e ? e.index : 0; treeTamper(i); sealRun(i); };
+
+/* ---------- the receipt's other side: its Merkle tree, hashed again in this browser ---------- */
+const turn = $("tag-turn"), still = matchMedia("(prefers-reduced-motion: reduce)"), fine = matchMedia("(hover: hover) and (pointer: fine)");
+let angle = 0, drag = null;   // angle settles on multiples of 180; an odd multiple shows the back
+const backShown = () => Math.round(angle / 180) % 2 !== 0;
+function setTurn(dy = 0, rx = 0) { turn.style.setProperty("--ry", `${angle + dy}deg`); turn.style.setProperty("--rx", `${rx}deg`); }
+function settle() { $("tag-front").inert = backShown(); $("tag-back").inert = !backShown(); setTurn(); }
+function showFace(back) { if (backShown() !== back) angle += 180; settle(); }
+$("t-turn").onclick = () => { showFace(true); $("t-back").focus({ preventScroll: true }); };
+$("t-back").onclick = () => { showFace(false); $("t-turn").focus({ preventScroll: true }); };
+turn.addEventListener("pointermove", (e) => {   // a slight tilt toward the pointer, so it reads as a held object
+  if (drag || still.matches || !fine.matches) return;
+  const b = turn.getBoundingClientRect();
+  turn.classList.add("hovering"); setTurn(((e.clientX - b.left) / b.width - .5) * 10, -((e.clientY - b.top) / b.height - .5) * 7);
+});
+turn.addEventListener("pointerleave", () => { if (!drag) { turn.classList.remove("hovering"); setTurn(); } });
+turn.addEventListener("pointerdown", (e) => { if (e.button === 0 && !e.target.closest("button, a, select, input")) drag = { x: e.clientX, y: e.clientY, dx: 0, on: false, id: e.pointerId }; });
+addEventListener("pointermove", (e) => {
+  if (!drag || e.pointerId !== drag.id) return;
+  const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+  if (!drag.on) {   // only a mostly sideways drag turns the card; anything else stays a scroll or a text selection
+    if (Math.abs(dx) < 10 || Math.abs(dx) < Math.abs(dy)) { if (Math.abs(dy) > 10) drag = null; return; }
+    drag.on = true; turn.setPointerCapture(e.pointerId); turn.classList.remove("hovering"); turn.classList.add("dragging"); getSelection().removeAllRanges();
+  }
+  drag.dx = dx; setTurn(dx * .5);
+});
+const drop = () => {
+  const d = drag; drag = null;
+  if (!d || !d.on) return;
+  turn.classList.remove("dragging");
+  if (Math.abs(d.dx * .5) > 50) angle += Math.sign(d.dx) * 180;   // past 50 degrees it carries on over; short of that it falls back
+  settle();
+};
+addEventListener("pointerup", drop); addEventListener("pointercancel", drop);
+
+const enc = new TextEncoder(), hexOf = (b) => Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
+async function sha(...parts) {
+  const o = new Uint8Array(parts.reduce((n, p) => n + p.length, 0)); let i = 0;
+  for (const p of parts) { o.set(p, i); i += p.length; }
+  return new Uint8Array(await crypto.subtle.digest("SHA-256", o));
+}
+const leafOf = (line) => sha(Uint8Array.of(0), enc.encode(line)), nodeOf = (l, r) => sha(Uint8Array.of(1), l, r);   // RFC 9162, as bayora/ledger.py
+function tamperLine(s) {   // the same edit the server's tampered_copy makes, so both sides change the same bytes
+  for (const [a, b] of [["BLOCKED", "CONNECTED"], ["true", "false"], ["false", "true"]]) if (s.includes(a)) return [s.replace(a, b), `${a} became ${b}`];
+  return [s + " ", "one space added"];
+}
+function build(lo, hi, d, out) {   // split at the largest power of two below n, as RFC 9162 does
+  const n = { lo, hi, d, kids: [] };
+  if (hi - lo > 1) { let k = 1; while (k << 1 < hi - lo) k <<= 1; n.kids = [build(lo, lo + k, d + 1, out), build(lo + k, hi, d + 1, out)]; }
+  out.push(n); return n;
+}
+async function hashAll(n, lines) { n.hash = n.kids.length ? await nodeOf(await hashAll(n.kids[0], lines), await hashAll(n.kids[1], lines)) : await leafOf(lines[n.lo]); return n.hash; }
+
+const tree = { lines: null, nodes: [], root: null, signed: null, ripple: 0 };
+function drawTree() {
+  const svg = $("tree-svg"), NS = "http://www.w3.org/2000/svg", W = 400, top = 34, base = 196, N = tree.lines.length;
+  const mk = (t, a, txt) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); if (txt) e.textContent = txt; return e; };
+  const lx = (i) => 6 + (i + .5) * (W - 12) / N, inner = tree.nodes.filter((n) => n.kids.length), depth = Math.max(1, ...inner.map((n) => n.d)), w = Math.max(.6, (W - 12) / N - .5);
+  for (const n of tree.nodes) { n.x = (lx(n.lo) + lx(n.hi - 1)) / 2; n.y = n.kids.length ? top + n.d * (base - 14 - top) / depth : base; }
+  const edges = mk("g", {}), marks = mk("g", {});
+  for (const n of inner) for (const k of n.kids) edges.append(k.edge = mk("line", { class: "t-edge", x1: n.x, y1: n.y, x2: k.x, y2: k.y }));
+  for (const n of tree.nodes) {
+    if (n.kids.length) marks.append(n.el = mk("circle", { class: n.d ? "t-node" : "t-node t-root", cx: n.x, cy: n.y, r: n.d ? Math.max(1.2, 4 - n.d * .4) : 5 }));
+    else { let kind = ""; try { kind = JSON.parse(tree.lines[n.lo]).kind || ""; } catch (e) {}
+      marks.append(n.el = mk("rect", { class: "t-leaf", x: lx(n.lo) - w / 2, y: base, width: w, height: 18 })); n.el.append(mk("title", {}, `event #${n.lo} ${kind}`)); }
+  }
+  tree.rootLabel = mk("text", { x: tree.root.x, y: top - 14, "text-anchor": "middle" });
+  tree.leafLabel = mk("text", { y: base + 34, "text-anchor": "middle", class: "hot" });
+  svg.replaceChildren(edges, marks, tree.rootLabel, tree.leafLabel, tree.ends = mk("g", {}, null));
+  tree.ends.append(mk("text", { x: 6, y: base + 34 }, "#0"), mk("text", { x: W - 6, y: base + 34, "text-anchor": "end" }, `#${N - 1}`));
+  $("tree-signed").replaceChildren(h("span", { class: "hex" }, short(tree.signed, 16)));
+  svg.setAttribute("aria-label", `Merkle tree of ${N} logged events. Each event is a leaf along the bottom, each dot is the hash of the two below it, and the root at the top is the value the receipt signs.`);
+}
+function rootState(hash, edited) {
+  const x = hexOf(hash), ok = x === tree.signed;
+  tree.rootLabel.textContent = `root ${short(x, 8)}`; tree.rootLabel.setAttribute("class", ok ? "" : "hot");
+  $("tree-root").replaceChildren(h("span", { class: ok ? "hex" : "hex bad" }, short(x, 16)));
+  $("tree-seal").className = "seal-strip" + (ok ? "" : " broken");
+  $("tree-word").textContent = ok ? "Root matches" : "Root differs";
+  if (!edited) $("tree-note").textContent = ok
+    ? `All ${tree.lines.length} events were hashed again in this browser, leaf by leaf, up to the root. It matches the root the operator and the witnesses signed.`
+    : `Hashing these ${tree.lines.length} events here gives a different root from the one the receipt signed${tree.lines.length !== tree.size ? ` (the log has ${tree.lines.length} events, the receipt ${tree.size})` : ""}.`;
+}
+function treeReset() {
+  if (!tree.root) return;
+  tree.ripple++;
+  for (const n of tree.nodes) { n.el.classList.remove("hot"); if (n.edge) n.edge.classList.remove("hot"); }
+  tree.leafLabel.textContent = ""; tree.ends.style.visibility = "";
+  rootState(tree.root.hash, false);
+}
+async function treeTamper(i) {
+  if (!tree.root || !tree.lines[i]) return;
+  treeReset();
+  const run = tree.ripple, [line, change] = tamperLine(tree.lines[i]), wait = (ms) => new Promise((r) => setTimeout(r, still.matches ? 0 : ms));
+  const path = tree.nodes.filter((n) => n.lo <= i && i < n.hi).sort((a, b) => b.d - a.d), fresh = new Map([[path[0], await leafOf(line)]]);
+  for (const n of path.slice(1)) fresh.set(n, await nodeOf(fresh.get(n.kids[0]) || n.kids[0].hash, fresh.get(n.kids[1]) || n.kids[1].hash));
+  showFace(true);
+  tree.ends.style.visibility = "hidden";   // the edited leaf's label takes the bottom line
+  tree.leafLabel.setAttribute("x", Math.min(Math.max(path[0].x, 34), 366)); tree.leafLabel.textContent = `#${i} edited`;
+  $("tree-note").textContent = `Event #${i} edited in a copy of the log: ${change}. Hashing it again, then every node above it…`;
+  await wait(700);   // let the card finish turning before the break travels up
+  for (const n of path) { if (run !== tree.ripple) return; n.el.classList.add("hot"); if (n.edge) n.edge.classList.add("hot"); await wait(120); }
+  if (run !== tree.ripple) return;
+  rootState(fresh.get(path.at(-1)), true);
+  $("tree-note").textContent = `Event #${i} edited: ${change}. Its leaf and the ${path.length - 1} hashes above it changed, so the root no longer matches the one the receipt signed.`;
+}
+async function treeInit() {
+  const text = window.__BOOT__ && window.__BOOT__.log, p = S && S.statement && S.statement.predicate;
+  if (!text || !p || !(window.crypto && crypto.subtle)) { $("t-turn").hidden = true; return; }   // nothing to hash, or no Web Crypto (needs https or localhost)
+  const lines = text.split("\n").slice(0, -1), out = [];
+  if (!lines.length) { $("t-turn").hidden = true; return; }
+  const root = build(0, lines.length, 0, out);
+  await hashAll(root, lines);
+  Object.assign(tree, { lines, nodes: out, root, signed: p.log_root, size: p.log_size });
+  drawTree(); treeReset();
+}
 
 /* ---------- console ---------- */
 function overview(r, p) {
@@ -1047,7 +1203,7 @@ async function load() {
 }
 route();
 if (boot && boot.events) { allEvents = boot.events.events; since = boot.events.total; renderFeeds(); renderTamperPick(); }
-load(); onScroll();   // after the story exists; a reload halfway down starts on the right scene with the cue hidden
+load().then(treeInit); onScroll();   // after the story exists; a reload halfway down starts on the right scene with the cue hidden
 poll(); setInterval(poll, 1500);
 </script>
 </body>

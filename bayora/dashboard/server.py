@@ -42,6 +42,15 @@ def events(d, since):
     return {"total": len(lines), "events": [dict(json.loads(l), index=i) for i, l in enumerate(lines) if i >= since and l.strip()]}
 
 
+def log_text(d):
+    """The log's complete lines as text, byte for byte, so the page can recompute the Merkle root itself."""
+    try:
+        with open(f"{d}/log.jsonl", "rb") as f: data = f.read()
+    except OSError:
+        return ""
+    return data[:data.rfind(b"\n") + 1].decode("utf-8", "replace")
+
+
 def tampered_copy(log_path, index, tmpdir):
     """Writes a copy of the log with event `index` edited the way a dishonest operator might; the real log is never touched."""
     with open(log_path, "rb") as f: lines = f.read().splitlines()
@@ -58,7 +67,7 @@ def tampered_copy(log_path, index, tmpdir):
 
 def page(results_dir):
     """index.html with the run already in it, so the first paint is complete and nothing shifts while data loads."""
-    boot = json.dumps({"state": state(results_dir), "events": events(results_dir, 0)}, default=str)
+    boot = json.dumps({"state": state(results_dir), "events": events(results_dir, 0), "log": log_text(results_dir)}, default=str)
     # log text can contain "</script>": escape the characters that could end the script block or start markup
     boot = boot.replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
     with open(HTML, encoding="utf-8") as f: html = f.read()

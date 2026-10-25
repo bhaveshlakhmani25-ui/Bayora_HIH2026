@@ -52,3 +52,13 @@ def test_half_written_line_and_stray_checkpoint_file_do_not_break_the_page(tmp_p
     with open(out / "log.jsonl", "rb") as f: lines = f.read().splitlines()
     (out / "log.jsonl").write_bytes(b"".join(l + b"\n" for l in lines[:-1]))   # back to the receipt's log
     assert verify(str(out / "receipt.json"), str(out / "log.jsonl"), None, str(out / "checkpoints"))[0] is True
+
+
+def test_page_carries_the_exact_log_so_the_browser_can_recompute_the_root(tmp_path):
+    from bayora.dashboard.server import page
+    from bayora.ledger import MerkleLog, leaf_hash
+    *_, out = setup_run(tmp_path)
+    with open(out / "log.jsonl", "ab") as f: f.write(b'{"kind":"half')     # an unfinished line is left out, as in events()
+    boot = json.loads(page(str(out)).decode().split("window.__BOOT__ = ", 1)[1].split(";</script>", 1)[0])
+    m = MerkleLog(); m.leaves = [leaf_hash(l.encode()) for l in boot["log"].split("\n")[:-1]]
+    assert m.root().hex() == boot["state"]["statement"]["predicate"]["log_root"]
