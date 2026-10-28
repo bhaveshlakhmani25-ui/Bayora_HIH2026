@@ -65,13 +65,26 @@ def tampered_copy(log_path, index, tmpdir):
     return path, f"event #{index}: {change}"
 
 
-def page(results_dir):
-    """index.html with the run already in it, so the first paint is complete and nothing shifts while data loads."""
-    boot = json.dumps({"state": state(results_dir), "events": events(results_dir, 0), "log": log_text(results_dir)}, default=str)
+def page(results_dir, static_trust=None):
+    """index.html with the run already in it, so the first paint is complete and nothing shifts while data loads.
+    static_trust (a keys.json dict) marks a published copy with no server: the page then verifies in the browser."""
+    b = {"state": state(results_dir), "events": events(results_dir, 0), "log": log_text(results_dir)}
+    if static_trust: b.update(static=True, trust=static_trust)
+    boot = json.dumps(b, default=str)
     # log text can contain "</script>": escape the characters that could end the script block or start markup
     boot = boot.replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
     with open(HTML, encoding="utf-8") as f: html = f.read()
     return html.replace("window.__BOOT__ = null;", f"window.__BOOT__ = {boot};", 1).encode()
+
+
+def export(results_dir, out, trust):
+    """A static copy of the site for any web host (GitHub Pages): index.html with the run and pinned keys built in, plus fonts."""
+    with open(trust) as f: keys = json.load(f)
+    os.makedirs(os.path.join(out, "fonts"), exist_ok=True)
+    with open(os.path.join(out, "index.html"), "wb") as f: f.write(page(results_dir, keys))
+    for name in os.listdir(FONTS):
+        with open(os.path.join(FONTS, name), "rb") as src, open(os.path.join(out, "fonts", name), "wb") as dst: dst.write(src.read())
+    open(os.path.join(out, ".nojekyll"), "w").close()   # serve files as they are, no Jekyll build
 
 
 def make_server(results_dir, port, trust=None):

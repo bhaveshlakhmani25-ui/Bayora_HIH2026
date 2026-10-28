@@ -62,3 +62,14 @@ def test_page_carries_the_exact_log_so_the_browser_can_recompute_the_root(tmp_pa
     boot = json.loads(page(str(out)).decode().split("window.__BOOT__ = ", 1)[1].split(";</script>", 1)[0])
     m = MerkleLog(); m.leaves = [leaf_hash(l.encode()) for l in boot["log"].split("\n")[:-1]]
     assert m.root().hex() == boot["state"]["statement"]["predicate"]["log_root"]
+
+
+def test_static_export_carries_run_keys_and_fonts(tmp_path):
+    from bayora.dashboard.server import export
+    *_, out = setup_run(tmp_path)
+    keys = tmp_path / "keys.json"; keys.write_text(json.dumps({"operator": "ab", "witnesses": {}, "quorum": 2}))
+    export(str(out), str(tmp_path / "site"), str(keys))
+    html = (tmp_path / "site" / "index.html").read_text()
+    boot = json.loads(html.split("window.__BOOT__ = ", 1)[1].split(";</script>", 1)[0])
+    assert boot["static"] is True and boot["trust"]["operator"] == "ab" and boot["state"]["statement"]
+    assert "/fonts/" not in html.replace('"fonts/', "") and (tmp_path / "site" / "fonts" / "ibm-plex-sans.woff2").exists()

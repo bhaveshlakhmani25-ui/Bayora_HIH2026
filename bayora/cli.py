@@ -21,6 +21,7 @@ def main(argv=None):
     ds = sub.add_parser("dashboard", help="web UI for one results directory")
     ds.add_argument("--results", default="results_final/demo"); ds.add_argument("--port", type=int, default=8765)
     ds.add_argument("--trust", help="pinned keys for the Verify button (default: keys from the receipt)")
+    ds.add_argument("--export", metavar="DIR", help="write a static copy of the site to DIR instead of serving it (needs --trust)")
     w = sub.add_parser("witness", help="run a witness service (on another machine for real independence)")
     w.add_argument("action", choices=["serve"]); w.add_argument("--name", required=True); w.add_argument("--port", type=int, default=0)
     w.add_argument("--host", default="127.0.0.1", help="address to listen on; use 0.0.0.0 to serve other machines")
@@ -34,8 +35,11 @@ def main(argv=None):
         print(msg)
         return 0 if ok else 1
     if a.cmd == "dashboard":
-        from .dashboard.server import serve
-        serve(a.results, a.port, a.trust)
+        from .dashboard.server import serve, export
+        if a.export:
+            if not a.trust: p.error("--export needs --trust: the published page verifies against those keys")
+            export(a.results, a.export, a.trust); print(f"static site written to {a.export}")
+        else: serve(a.results, a.port, a.trust)
         return 0
     if a.cmd == "witness":
         from .witness import serve
