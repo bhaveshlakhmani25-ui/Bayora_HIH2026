@@ -47,16 +47,12 @@ Bayora referees the test and gives everyone outside a way to check it.
 
 ```mermaid
 flowchart LR
-    R["Red team<br/><small>attack payloads</small>"] -->|"prompts :7000"| B["Broker<br/><small>only cross-zone path</small>"]
-    B -->|"forwards :9000"| M["Model<br/><small>serving zone</small>"]
-    R -.->|"denied by eBPF"| BL["Blue team<br/><small>defensive rules</small>"]
-    R -.->|"denied by eBPF"| M
-    R -.->|"denied by eBPF"| I(("Internet"))
+    R["Red team"] -->|"prompts :7000"| B["Broker<br/>the only cross-zone path"]
+    B -->|"forwards :9000"| M["Model"]
+    R -. "denied by eBPF" .-> X["Blue team · model directly<br/>internet · other broker ports"]
     B --> L[("Merkle log")]
-    R --> L
-    BL --> L
-    L --> W["Witnesses<br/><small>co-sign checkpoints</small>"]
-    L --> RC["Signed receipt"]
+    L --> W["Witnesses<br/>co-sign checkpoints"]
+    W --> RC["Signed receipt"]
 ```
 
 ## Check it yourself (60 seconds)
