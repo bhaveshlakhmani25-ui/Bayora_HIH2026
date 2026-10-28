@@ -27,6 +27,16 @@ def sh(*a, check=True):
 def ip(name): return sh("docker", "inspect", "-f", "{{range .NetworkSettings.Networks}}{{.IPAddress}} {{end}}", name).split()[0]
 
 
+OUTPUTS = ("results.json", "receipt.json", "keys.json", "reveal.json", "cachetest.json", "log.jsonl")
+
+
+def clear_outputs(out):
+    """Remove an earlier run's outputs from `out` (only Bayora's own files), so a reused folder never mixes two runs."""
+    shutil.rmtree(f"{out}/checkpoints", ignore_errors=True)
+    for f in OUTPUTS:
+        if os.path.exists(f"{out}/{f}"): os.remove(f"{out}/{f}")
+
+
 def cleanup(zones):
     for c in ["bz-model", "bz-broker", "bz-blue"]: sh("docker", "rm", "-f", c, check=False)
     for n in zones.values(): sh("docker", "network", "rm", n, check=False)
@@ -46,7 +56,7 @@ def main(cfg, out="results"):
     cleanup(Z); shutil.rmtree(WORK, ignore_errors=True)
     for d in ["red", "blue", "broker"]: os.makedirs(f"{WORK}/{d}"); os.chmod(f"{WORK}/{d}", 0o777)
     op = LogOperator(f"bayora.dev/run/{RUN}", load_key(f"{HOME}/operator.key"))
-    shutil.rmtree(f"{out}/checkpoints", ignore_errors=True); os.makedirs(out, exist_ok=True)
+    os.makedirs(out, exist_ok=True); clear_outputs(out)
     # witnesses are separate processes with their own persistent keys; config `witnesses` lists external ones instead
     urls, wprocs = list(cfg["witnesses"]), []
     for name in ([] if urls else ["witness-A", "witness-B"]):
@@ -97,17 +107,19 @@ def main(cfg, out="results"):
     cp0 = checkpoint(0)
 
     # ---------------- zones ----------------
+    # default-deny egress on every zone cgroup before any container starts; allow entries follow once IPs exist
+    enf = isolation.Enforcer(cfg["enforcer"], {z: {"cgroup": CG[z][1], "allow": []} for z in CG}, f"{WORK}/blocked.jsonl")
     for n in Z.values(): sh("docker", "network", "create", "--internal", n)
     sh("docker", "run", "-d", "--name", "bz-model", "--network", Z["model"], *HARDEN, *zone("model"), IMG, "python3", "/app/agent.py", "model")
     sh("docker", "run", "-d", "--name", "bz-blue", "--network", Z["blue"], *HARDEN, *zone("blue"), "-v", f"{WORK}/blue:/data", IMG, "python3", "/app/agent.py", "blue", "serve")
     sh("docker", "create", "--name", "bz-broker", "--network", Z["red"], *HARDEN, *zone("broker"), "-e", "MODEL_HOST=bz-model", "-v", f"{WORK}/broker:/data", IMG, "python3", "/app/agent.py", "broker")
     sh("docker", "network", "connect", Z["model"], "bz-broker"); sh("docker", "start", "bz-broker")
     time.sleep(2)
-    # default-deny egress per zone: red may reach only the broker, the broker only the model
+    # red may reach only the broker, the broker only the model
     net_ip = lambda c, n: sh("docker", "inspect", "-f", f'{{{{(index .NetworkSettings.Networks "{n}").IPAddress}}}}', c)
     allow = {"red": [[net_ip("bz-broker", Z["red"]), 7000]], "broker": [[ip("bz-model"), 9000]], "blue": [], "model": []}
-    enf = isolation.Enforcer(cfg["enforcer"], {z: {"cgroup": CG[z][1], "allow": allow[z]} for z in CG}, f"{WORK}/blocked.jsonl")
-    R["isolation"] = {"enforcer": enf.mode, "allow": allow}
+    enf.allow(allow)
+    R["isolation"] = {"enforcer": enf.mode, "allow": allow, "deny_before_start": enf.mode == "ebpf"}
     env = ["-e", f"BLUE_IP={ip('bz-blue')}", "-e", f"MODEL_IP={ip('bz-model')}", "-e", "BROKER_HOST=bz-broker"]
     red = lambda *args, extra=(): sh("docker", "run", "--rm", "--network", Z["red"], *HARDEN, *zone("red"), *env, *extra, "-v", f"{WORK}/red:/data", IMG, "python3", "/app/agent.py", "red", *args)
 
@@ -116,31 +128,13 @@ def main(cfg, out="results"):
     R["isolation_probes"] = probe
     for k, v in probe.items(): log("isolation_probe", probe=k, result=v)
 
-    # 3. function preserved + overhead: containerised path vs. same code as host processes
+    # 3. function preserved under the policy: 3 x N requests red -> broker -> model through the hardened containers
+    # (compare enforcer: ebpf against enforcer: docker for the policy's cost; a macOS host baseline would not be like for like)
     N = cfg["load_requests"]
     cont = [json.loads(red("load", str(N))) for _ in range(3)]
-    procs = [subprocess.Popen([sys.executable, f"{CODE}/agent.py", "model"])]
-    time.sleep(0.5)
-    os.makedirs(f"{WORK}/hostbroker", exist_ok=True)
-    # host baseline: broker writes to its own dir; reuse agent code with /data remapped via cwd trick
-    hb_env = dict(os.environ, MODEL_HOST="127.0.0.1")
-    broker_code = open(f"{CODE}/agent.py").read().replace("/data/", f"{WORK}/hostbroker/").replace("serve(7000", "serve(7001")
-    open(f"{WORK}/hostbroker/agent_b.py", "w").write(broker_code)
-    procs.append(subprocess.Popen([sys.executable, f"{WORK}/hostbroker/agent_b.py", "broker"], env=hb_env))
-    red_code = broker_code.replace(f"{WORK}/hostbroker/payloads.txt", f"{WORK}/red/payloads.txt").replace("7000), timeout=10)", "7001), timeout=10)")
-    open(f"{WORK}/hostbroker/agent_r.py", "w").write(red_code)
-    time.sleep(0.5)
-    base = []
-    for _ in range(3):
-        out_ = subprocess.run([sys.executable, f"{WORK}/hostbroker/agent_r.py", "red", "load", str(N)],
-                              env=dict(os.environ, BROKER_HOST="127.0.0.1"), capture_output=True, text=True).stdout
-        base.append(json.loads(out_))
-    for p in procs: p.terminate()
     med = lambda xs, k: statistics.median(x[k] for x in xs)
     R["function"] = {"requests_per_run": N, "runs": 3, "completed": all(c["n"] == N for c in cont),
-                     "containers_p50_ms": med(cont, "p50_ms"), "baseline_p50_ms": med(base, "p50_ms"),
-                     "containers_total_s": med(cont, "total_s"), "baseline_total_s": med(base, "total_s")}
-    R["function"]["throughput_overhead_pct"] = 100 * (R["function"]["containers_total_s"] / R["function"]["baseline_total_s"] - 1)
+                     "containers_p50_ms": med(cont, "p50_ms"), "containers_total_s": med(cont, "total_s"), "enforcer": enf.mode}
     log("function", **R["function"])
     cp1 = checkpoint(cp0["size"])
 
@@ -204,8 +198,9 @@ def main(cfg, out="results"):
     tp = (time.perf_counter() - t) / 1000
     big = (sources["container_log"] * 20).encode()
     t = time.perf_counter(); scan(big.decode(), auth, "v2"); ts = time.perf_counter() - t
+    t = time.perf_counter(); scan(big.decode(), auth, "v3"); ts3 = time.perf_counter() - t
     R["bench"] = {"append_events_per_s": 50000 / ta, "root_50k_s": tr, "inclusion_proof_ms": tp * 1e3, "proofs_ok": ok,
-                  "proof_hashes": len(bl.inclusion_proof(0)), "scanner_v2_MB_per_s": len(big) / 1e6 / ts}
+                  "proof_hashes": len(bl.inclusion_proof(0)), "scanner_v2_MB_per_s": len(big) / 1e6 / ts, "scanner_v3_MB_per_s": len(big) / 1e6 / ts3}
 
     final = checkpoint(cp3["size"])
     R["ledger"] = {"events": final["size"], "root": final["root"].hex(), "origin": op.origin, "checkpoints": cosigs,
@@ -217,6 +212,9 @@ def main(cfg, out="results"):
     json.dump(R, open(f"{out}/results.json", "w"), indent=2, default=str)
     json.dump(receipt, open(f"{out}/receipt.json", "w"), indent=2)
     json.dump(keys, open(f"{out}/keys.json", "w"), indent=2)
+    # published after the run so anyone can check the blind commitments (bayora verify --reveal)
+    reveal = {t: {"nonce": n.hex(), "content": base64.b64encode(c.encode()).decode()} for t, n, c in (("red", n_red, payloads), ("blue", n_blue, rules))}
+    json.dump(reveal, open(f"{out}/reveal.json", "w"), indent=2)
     logf.close()
     cleanup(Z)
     print(json.dumps(R, indent=1, default=str)[:6000])

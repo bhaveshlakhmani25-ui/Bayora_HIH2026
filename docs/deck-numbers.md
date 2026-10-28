@@ -14,5 +14,5 @@ Full-build numbers come from Colima vz on an Apple M5 with Docker 29.5, userns-r
 | 3, 6, 7 | Cache-timing test | not run | **Shared 60/60 secret recovered; salted 11/60 (chance), 0 cache hits** | llama.cpp CPU, Qwen2.5-0.5B Q4_K_M. Not vLLM, so say "llama.cpp" on the slide. |
 | 6 | Phase 4 | NEXT | eBPF ✔, userns-remap ✔ (not full rootless), real model for cache test ✔, cache audit passes ✔ | |
 | 4 | MVP stack | Docker internal networks plus hardening; target rootless plus eBPF | Internal networks plus per-zone eBPF default-deny, userns-remap | |
-| 3 | Witnessed receipt | 2 in-process witnesses | 2 witness processes with persistent keys; DSSE in-toto receipt binds the model sha256, commitments, drill results and log root | |
+| 3 | Witnessed receipt | 2 in-process witnesses | 2 witness processes with persistent keys (same host in this build, so separate rather than independent); DSSE in-toto receipt binds the model sha256, commitments, drill results and log root | |
 | — | Ledger throughput | about 200k appends/s, 0.05 ms per proof | about 540–570k appends/s, 0.015 ms per proof | Faster CPU. Label it Apple M5. |

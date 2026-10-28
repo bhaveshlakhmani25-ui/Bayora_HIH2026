@@ -6,6 +6,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from cryptography.exceptions import InvalidSignature
 from .ledger import MerkleLog, leaf_hash, checkpoint_body
 from .receipt import pae, read_checkpoint, PREDICATE_TYPE
+from .commit import verify_reveal
 
 
 def _ok(pub_hex, sig, msg):
@@ -21,7 +22,12 @@ def _log(log_path):
     return m
 
 
-def verify(receipt_path, log_path, trust_path=None, checkpoints_dir=None, quorum=None):
+def checkpoint_files(d):
+    """Published checkpoints are files named by their tree size; anything else in the folder is ignored."""
+    return sorted((p for p in glob.glob(os.path.join(d, "*")) if os.path.basename(p).isdigit()), key=lambda p: int(os.path.basename(p))) if d else []
+
+
+def verify(receipt_path, log_path, trust_path=None, checkpoints_dir=None, quorum=None, reveal_path=None):
     """Returns (ok, message)."""
     with open(receipt_path) as f: rc = json.load(f)
     if "payloadType" not in rc: return _verify_v0(rc, log_path)
@@ -45,7 +51,7 @@ def verify(receipt_path, log_path, trust_path=None, checkpoints_dir=None, quorum
     good = sorted({w["name"] for w in p["witnesses"] if w["cosig"] and w["name"] in keys and _ok(keys[w["name"]], bytes.fromhex(w["cosig"]), b"cosig\n" + body_cp)})
     if len(good) < need: return False, f"witness quorum not met: {len(good)}/{need} valid cosignatures ({', '.join(good) or 'none'})"
     n_cp = 0
-    for path in sorted(glob.glob(os.path.join(checkpoints_dir, "*")) if checkpoints_dir else [], key=lambda x: int(os.path.basename(x))):
+    for path in checkpoint_files(checkpoints_dir):
         cbody, sigs = read_checkpoint(path)
         origin, size, root_b64 = cbody.decode().splitlines()
         size = int(size)
@@ -53,10 +59,20 @@ def verify(receipt_path, log_path, trust_path=None, checkpoints_dir=None, quorum
             return False, f"published checkpoint {size} is inconsistent with the log (split view or rewritten history)"
         if not any(_ok(op_pub, s, cbody) for s in sigs.values()): return False, f"published checkpoint {size} lacks a valid operator signature"
         n_cp += 1
+    revealed = ""
+    if reveal_path:
+        # blind-test check: what each team revealed after the run must hash to what it committed before
+        with open(reveal_path) as f: rv = json.load(f)
+        if missing := {"red", "blue"} - set(p["commitments"]):
+            return False, f"receipt has no commitment for the {' and '.join(sorted(missing))} team, so the blind test cannot be checked"
+        for team, c in p["commitments"].items():
+            if team not in rv or not verify_reveal(c, bytes.fromhex(rv[team]["nonce"]), base64.b64decode(rv[team]["content"])):
+                return False, f"{team} team's revealed content does not match its commitment (changed after the run)"
+        revealed = f" Reveal matches the {len(p['commitments'])} commitments."
     src = "pinned in trust file" if trust else "taken from the receipt itself (pass --trust to pin keys)"
     return True, (f"OK: {p['log_size']} entries match root {p['log_root'][:16]}...; DSSE and checkpoint signed by the operator; "
                   f"{len(good)} witness cosignatures ({', '.join(good)}) meet quorum {need}; {n_cp} published checkpoints consistent with the log. "
-                  f"Keys {src}.")
+                  f"Keys {src}.{revealed}")
 
 
 def _verify_v0(rc, log_path):

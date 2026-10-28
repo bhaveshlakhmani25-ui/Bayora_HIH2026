@@ -27,8 +27,9 @@ Bayora runs a blind, leak-audited red-vs-blue evaluation:
 | `bayora/default.yaml`, `bayora/config.py` | Run config: image, zone networks, channels, encodings, sizes. |
 | `bayora/isolation/` | `connect.bpf.c` and `enforcer.py` run as root where dockerd lives (Colima VM via `colima ssh`, or sudo on Linux). Each zone is placed in its own cgroup via `--cgroup-parent`. |
 | `bayora/cachetest.py` (`bayora cachetest`) | Tenant B times prompts to infer tenant A's secret from K=8 candidates, shared versus salted. The probe is the `cacheprobe` role in `containers/agent.py`. |
+| `bayora/dashboard/` (`bayora dashboard`) | `server.py` serves one `index.html` with the run inlined (no layout shift), bundled OFL fonts, `/api/verify` (incl. a non-destructive tamper demo) and `/api/events`. The page has a landing site with a pinned six-scene story replaying the run, and a console with Overview, Isolation, Detection, Side channel, Ledger, Verify and Limits. |
 | `Dockerfile` | Zone image `bayora/py:poc` (`python:3.12-slim`). |
-| `tests/` | 20 tests. Run with `pip install -e ".[dev]" && python -m pytest -q tests`. CI: `.github/workflows/ci.yml`. |
+| `tests/` | 26 tests. Run with `pip install -e ".[dev]" && python -m pytest -q tests`. CI: `.github/workflows/ci.yml`. |
 
 Full-build results are in `results_final/`, `docs/test-plan.md` and `docs/deck-numbers.md` (Colima vz, Apple M5, 3 runs). The PoC results below are archived in `results_poc/`.
 
@@ -47,6 +48,7 @@ PoC results (2-vCPU sandbox), which deck v4.1 cites:
 - Claim only what was measured. Label the environment for every number.
 - Isolation: Docker internal networks plus a per-zone eBPF default-deny egress policy (`bayora/isolation/`), measured on Colima (vz, Ubuntu 24.04, kernel 6.8, Apple M5) with dockerd `userns-remap`. It is not full rootless dockerd. `enforcer: docker` turns eBPF off for comparison.
 - Evaluation traffic in `bayora run` still goes to the mock model. The cache-timing test (`bayora cachetest`, or `cache_audit: true` as a run preflight) uses a real model: llama.cpp server on CPU with Qwen2.5-0.5B Q4_K_M. Salting is emulated as a per-tenant salt prefix plus a per-tenant slot, because llama.cpp has no vLLM `cache_salt`. Never call it vLLM.
+- Witnesses are separate processes on the operator's host, not independent parties. Don't call them independent until one runs on another machine.
 - The "network" channel is captured at the broker (application layer), not with packet capture.
 
 ## Build plan for the next round (in order)
@@ -57,7 +59,7 @@ PoC results (2-vCPU sandbox), which deck v4.1 cites:
    - Add GitHub Actions CI to run the tests.
 2. **Isolation upgrade.**
    - Run rootless Docker, or `dockerd --userns-remap=default` as a step towards it.
-   - Add an eBPF default-deny policy: cgroup v2 `connect4`/`connect6` programs per zone, using libbpf or bcc, with a fall-back to nftables.
+   - Add an eBPF default-deny policy: cgroup v2 `connect4`/`connect6` programs per zone, using libbpf or bcc. Without bcc and root on the docker host it falls back to Docker internal networks only, and `results.json` records which enforcer ran (no nftables fallback was built).
    - Log every blocked connect attempt into the ledger as an event.
 3. **Real model and cache test (Phase 4).**
    - Use a small LLM. The preferred stack is vLLM with `cache_salt`, on a GPU if one is available. On CPU, use llama.cpp or llama-cpp-python with prompt caching.

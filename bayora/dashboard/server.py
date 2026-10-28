@@ -1,12 +1,13 @@
 """Demo dashboard: serves index.html and read-only JSON views of one results directory.
 GET /api/state, GET /api/events?since=N (tails log.jsonl), POST /api/verify (runs bayora.verify)."""
-import base64, glob, json, os, tempfile
+import base64, glob, json, os, socket, tempfile, threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 from ..receipt import read_checkpoint
-from ..verify import verify
+from ..verify import verify, checkpoint_files
 
 HTML = os.path.join(os.path.dirname(os.path.abspath(__file__)), "index.html")
+FONTS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fonts")
 
 
 def _json(path):
@@ -20,7 +21,7 @@ def state(d):
     rc = _json(f"{d}/receipt.json")
     statement = json.loads(base64.b64decode(rc["payload"])) if rc and "payload" in rc else None
     cps = []
-    for p in sorted(glob.glob(f"{d}/checkpoints/*"), key=lambda x: int(os.path.basename(x))):
+    for p in checkpoint_files(f"{d}/checkpoints"):
         body, sigs = read_checkpoint(p)
         origin, size, root = body.decode().splitlines()
         cps.append({"size": int(size), "root": base64.b64decode(root).hex(), "signers": list(sigs)})
@@ -33,10 +34,21 @@ def state(d):
 
 def events(d, since):
     try:
-        with open(f"{d}/log.jsonl", "rb") as f: lines = f.read().splitlines()
+        with open(f"{d}/log.jsonl", "rb") as f: data = f.read()
     except OSError:
         return {"total": 0, "events": []}
-    return {"total": len(lines), "events": [dict(json.loads(l), index=i) for i, l in enumerate(lines) if i >= since]}
+    # a run still writing can leave the last line unfinished: count it only once its newline lands
+    lines = data.split(b"\n")[:-1]
+    return {"total": len(lines), "events": [dict(json.loads(l), index=i) for i, l in enumerate(lines) if i >= since and l.strip()]}
+
+
+def log_text(d):
+    """The log's complete lines as text, byte for byte, so the page can recompute the Merkle root itself."""
+    try:
+        with open(f"{d}/log.jsonl", "rb") as f: data = f.read()
+    except OSError:
+        return ""
+    return data[:data.rfind(b"\n") + 1].decode("utf-8", "replace")
 
 
 def tampered_copy(log_path, index, tmpdir):
@@ -53,16 +65,44 @@ def tampered_copy(log_path, index, tmpdir):
     return path, f"event #{index}: {change}"
 
 
+def page(results_dir, static_trust=None):
+    """index.html with the run already in it, so the first paint is complete and nothing shifts while data loads.
+    static_trust (a keys.json dict) marks a published copy with no server: the page then verifies in the browser."""
+    b = {"state": state(results_dir), "events": events(results_dir, 0), "log": log_text(results_dir)}
+    if static_trust: b.update(static=True, trust=static_trust)
+    boot = json.dumps(b, default=str)
+    # log text can contain "</script>": escape the characters that could end the script block or start markup
+    boot = boot.replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
+    with open(HTML, encoding="utf-8") as f: html = f.read()
+    return html.replace("window.__BOOT__ = null;", f"window.__BOOT__ = {boot};", 1).encode()
+
+
+def export(results_dir, out, trust):
+    """A static copy of the site for any web host (GitHub Pages): index.html with the run and pinned keys built in, plus fonts."""
+    with open(trust) as f: keys = json.load(f)
+    os.makedirs(os.path.join(out, "fonts"), exist_ok=True)
+    with open(os.path.join(out, "index.html"), "wb") as f: f.write(page(results_dir, keys))
+    for name in os.listdir(FONTS):
+        with open(os.path.join(FONTS, name), "rb") as src, open(os.path.join(out, "fonts", name), "wb") as dst: dst.write(src.read())
+    open(os.path.join(out, ".nojekyll"), "w").close()   # serve files as they are, no Jekyll build
+
+
 def make_server(results_dir, port, trust=None):
     class H(BaseHTTPRequestHandler):
-        def _send(self, code, body, ctype="application/json"):
+        def _send(self, code, body, ctype="application/json", cache="no-store"):
             b = body if isinstance(body, bytes) else json.dumps(body, default=str).encode()
             self.send_response(code); self.send_header("Content-Type", ctype); self.send_header("Content-Length", str(len(b)))
-            self.send_header("Cache-Control", "no-store"); self.end_headers(); self.wfile.write(b)
+            self.send_header("Cache-Control", cache); self.end_headers(); self.wfile.write(b)
 
         def do_GET(self):
             u = urlparse(self.path)
-            if u.path == "/": return self._send(200, open(HTML, "rb").read(), "text/html; charset=utf-8")
+            if u.path == "/": return self._send(200, page(results_dir), "text/html; charset=utf-8")
+            if u.path.startswith("/fonts/"):
+                name = u.path[len("/fonts/"):]
+                # only files that ship in the fonts folder; no paths, so nothing outside it can be read
+                if name.endswith(".woff2") and name in os.listdir(FONTS):
+                    with open(os.path.join(FONTS, name), "rb") as f: return self._send(200, f.read(), "font/woff2", "public, max-age=31536000, immutable")
+                return self._send(404, {"error": "not found"})
             if u.path == "/api/state": return self._send(200, state(results_dir))
             if u.path == "/api/events":
                 try: since = int(parse_qs(u.query).get("since", ["0"])[0])
@@ -79,17 +119,39 @@ def make_server(results_dir, port, trust=None):
                 with tempfile.TemporaryDirectory() as tmp:
                     log, change = f"{results_dir}/log.jsonl", None
                     if req.get("tamper") is not None: log, change = tampered_copy(log, int(req["tamper"]), tmp)
-                    ok, msg = verify(f"{results_dir}/receipt.json", log, trust, cps)
+                    rv = f"{results_dir}/reveal.json" if os.path.exists(f"{results_dir}/reveal.json") else None
+                    ok, msg = verify(f"{results_dir}/receipt.json", log, trust, cps, None, rv)
             except (OSError, ValueError, KeyError, TypeError) as e:
                 ok, msg, change = False, f"could not verify: {e}", None
-            self._send(200, {"ok": ok, "message": msg, "tampered": change, "trust": trust or "keys taken from the receipt"})
+            # without pinned keys a self-made receipt also verifies, so the page must not show it as fully trusted
+            self._send(200, {"ok": ok, "pinned": bool(trust), "message": msg, "tampered": change, "trust": trust or "keys taken from the receipt"})
 
         def log_message(self, *a): pass
 
     return ThreadingHTTPServer(("127.0.0.1", port), H)
 
 
+class _V6Server(ThreadingHTTPServer):
+    address_family = socket.AF_INET6
+
+
+def listen_v6(httpd):
+    """Also serve on IPv6 loopback: browsers resolve localhost to ::1 first, and Chrome may not fall back to IPv4."""
+    try:
+        v6 = _V6Server(("::1", httpd.server_address[1]), httpd.RequestHandlerClass)
+    except OSError:
+        return None                                  # no IPv6 loopback on this host; 127.0.0.1 still works
+    threading.Thread(target=v6.serve_forever, daemon=True).start()
+    return v6
+
+
 def serve(results_dir, port, trust=None):
+    if not os.path.exists(f"{results_dir}/results.json"):
+        print(f"warning: no results.json in {os.path.abspath(results_dir)}; run from the repo folder or pass --results", flush=True)
     httpd = make_server(results_dir, port, trust)
-    print(f"Bayora dashboard for {os.path.abspath(results_dir)}: http://127.0.0.1:{httpd.server_address[1]}", flush=True)
-    httpd.serve_forever()
+    listen_v6(httpd)
+    print(f"Bayora dashboard for {os.path.abspath(results_dir)}: http://localhost:{httpd.server_address[1]}  (Ctrl-C to stop)", flush=True)
+    try:
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        print("dashboard stopped")
