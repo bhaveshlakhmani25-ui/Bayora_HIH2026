@@ -1,0 +1,187 @@
+# The sources behind Bayora's claims. `bayora research collect` fetches each one with TinyFish and
+# fingerprints it; `bayora research seal` signs the list into a Merkle log anyone can check.
+#
+# read: how much of the source a person (or Claude) read before it was cited. Be honest here.
+#   full      the whole page or document
+#   section   the relevant section of a long page
+#   abstract  the abstract or summary page only, not the full paper
+#   snippet   a search-result excerpt only: not yet read
+#   searched  searched for specific terms; the rest was not read closely
+
+claims:
+  C1: "Article 55(1)(a) of the EU AI Act requires providers of general-purpose AI models with systemic risk to perform model evaluation including conducting and documenting adversarial testing."
+  C2: "The Commission's AI Office treats external evaluators' independence from the provider's managerial, financial and operational influence as a requirement for reliable evaluations (workshop of 15 July 2026)."
+  C3: "Sharing the KV cache between tenants of an LLM server lets an attacker who can time its own prompts reconstruct other users' prompts."
+  C4: "Global prompt-cache sharing across users was detected in seven LLM API providers, including OpenAI."
+  C5: "vLLM documents the prefix-cache timing channel as CVE-2025-46570, names per-tenant cache_salt as the mitigation, and says the salt must be a long random secret."
+  C6: "The cache_salt mitigation has failed silently in a released version (vLLM up to 0.25.1, fixed in 0.30.0), so an endpoint has to be tested, not trusted."
+  C7: "A sandboxed AI agent can learn a lot about its evaluation environment, which threatens the validity of the evaluation."
+  C8: "In the documents searched, evaluation sandboxes and red-teaming tools do not describe red/blue separation, committed payloads or tamper-evident audit receipts."
+  C9: "Bayora's Merkle log uses the RFC 9162 leaf, node and split rules."
+  C10: "Bayora's receipt follows the in-toto Statement v1 layout inside a DSSE envelope."
+  C11: "Bayora's witness cosignature is not C2SP tlog-cosignature compatible: it lacks the cosignature/v1 domain separation and the timestamp."
+  C13: "The GPAI Code of Practice (published 10 July 2025) has a Safety and Security chapter for providers of models under Article 55; its official page lists 22 signatories plus xAI for that chapter only (page updated 7 October 2026). This shows regulatory context, not customer demand."
+  C12: "TinyFish provides the Fetch, Search and Monitor APIs used to collect and watch these sources."
+
+sources:
+  - id: eu-art55
+    title: "AI Act Service Desk: Article 55, obligations of providers of general-purpose AI models with systemic risk"
+    url: https://ai-act-service-desk.ec.europa.eu/en/ai-act/article-55
+    kind: regulation
+    read: full
+    supports: [C1]
+  - id: eu-evaluators
+    title: "Requirements for qualified independent external evaluators of general-purpose AI models (AI Office)"
+    url: https://digital-strategy.ec.europa.eu/en/library/requirements-qualified-independent-external-evaluators-general-purpose-ai-models
+    kind: regulation
+    read: full   # the page; the downloadable workshop report was not read
+    supports: [C2]
+  - id: eu-gpai-code
+    title: "The General-Purpose AI Code of Practice (European Commission)"
+    url: https://digital-strategy.ec.europa.eu/en/policies/contents-code-gpai
+    kind: regulation
+    read: full
+    supports: [C2, C13]
+
+  - id: ndss25-promptpeek
+    title: "I Know What You Asked: Prompt Leakage via KV-Cache Sharing in Multi-Tenant LLM Serving (NDSS 2025)"
+    url: https://ndss-symposium.org/ndss-paper/i-know-what-you-asked-prompt-leakage-via-kv-cache-sharing-in-multi-tenant-llm-serving
+    kind: paper
+    read: abstract
+    supports: [C3]
+  - id: gu25-auditing
+    title: "Auditing Prompt Caching in Language Model APIs (Gu et al., ICML 2025)"
+    url: https://arxiv.org/abs/2502.07776
+    kind: paper
+    read: abstract
+    supports: [C3, C4]
+  - id: ndss26-shadow
+    title: "Shadow in the Cache: Unveiling and Mitigating Privacy Risks of KV-cache in LLM Inference (NDSS 2026)"
+    url: https://ndss-symposium.org/ndss-paper/shadow-in-the-cache-unveiling-and-mitigating-privacy-risks-of-kv-cache-in-llm-inference
+    kind: paper
+    read: abstract
+    supports: [C3]
+  - id: song-early-bird
+    title: "The early bird catches the leak: Unveiling timing side channels in LLM serving systems"
+    url: https://ieeexplore.ieee.org/abstract/document/11206380/
+    kind: paper
+    read: snippet
+    supports: [C3]
+  - id: inputsnatch
+    title: "InputSnatch: Stealing input in LLM services via timing side-channel attacks"
+    url: https://arxiv.org/abs/2411.18191
+    kind: paper
+    read: snippet
+    supports: [C3]
+  - id: prefixwall
+    title: "PrefixWall: Mitigating Prefix Caching Side Channels in Shared LLM Systems"
+    url: https://arxiv.org/abs/2603.10726
+    kind: paper
+    read: snippet
+    supports: [C3]
+
+  - id: vllm-security
+    title: "vLLM security guide: Prefix Cache Timing Side-Channel Mitigation (cache salting)"
+    url: https://docs.vllm.ai/en/v0.31.0/usage/security/
+    kind: docs
+    read: section
+    supports: [C5]
+  - id: vllm-apc
+    title: "vLLM design: Automatic Prefix Caching"
+    url: https://docs.vllm.ai/en/latest/design/prefix_caching
+    kind: docs
+    read: snippet
+    supports: [C5]
+  - id: vllm-ghsa
+    title: "GHSA-935w-9g4m-p28p: Harmony tool continuations drop cache_salt"
+    url: https://github.com/vllm-project/vllm/security/advisories/GHSA-935w-9g4m-p28p
+    kind: advisory
+    read: full
+    supports: [C6]
+
+  - id: aisi-env
+    title: "What can sandboxed AI agents learn about their evaluation environments? (AISI)"
+    url: https://aisi.gov.uk/blog/what-can-sandboxed-ai-agents-learn-about-their-evaluation-environments
+    kind: report
+    read: full
+    supports: [C7]
+  - id: aisi-toolkit
+    title: "The Inspect Sandboxing Toolkit: Scalable and secure AI agent evaluations (AISI)"
+    url: https://aisi.gov.uk/blog/the-inspect-sandboxing-toolkit-scalable-and-secure-ai-agent-evaluations
+    kind: report
+    read: snippet
+    supports: [C8]
+  - id: inspect-sandboxing
+    title: "Inspect: sandboxing"
+    url: https://inspect.aisi.org.uk/sandboxing.html.md
+    kind: docs
+    read: searched
+    supports: [C8]
+  - id: garak
+    title: "NVIDIA garak README"
+    url: https://raw.githubusercontent.com/NVIDIA/garak/main/README.md
+    kind: tool
+    read: searched
+    supports: [C8]
+  - id: pyrit
+    title: "Microsoft PyRIT README"
+    url: https://raw.githubusercontent.com/microsoft/PyRIT/main/README.md
+    kind: tool
+    read: searched
+    supports: [C8]
+  - id: promptfoo
+    title: "promptfoo README"
+    url: https://raw.githubusercontent.com/promptfoo/promptfoo/main/README.md
+    kind: tool
+    read: searched
+    supports: [C8]
+
+  - id: rfc9162
+    title: "RFC 9162: Certificate Transparency Version 2.0"
+    url: https://www.rfc-editor.org/info/rfc9162
+    kind: standard
+    read: searched   # the hash definitions and the split rule; not the whole RFC
+    supports: [C9]
+  - id: intoto-statement
+    title: "in-toto attestation: Statement layer (v1)"
+    url: https://raw.githubusercontent.com/in-toto/attestation/main/spec/v1/statement.md
+    kind: standard
+    read: full
+    supports: [C10]
+  - id: dsse-envelope
+    title: "DSSE: JSON envelope"
+    url: https://raw.githubusercontent.com/secure-systems-lab/dsse/master/envelope.md
+    kind: standard
+    read: full
+    supports: [C10]
+  - id: dsse-protocol
+    title: "DSSE: protocol and pre-authentication encoding"
+    url: https://raw.githubusercontent.com/secure-systems-lab/dsse/master/protocol.md
+    kind: standard
+    read: full
+    supports: [C10]
+  - id: c2sp-cosignature
+    title: "C2SP: transparency log cosignatures"
+    url: https://raw.githubusercontent.com/C2SP/C2SP/main/tlog-cosignature.md
+    kind: standard
+    read: full
+    supports: [C11]
+
+  - id: tinyfish-fetch
+    title: "TinyFish Fetch API reference"
+    url: https://docs.tinyfish.ai/fetch-api/reference.md
+    kind: docs
+    read: section   # the request format; the response reference was cut off
+    supports: [C12]
+  - id: tinyfish-monitor
+    title: "TinyFish Monitor API reference"
+    url: https://docs.tinyfish.ai/monitor/api-reference
+    kind: docs
+    read: full
+    supports: [C12]
+  - id: tinyfish-search
+    title: "TinyFish Search API"
+    url: https://docs.tinyfish.ai/search-api
+    kind: docs
+    read: full
+    supports: [C12]

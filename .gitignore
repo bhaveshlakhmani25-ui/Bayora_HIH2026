@@ -6,3 +6,4 @@ models/
 
 # Impeccable critique snapshots (local design-review archive)
 .impeccable/
+research/cache/

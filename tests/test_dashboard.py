@@ -73,3 +73,21 @@ def test_static_export_carries_run_keys_and_fonts(tmp_path):
     boot = json.loads(html.split("window.__BOOT__ = ", 1)[1].split(";</script>", 1)[0])
     assert boot["static"] is True and boot["trust"]["operator"] == "ab" and boot["state"]["statement"]
     assert "/fonts/" not in html.replace('"fonts/', "") and (tmp_path / "site" / "fonts" / "ibm-plex-sans.woff2").exists()
+
+
+def test_research_folder_reaches_the_page_and_a_missing_one_does_not_break_it(tmp_path):
+    import json, shutil
+    from bayora.dashboard.server import state, page, export
+    from bayora import research as rs
+    *_, out = setup_run(tmp_path)
+    assert state(str(out))["research"] is None and state(str(out), str(tmp_path / "nope"))["research"] is None
+    rd = tmp_path / "research"; rd.mkdir()
+    shutil.copy(__file__.replace("tests/test_dashboard.py", "research/sources.yaml"), rd / "sources.yaml")
+    m = rs.load_manifest(str(rd / "sources.yaml"))
+    rs.collect(m, str(rd), "k", lambda url, key, body=None, timeout=0: {"results": [{"url": u, "text": "x"} for u in body["urls"]]})
+    rs.seal(str(rd), str(tmp_path / "k"))
+    r = state(str(out), str(rd))["research"]
+    assert len(r["sources"]) == len(m["sources"]) and len(r["lines"]) == len(r["evidence"]) and r["seal"]["size"] == len(r["lines"])
+    keys = tmp_path / "keys.json"; keys.write_text(json.dumps({"operator": "ab", "witnesses": {}, "quorum": 2}))
+    export(str(out), str(tmp_path / "site"), str(keys), str(rd))
+    assert '"research":{' in (tmp_path / "site" / "index.html").read_text() or '"research": {' in (tmp_path / "site" / "index.html").read_text()
