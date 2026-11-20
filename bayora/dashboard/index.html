@@ -386,6 +386,21 @@
   @media (max-width: 760px) { .limits li { grid-template-columns: 1fr; } }
   pre.raw { background: var(--well); border: 1px solid var(--rule); border-radius: 6px; padding: 12px; overflow: auto; max-height: 360px; font: 12px var(--mono); }
   details summary { cursor: pointer; min-height: 32px; color: var(--ink-2); }
+  /* motion: the receipt prints from a slot, "fair" is underlined, the seal stamps, measured numbers earn themselves */
+  @keyframes print { from { clip-path: inset(0 0 100% 0 round 14px); } to { clip-path: inset(0 0 0 0 round 14px); } }
+  #tag-front { animation: print 1.15s cubic-bezier(.16, 1, .3, 1) .15s backwards; }
+  @keyframes sweep { from { background-size: 0 .07em; } }
+  .hero h1 .fair { background: linear-gradient(var(--seal), var(--seal)) 0 96% / 100% .07em no-repeat; animation: sweep .8s cubic-bezier(.16, 1, .3, 1) 1.1s backwards; }
+  @keyframes stamp { 0% { transform: scale(1.6) rotate(-5deg); opacity: 0; letter-spacing: .32em; } 55% { opacity: 1; } 100% { transform: none; letter-spacing: .12em; } }
+  @keyframes inkwash { from { background: color-mix(in srgb, var(--seal) 34%, var(--seal-wash)); } }
+  .seal-strip.stamp { animation: inkwash .9s ease-out; }
+  .seal-strip.stamp strong { animation: stamp .5s cubic-bezier(.2, 1.35, .4, 1) backwards; transform-origin: left center; }
+  /* testimonials: real quotes only, supplied in VOICES below */
+  .voices { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 28px 40px; }
+  .voices figure { margin: 0; padding-top: 16px; border-top: 1.5px solid var(--ink); transition: opacity .6s ease-out, transform .6s cubic-bezier(.16, 1, .3, 1); }
+  .voices figure.pre { opacity: 0; transform: translateY(14px); }
+  .voices blockquote { margin: 0 0 14px; font-size: clamp(19px, 1.9vw, 24px); line-height: 1.35; font-weight: 500; text-wrap: pretty; }
+  .voices figcaption { font: 500 14px var(--mono); color: var(--muted); } .voices figcaption strong { color: var(--ink); font-weight: 600; }
   [hidden] { display: none !important; }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 </style>
@@ -509,6 +524,13 @@
         <div class="sec-head"><h2 id="measured-h">Measured, not promised</h2><p>Read from the run behind this page. Bayora never claims zero leakage; what it cannot see is listed as residual risk in the console.</p></div>
         <div class="report-wrap"><table class="report" id="report"><thead><tr><th>Measure</th><th>Result</th><th>Round 1</th><th>How it was measured</th></tr></thead><tbody></tbody></table></div>
         <p class="envline" id="l-env">Loading run…</p>
+      </div>
+    </section>
+
+    <section class="sec" id="voices" hidden>
+      <div class="wrap">
+        <div class="sec-head"><h2>What people said after the demo</h2><p>Short quotes from people who saw Bayora run, shared with their permission.</p></div>
+        <div class="voices" id="voices-list"></div>
       </div>
     </section>
 
@@ -726,6 +748,35 @@ const spy = new IntersectionObserver((entries) => {
   for (const en of entries) if (en.isIntersecting) document.querySelectorAll(`.bar nav a, .menu a.mlink`).forEach((a) => a.setAttribute("aria-current", String(a.getAttribute("href") === "#" + en.target.id)));
 }, { rootMargin: "-45% 0px -50% 0px" });
 ["top", "story", "measured", "check"].forEach((id) => spy.observe($(id)));   // "top" clears the highlight over the hero
+
+// ---------- motion: measured numbers count up once, when the table scrolls into view ----------
+function countUp(root) {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const nodes = [];
+  root.querySelectorAll("td.res").forEach((td) => {
+    for (const n of td.childNodes) { const m = n.nodeType === 3 && n.nodeValue.match(/^(\D*)(\d+)(\D*)$/); if (m) nodes.push([n, td, td.offsetWidth, m[1], +m[2], m[3]]); }   // numerators only; the "/180" stays put
+  });
+  nodes.forEach(([, td, w]) => (td.style.minWidth = w + "px"));   // no column jitter while the digits change
+  const t0 = performance.now(), D = 900;
+  const step = (now) => {
+    const k = Math.min(1, (now - t0) / D), e = 1 - Math.pow(1 - k, 3);
+    nodes.forEach(([n, , , a, v, b]) => (n.nodeValue = a + Math.round(v * e) + b));
+    if (k < 1) requestAnimationFrame(step); else nodes.forEach(([, td]) => (td.style.minWidth = ""));
+  };
+  requestAnimationFrame(step);
+}
+new IntersectionObserver((es, o) => es.forEach((e) => { if (e.isIntersecting) { o.unobserve(e.target); countUp(e.target); } }), { threshold: 0.4 }).observe($("report"));
+
+// ---------- testimonials: add real quotes here, with the speaker's permission. Empty = the section stays hidden. ----------
+const VOICES = [
+  // { quote: "…", name: "Full name", role: "Role, organisation" },
+];
+if (VOICES.length) {
+  const list = $("voices-list"), figs = VOICES.map((v) => h("figure", { class: "pre" }, h("blockquote", {}, "“" + v.quote + "”"), h("figcaption", {}, h("strong", {}, v.name), v.role ? " · " + v.role : "")));
+  list.replaceChildren(...figs); $("voices").hidden = false;
+  const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.remove("pre"); io.unobserve(e.target); } }), { threshold: 0.3 });
+  figs.forEach((f) => io.observe(f));
+}
 document.querySelectorAll("[data-anchor]").forEach((a) => (a.onclick = (e) => { if (!location.hash.startsWith("#/app")) return; e.preventDefault(); location.hash = "#/"; setTimeout(() => $(a.dataset.anchor).scrollIntoView(), 30); }));
 
 let S = null, mode = null, since = 0, filter = "all", allEvents = [];
@@ -776,7 +827,7 @@ async function sealRun(tamper) {
   ["t-verify", "t-tamper"].forEach((id) => ($(id).disabled = true));
   $("tag-out").textContent = tamper == null ? "Checking the receipt against the log…" : `Editing event #${tamper} in a copy of the log, then checking…`;
   const r = await apiVerify(tamper), [cls, word] = verdictOf(r), strip = $("seal");
-  strip.className = "seal-strip" + (cls === "bad" ? " broken" : cls === "warn" ? " warned" : "");
+  strip.className = "seal-strip" + (cls === "bad" ? " broken" : cls === "warn" ? " warned" : " stamp");
   $("seal-word").textContent = word;
   $("tag-out").textContent = (r.tampered ? r.tampered + ". " : "") + r.message;
   ["t-verify", "t-tamper"].forEach((id) => ($(id).disabled = false));
