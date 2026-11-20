@@ -1,0 +1,19 @@
+{
+  "monitors": [
+    {
+      "id": "462f5b06-d825-4320-8ad3-f100dc7573f6",
+      "name": "EU AI Act Art. 55",
+      "url": "https://ai-act-service-desk.ec.europa.eu/en/ai-act/article-55"
+    },
+    {
+      "id": "24271732-cbc3-47a6-9ee9-1925c1c616a7",
+      "name": "AI Office external evaluator requirements",
+      "url": "https://digital-strategy.ec.europa.eu/en/library/requirements-qualified-independent-external-evaluators-general-purpose-ai-models"
+    },
+    {
+      "id": "6ec0ec7b-fb5b-4416-ae20-1a205cf5b732",
+      "name": "GPAI Code of Practice",
+      "url": "https://digital-strategy.ec.europa.eu/en/policies/contents-code-gpai"
+    }
+  ]
+}

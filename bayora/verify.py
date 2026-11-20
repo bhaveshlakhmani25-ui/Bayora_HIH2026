@@ -5,8 +5,13 @@ import base64, glob, json, os
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from cryptography.exceptions import InvalidSignature
 from .ledger import MerkleLog, leaf_hash, checkpoint_body
-from .receipt import pae, read_checkpoint, PREDICATE_TYPE
+from .receipt import pae, read_checkpoint, PREDICATE_TYPE, PAYLOAD_TYPE
 from .commit import verify_reveal
+
+
+def b64(s):
+    """Standard or URL-safe base64, padded or not: DSSE says verifiers must accept either."""
+    return base64.b64decode(s.replace("-", "+").replace("_", "/") + "=" * (-len(s) % 4))
 
 
 def _ok(pub_hex, sig, msg):
@@ -32,11 +37,12 @@ def verify(receipt_path, log_path, trust_path=None, checkpoints_dir=None, quorum
     with open(receipt_path) as f: rc = json.load(f)
     if "payloadType" not in rc: return _verify_v0(rc, log_path)
     trust = json.load(open(trust_path)) if trust_path else None
-    body = base64.b64decode(rc["payload"])
+    if rc["payloadType"] != PAYLOAD_TYPE: return False, f"unsupported DSSE payloadType {rc['payloadType']!r}"   # DSSE: reject unknown types
+    body = b64(rc["payload"])
     st = json.loads(body); p = st["predicate"]
     if st.get("predicateType") != PREDICATE_TYPE: return False, f"unknown predicateType {st.get('predicateType')}"
     op_pub = trust["operator"] if trust else p["operator_pubkey"]
-    if not any(_ok(op_pub, base64.b64decode(s["sig"]), pae(rc["payloadType"], body)) for s in rc["signatures"]):
+    if not any(_ok(op_pub, b64(s["sig"]), pae(rc["payloadType"], body)) for s in rc["signatures"]):
         return False, "DSSE signature does not verify with the operator key"
     log = _log(log_path)
     if len(log.leaves) != p["log_size"]: return False, f"log has {len(log.leaves)} entries, receipt says {p['log_size']}"

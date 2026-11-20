@@ -17,7 +17,21 @@ def _json(path):
         return None
 
 
-def state(d):
+def research_state(d):
+    """The research folder (sources.yaml, evidence.jsonl, seal.json, drift.jsonl), or None when there is none."""
+    if not d or not os.path.exists(f"{d}/sources.yaml"): return None
+    from ..research import load_manifest
+    def lines(name):
+        try:
+            with open(f"{d}/{name}", encoding="utf-8") as f: return [l for l in f.read().split("\n") if l]
+        except OSError:
+            return []
+    m, ev = load_manifest(f"{d}/sources.yaml"), lines("evidence.jsonl")
+    return {"claims": m["claims"], "sources": m["sources"], "lines": ev, "evidence": [json.loads(l) for l in ev],
+            "seal": _json(f"{d}/seal.json"), "drift": [json.loads(l) for l in lines("drift.jsonl")]}
+
+
+def state(d, research_dir=None):
     rc = _json(f"{d}/receipt.json")
     statement = json.loads(base64.b64decode(rc["payload"])) if rc and "payload" in rc else None
     cps = []
@@ -29,7 +43,7 @@ def state(d):
     if ct:
         for c in ("shared", "salted"): ct[c].pop("rows", None)
     return {"dir": os.path.basename(os.path.abspath(d)), "results": _json(f"{d}/results.json"), "receipt": rc, "statement": statement,
-            "checkpoints": cps, "cachetest": ct}
+            "checkpoints": cps, "cachetest": ct, "research": research_state(research_dir)}
 
 
 def events(d, since):
@@ -65,10 +79,10 @@ def tampered_copy(log_path, index, tmpdir):
     return path, f"event #{index}: {change}"
 
 
-def page(results_dir, static_trust=None):
+def page(results_dir, static_trust=None, research_dir=None):
     """index.html with the run already in it, so the first paint is complete and nothing shifts while data loads.
     static_trust (a keys.json dict) marks a published copy with no server: the page then verifies in the browser."""
-    b = {"state": state(results_dir), "events": events(results_dir, 0), "log": log_text(results_dir)}
+    b = {"state": state(results_dir, research_dir), "events": events(results_dir, 0), "log": log_text(results_dir)}
     if static_trust: b.update(static=True, trust=static_trust)
     boot = json.dumps(b, default=str)
     # log text can contain "</script>": escape the characters that could end the script block or start markup
@@ -77,17 +91,17 @@ def page(results_dir, static_trust=None):
     return html.replace("window.__BOOT__ = null;", f"window.__BOOT__ = {boot};", 1).encode()
 
 
-def export(results_dir, out, trust):
+def export(results_dir, out, trust, research_dir=None):
     """A static copy of the site for any web host (GitHub Pages): index.html with the run and pinned keys built in, plus fonts."""
     with open(trust) as f: keys = json.load(f)
     os.makedirs(os.path.join(out, "fonts"), exist_ok=True)
-    with open(os.path.join(out, "index.html"), "wb") as f: f.write(page(results_dir, keys))
+    with open(os.path.join(out, "index.html"), "wb") as f: f.write(page(results_dir, keys, research_dir))
     for name in os.listdir(FONTS):
         with open(os.path.join(FONTS, name), "rb") as src, open(os.path.join(out, "fonts", name), "wb") as dst: dst.write(src.read())
     open(os.path.join(out, ".nojekyll"), "w").close()   # serve files as they are, no Jekyll build
 
 
-def make_server(results_dir, port, trust=None):
+def make_server(results_dir, port, trust=None, research_dir=None):
     class H(BaseHTTPRequestHandler):
         def _send(self, code, body, ctype="application/json", cache="no-store"):
             b = body if isinstance(body, bytes) else json.dumps(body, default=str).encode()
@@ -96,14 +110,14 @@ def make_server(results_dir, port, trust=None):
 
         def do_GET(self):
             u = urlparse(self.path)
-            if u.path == "/": return self._send(200, page(results_dir), "text/html; charset=utf-8")
+            if u.path == "/": return self._send(200, page(results_dir, None, research_dir), "text/html; charset=utf-8")
             if u.path.startswith("/fonts/"):
                 name = u.path[len("/fonts/"):]
                 # only files that ship in the fonts folder; no paths, so nothing outside it can be read
                 if name.endswith(".woff2") and name in os.listdir(FONTS):
                     with open(os.path.join(FONTS, name), "rb") as f: return self._send(200, f.read(), "font/woff2", "public, max-age=31536000, immutable")
                 return self._send(404, {"error": "not found"})
-            if u.path == "/api/state": return self._send(200, state(results_dir))
+            if u.path == "/api/state": return self._send(200, state(results_dir, research_dir))
             if u.path == "/api/events":
                 try: since = int(parse_qs(u.query).get("since", ["0"])[0])
                 except ValueError: since = 0
@@ -145,10 +159,10 @@ def listen_v6(httpd):
     return v6
 
 
-def serve(results_dir, port, trust=None):
+def serve(results_dir, port, trust=None, research_dir=None):
     if not os.path.exists(f"{results_dir}/results.json"):
         print(f"warning: no results.json in {os.path.abspath(results_dir)}; run from the repo folder or pass --results", flush=True)
-    httpd = make_server(results_dir, port, trust)
+    httpd = make_server(results_dir, port, trust, research_dir)
     listen_v6(httpd)
     print(f"Bayora dashboard for {os.path.abspath(results_dir)}: http://localhost:{httpd.server_address[1]}  (Ctrl-C to stop)", flush=True)
     try:

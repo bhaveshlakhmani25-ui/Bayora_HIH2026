@@ -409,6 +409,7 @@
   <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
   <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></symbol>
   <symbol id="i-turn" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15.4-6.4L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.4 6.4L3 16"/><path d="M3 21v-5h5"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5Z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/></symbol>
   <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></symbol>
   <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
 </svg>
@@ -608,6 +609,16 @@
         </div>
       </section>
 
+      <section data-page="research" hidden>
+        <p class="intro" id="rs-intro">The sources behind Bayora's claims, collected with TinyFish and sealed in a Merkle log, so the research has a receipt too. Each source says how much of it we actually read.</p>
+        <div class="panel" style="margin-top:20px"><header><h2>Evidence pack</h2><button class="btn solid" id="rs-verify" type="button"><svg class="i"><use href="#i-check"/></svg>Verify pack</button></header><div class="body" style="display:grid;gap:14px">
+          <dl class="kv" id="rs-seal"></dl>
+          <div class="verdict" id="rs-verdict" role="status" aria-live="polite" hidden></div>
+        </div></div>
+        <div class="panel" style="margin-top:20px"><header><h2>Claims and their sources</h2></header><div class="body"><ul class="rows" id="rs-claims"></ul></div></div>
+        <div class="panel" style="margin-top:20px" id="rs-drift-panel" hidden><header><h2>Pages that changed since the last check</h2></header><div class="body"><ul class="rows" id="rs-drift"></ul></div></div>
+      </section>
+
       <section data-page="limits" hidden>
         <p class="intro">A clean scan is not proof of zero leakage. These limits are measured or stated, not hidden.</p>
         <ul class="limits" id="limit-list"></ul>
@@ -659,7 +670,7 @@ const PROBE = {
   "red_reads_blue_volume": ["Read the blue team's files", "volume never mounted"],
   "red_writes_code": ["Modify the evaluation code", "mounted read-only"],
 };
-const PAGES = [["overview", "Overview", "grid"], ["isolation", "Isolation", "layers"], ["detection", "Detection", "radar"], ["cache", "Side channel", "timer"], ["ledger", "Ledger", "link"], ["verify", "Verify", "badge"], ["limits", "Limits", "alert"]];
+const PAGES = [["overview", "Overview", "grid"], ["isolation", "Isolation", "layers"], ["detection", "Detection", "radar"], ["cache", "Side channel", "timer"], ["ledger", "Ledger", "link"], ["verify", "Verify", "badge"], ["research", "Research", "book"], ["limits", "Limits", "alert"]];
 
 /* theme: follows the system until the viewer picks one */
 function isDark() { const t = document.documentElement.dataset.theme; return t ? t === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; }
@@ -1121,6 +1132,45 @@ document.querySelectorAll(".step").forEach((el) => el.querySelector(".go").addEv
 }));
 desktop.addEventListener("change", storyScroll);
 
+/* ---------- research: the sources behind the claims, sealed in a Merkle log ---------- */
+const READ_NOTE = { full: ["read in full", "ok"], section: ["relevant section read", "neutral"], abstract: ["abstract only", "neutral"], searched: ["searched for terms", "neutral"], snippet: ["search snippet only, not read", "warn"] };
+function research() {
+  const r = S.research, list = $("rs-claims");
+  if (!r) {
+    $("rs-seal").replaceChildren(); $("rs-verify").hidden = true;
+    list.replaceChildren(h("li", {}, h("span", { class: "muted" }, "No research folder here. Run bayora research collect, then bayora research seal.")));
+    return;
+  }
+  const ev = Object.fromEntries(r.evidence.map((e) => [e.id, e])), s = r.seal;
+  const full = r.sources.filter((x) => x.read === "full").length, weak = r.sources.filter((x) => x.read === "snippet").length;
+  const row = (k, v) => $("rs-seal").append(h("dt", {}, k), v instanceof Node ? h("dd", {}, v) : h("dd", {}, v));
+  $("rs-seal").replaceChildren();
+  row("Sources", `${r.sources.length} for ${Object.keys(r.claims).length} claims: ${full} read in full, ${weak} search snippets not yet read`);
+  row("Fetched", r.evidence.length ? `${r.evidence.filter((e) => e.status === "ok").length} of ${r.evidence.length} with TinyFish, ${r.evidence[0].fetched_at}` : "not fetched yet (bayora research collect)");
+  row("Merkle root", s ? h("span", { class: "hex" }, hexgroups(s.root)) : "not sealed yet (bayora research seal)");
+  $("rs-verify").hidden = !s;
+  list.replaceChildren(...Object.entries(r.claims).map(([id, text]) => {
+    const srcs = r.sources.filter((x) => x.supports.includes(id));
+    return h("li", {}, h("div", {}, h("div", { class: "what" }, `${id}  ${text}`),
+      ...srcs.map((x) => { const e = ev[x.id], [note] = READ_NOTE[x.read];
+        return h("div", { class: "why" }, h("a", { href: x.url, target: "_blank", rel: "noopener" }, x.title), ` · ${note} · ${e && e.status === "ok" ? "sha256 " + short(e.sha256, 10) : e ? "fetch failed" : "not fetched yet"}`); })),
+      stamp(srcs.length ? `${srcs.length} source${srcs.length > 1 ? "s" : ""}` : "no source", srcs.length ? "ok" : "bad"));
+  }));
+  $("rs-drift-panel").hidden = !r.drift.length;
+  $("rs-drift").replaceChildren(...r.drift.map((d) => h("li", {}, h("div", {}, h("div", { class: "what" }, d.monitor), h("div", { class: "why" }, `${d.url} · ${d.at}`)), stamp("changed", "warn"))));
+}
+async function verifyResearch() {   // the same checks as bayora research verify, minus the cached pages, in this browser
+  const r = S.research, s = r && r.seal, el = $("rs-verdict");
+  const say = (ok, msg) => { el.className = "verdict " + (ok ? "ok" : "bad"); el.replaceChildren(h("strong", {}, icon(ok ? "check" : "x"), ok ? "Verified" : "Rejected"), h("p", {}, msg)); el.hidden = false; };
+  if (!s || !(window.crypto && crypto.subtle)) return say(false, "There is no seal to check, or this browser has no Web Crypto.");
+  const root = await hashAll(build(0, r.lines.length, 0, []), r.lines);
+  if (r.lines.length !== s.size || hexOf(root) !== s.root) return say(false, "The evidence root does not match the seal: a line was edited, added or removed.");
+  let ok; try { ok = await sigOk(s.operator_pubkey, unhex(s.sig), enc.encode(`${s.origin}\n${s.size}\n${btoa(String.fromCharCode(...root))}\n`)); }
+  catch (e) { return say(false, "This browser cannot check Ed25519 signatures. Use a current browser, or run bayora research verify."); }
+  say(ok, ok ? `OK: ${s.size} sources hash to root ${s.root.slice(0, 16)}…, signed by ${s.operator_pubkey.slice(0, 12)}…. The key comes from the seal itself, so this proves the pack was not changed after sealing, not who sealed it.` : "The seal signature does not verify.");
+}
+$("rs-verify").onclick = verifyResearch;
+
 function limits(r) {
   const last = r && r.leak_drills ? Object.values(r.leak_drills).at(-1) : null;
   const miss = last ? Object.entries(last.by_channel_encoding).filter(([k]) => k.endsWith("|described")).reduce((a, [, v]) => [a[0] + v[0], a[1] + v[1]], [0, 0]) : null;
@@ -1188,27 +1238,29 @@ document.querySelectorAll("[data-copy]").forEach((b) => (b.onclick = async () =>
 
 /* verify */
 const STATIC = !!(window.__BOOT__ && window.__BOOT__.static);   // a published copy of the site: no server behind it
-const b64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0)), unhex = (s) => Uint8Array.from(s.match(/../g), (x) => parseInt(x, 16));
+const b64 = (s) => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/") + "=".repeat((4 - s.length % 4) % 4)), (c) => c.charCodeAt(0)), unhex = (s) => Uint8Array.from(s.match(/../g), (x) => parseInt(x, 16));
 async function sigOk(pubHex, sig, msg) {
   const k = await crypto.subtle.importKey("raw", unhex(pubHex), { name: "Ed25519" }, false, ["verify"]);
   return crypto.subtle.verify({ name: "Ed25519" }, k, sig, msg);
 }
 async function browserVerify(tamper) {   // the checks bayora/verify.py makes (all but the reveal), done with Web Crypto: nothing leaves the browser
-  const rc = S && S.receipt, p = S && S.statement && S.statement.predicate, keys = window.__BOOT__.trust;
+  const rc = S && S.receipt, keys = window.__BOOT__.trust;
   const trust = "keys.json published with this site. For an independent check, run bayora verify with keys you got another way.";
   let tampered = null;
   const fail = (message) => ({ ok: false, pinned: true, message, tampered, trust });
-  if (!rc || !p || !tree.lines || !keys) return fail("This copy of the site has no receipt, log or keys to check.");
+  if (!rc || !tree.lines || !keys) return fail("This copy of the site has no receipt, log or keys to check.");
   const lines = tree.lines.slice();
   if (tamper != null) { const i = Number(tamper), [l, c] = tamperLine(lines[i]); lines[i] = l; tampered = `event #${i}: ${c}`; }
   try {
+    if (rc.payloadType !== "application/vnd.in-toto+json") return fail(`unsupported DSSE payloadType ${rc.payloadType}`);
     const body = b64(rc.payload), pae = new Uint8Array([...enc.encode(`DSSEv1 ${rc.payloadType.length} ${rc.payloadType} ${body.length} `), ...body]);
     let dsse = false;
     for (const sg of rc.signatures) if (await sigOk(keys.operator, b64(sg.sig), pae)) dsse = true;
     if (!dsse) return fail("DSSE signature does not verify with the operator key");
+    const st = JSON.parse(new TextDecoder().decode(body)), p = st.predicate;   // read from the bytes that were verified, never from a copy (DSSE)
     if (lines.length !== p.log_size) return fail(`log has ${lines.length} entries, receipt says ${p.log_size}`);
     const rootOf = (n) => hashAll(build(0, n, 0, []), lines), root = await rootOf(lines.length);
-    if (hexOf(root) !== p.log_root || rc.payload && S.statement.subject[0].digest.sha256 !== p.log_root) return fail("log root does not match receipt (an entry was edited, added or removed)");
+    if (hexOf(root) !== p.log_root || st.subject[0].digest.sha256 !== p.log_root) return fail("log root does not match receipt (an entry was edited, added or removed)");
     const cp = enc.encode(`${p.origin}\n${p.log_size}\n${btoa(String.fromCharCode(...root))}\n`);
     if (!(await sigOk(keys.operator, unhex(p.operator_sig), cp))) return fail("operator signature does not cover the final checkpoint");
     const cos = new Uint8Array([...enc.encode("cosig\n"), ...cp]), good = new Set(), need = keys.quorum || 2;
@@ -1245,7 +1297,7 @@ async function load() {
   const b = boot; boot = null;
   try { S = b ? b.state : await (await fetch("/api/state")).json(); } catch (e) { $("l-env").textContent = "Could not load the run. Start it with bayora dashboard, then reload this page."; return; }
   const r = S.results, p = S.statement && S.statement.predicate;
-  site(r, p); story(r, p); overview(r, p); receiptDl($("rc"), p, false); isolation(r); detection(r); cache(r); chain(r); limits(r);
+  site(r, p); story(r, p); overview(r, p); receiptDl($("rc"), p, false); isolation(r); detection(r); cache(r); chain(r); research(); limits(r);
   $("rc-fmt").textContent = p ? "in-toto · DSSE" : (S.receipt ? "PoC format" : "none");
   $("side-run").replaceChildren(h("span", { class: "label" }, "Open case"), h("b", {}, r ? r.run_id : "no run"), r && r.host && r.host.docker ? `${r.host.docker.context}${r.host.docker.userns_remap ? " · userns-remap" : ""} · ${r.isolation ? r.isolation.enforcer : ""}` : S.dir);
   if (r && r.host) $("foot-env").textContent = `Latest case measured on ${r.host.platform}. Numbers apply to that environment only.`;

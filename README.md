@@ -9,7 +9,7 @@ A blind, leak-audited red-vs-blue evaluation that ends in a receipt anyone can v
 [![CI](https://github.com/bhaveshlakhmani25-ui/Bayora_HIH2026/actions/workflows/ci.yml/badge.svg)](https://github.com/bhaveshlakhmani25-ui/Bayora_HIH2026/actions/workflows/ci.yml)
 [![Live demo](https://img.shields.io/badge/live%20demo-open-087f5b)](https://bhaveshlakhmani25-ui.github.io/Bayora_HIH2026/)
 ![Python](https://img.shields.io/badge/python-3.10%2B-3776ab)
-![Tests](https://img.shields.io/badge/tests-26%20passing-087f5b)
+![Tests](https://img.shields.io/badge/tests-36%20passing-087f5b)
 
 **[Live demo](https://bhaveshlakhmani25-ui.github.io/Bayora_HIH2026/)** ·
 **[Check it yourself](#check-it-yourself-60-seconds)** ·
@@ -96,6 +96,13 @@ Environment: **Colima vz** (Ubuntu 24.04, kernel 6.8, 4 vCPU) on an **Apple M5**
 | Latency, 3 × 500 requests through the containers | 100% completed; p50 **0.25 ms**, the same with eBPF on and off | +0.3 ms p50 over a host baseline |
 | Ledger | about 540–570k appends/s; inclusion proof 0.015 ms | about 200k/s |
 
+## Research, sealed with TinyFish
+
+The research behind Bayora's claims is itself checkable. [**TinyFish**](https://tinyfish.ai) Search, Fetch and Monitor were used to find and read the primary sources: the EU AI Act and the AI Office's evaluator requirements, the cache side-channel papers, vLLM's security advisories, AISI's sandbox research, and the RFC, in-toto, DSSE and C2SP specifications.
+
+- **[docs/research.md](docs/research.md)** is the report: 13 claims, 26 sources, each marked with how much of it was actually read. It also lists what the research changed in the code (the verifier now follows two DSSE rules it was missing) and what it found we do not test.
+- **`bayora research collect | seal | verify | watch`** fetches every source through the TinyFish API, fingerprints each page, seals the list in a Merkle log, and re-checks three regulation pages through TinyFish Monitors. The console's **Research** page verifies the seal in your browser.
+
 ## Honest limits
 
 These are stated on the site's Limits page and in the [threat model](docs/threat-model.md):
@@ -163,6 +170,7 @@ Configuration lives in [`bayora/default.yaml`](bayora/default.yaml) (image, zone
 | `bayora/cachetest.py` | Cache-timing side-channel attack against a real model |
 | `bayora/witness.py` | Witness HTTP service with a persistent key |
 | `bayora/receipt.py`, `bayora/verify.py` | in-toto + DSSE receipt, and a verifier that never contacts the operator |
+| `bayora/research.py`, `research/` | TinyFish-backed research evidence: sources manifest, fetch, fingerprint, seal, watch |
 | `bayora/dashboard/` | The site and console; also verifies in the browser (Web Crypto) |
 | `containers/agent.py` | The red, blue, broker and model roles |
 | `results_final/` | Measured runs (`demo/` is the one the site shows) |
@@ -171,7 +179,7 @@ Configuration lives in [`bayora/default.yaml`](bayora/default.yaml) (image, zone
 ## Development
 
 ```bash
-pip install -e ".[dev]" && python -m pytest -q tests    # 26 tests; CI also runs `bayora drill` and a Docker run with eBPF
+pip install -e ".[dev]" && python -m pytest -q tests    # 36 tests; CI also runs `bayora drill` and a Docker run with eBPF
 ```
 
 Pushes to `main` redeploy the live site through [GitHub Pages](.github/workflows/pages.yml).

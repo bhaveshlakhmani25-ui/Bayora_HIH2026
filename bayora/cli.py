@@ -21,7 +21,14 @@ def main(argv=None):
     ds = sub.add_parser("dashboard", help="web UI for one results directory")
     ds.add_argument("--results", default="results_final/demo"); ds.add_argument("--port", type=int, default=8765)
     ds.add_argument("--trust", help="pinned keys for the Verify button (default: keys from the receipt)")
+    ds.add_argument("--research", default="research", help="research folder (sources, evidence, seal) for the Research page; skipped if it does not exist")
     ds.add_argument("--export", metavar="DIR", help="write a static copy of the site to DIR instead of serving it (needs --trust)")
+    rs = sub.add_parser("research", help="fetch the sources behind our claims with TinyFish, fingerprint them and seal the list")
+    rs.add_argument("action", choices=["collect", "seal", "verify", "watch"])
+    rs.add_argument("--manifest", default="research/sources.yaml"); rs.add_argument("--out", default="research")
+    rs.add_argument("--key", default="~/.bayora/research.key", help="operator key that signs the seal (created on first use)")
+    rs.add_argument("--trust", help="hex Ed25519 key to verify the seal against (default: the key in the seal)")
+    rs.add_argument("--state", default="research/monitors.json", help="TinyFish monitors to run for `watch`")
     w = sub.add_parser("witness", help="run a witness service (on another machine for real independence)")
     w.add_argument("action", choices=["serve"]); w.add_argument("--name", required=True); w.add_argument("--port", type=int, default=0)
     w.add_argument("--host", default="127.0.0.1", help="address to listen on; use 0.0.0.0 to serve other machines")
@@ -38,8 +45,25 @@ def main(argv=None):
         from .dashboard.server import serve, export
         if a.export:
             if not a.trust: p.error("--export needs --trust: the published page verifies against those keys")
-            export(a.results, a.export, a.trust); print(f"static site written to {a.export}")
-        else: serve(a.results, a.port, a.trust)
+            export(a.results, a.export, a.trust, a.research); print(f"static site written to {a.export}")
+        else: serve(a.results, a.port, a.trust, a.research)
+        return 0
+    if a.cmd == "research":
+        import os
+        from . import research as rs
+        if a.action == "collect":
+            rows = rs.collect(rs.load_manifest(a.manifest), a.out, rs.key_from_env())
+            bad = [r["id"] for r in rows if r["status"] != "ok"]
+            print(f"fetched {len(rows) - len(bad)}/{len(rows)} sources into {a.out}/" + (f"; failed: {', '.join(bad)}" if bad else ""))
+            return 1 if bad else 0
+        if a.action == "seal":
+            s = rs.seal(a.out, os.path.expanduser(a.key)); print(f"sealed {s['size']} sources, root {s['root'][:16]}..., signed by {s['operator_pubkey'][:12]}...")
+            return 0
+        if a.action == "verify":
+            ok, msg = rs.verify_pack(a.out, a.trust); print(msg)
+            return 0 if ok else 1
+        drift = rs.watch(a.state, a.out, rs.key_from_env())
+        print(f"{len(drift)} page(s) changed" + "".join(f"\n  {d['monitor']}: {d['url']}" for d in drift))
         return 0
     if a.cmd == "witness":
         from .witness import serve

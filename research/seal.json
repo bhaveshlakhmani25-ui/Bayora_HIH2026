@@ -1,0 +1,8 @@
+{
+  "operator_pubkey": "6e0b6296b1ab494ac421073782fdfc334ce7cad970b518e79f64fae54011274d",
+  "origin": "bayora.dev/research",
+  "root": "5b1d9a06c3f4544c5f7288592a356c3c1e152c1bfe764679841d019c16506a45",
+  "sealed_at": "2026-11-20T08:11:53Z",
+  "sig": "b884d52c479bc45d6aae333ba83345edb622249f5971f7ad69b992715ca2468116de1ba20088959ac0efa45d1da30f61cba4e3844ec817b4abf8b9f5f360a406",
+  "size": 26
+}

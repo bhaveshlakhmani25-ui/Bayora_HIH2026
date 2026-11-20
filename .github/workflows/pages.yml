@@ -24,7 +24,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -e .
-      - run: bayora dashboard --results results_final/demo --trust results_final/demo/keys.json --export site
+      - run: bayora dashboard --results results_final/demo --trust results_final/demo/keys.json --research research --export site
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
